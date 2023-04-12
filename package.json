@@ -25,6 +25,7 @@
     "@nestjs/core": "^9.0.0",
     "@nestjs/mongoose": "^9.2.2",
     "@nestjs/platform-express": "^9.0.0",
+    "@nestjs/swagger": "^6.3.0",
     "cross-env": "^7.0.3",
     "mongoose": "^7.0.3",
     "reflect-metadata": "^0.1.13",

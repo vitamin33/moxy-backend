@@ -17,8 +17,3 @@ import { ConfigModule } from '@nestjs/config';
   providers: [AppService],
 })
 export class AppModule {}
-
-function test() {
-  console.log(process.env.MONGODB_CONFIG);
-}
-test();
