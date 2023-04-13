@@ -7,6 +7,8 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema()
 export class User {
+  id: string;
+
   @ApiProperty({ example: 'Anatolii', description: 'First name' })
   @Prop()
   firstName: string;

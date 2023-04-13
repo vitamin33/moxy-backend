@@ -22,4 +22,8 @@ export class UsersService {
   async getAllUsers() {
     return this.userModel.find().populate('role').exec();
   }
+
+  async getUserByEmail(email: string) {
+    return this.userModel.findOne({ email: email }).populate('role');
+  }
 }
