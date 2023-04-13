@@ -16,7 +16,7 @@ export class UsersService {
     const user = new this.userModel(dto);
     const role = await this.roleService.getRoleByValue('USER');
     user.$set('role', role);
-    return user.save();
+    return await user.save();
   }
 
   async getAllUsers() {
