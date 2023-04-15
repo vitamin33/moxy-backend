@@ -41,10 +41,6 @@ export class UsersService {
     }
   }
 
-  async removeRole(dto: ChangeRoleDto) {
-    throw new Error('Method not implemented.');
-  }
-
   async getUserByEmail(email: string) {
     return this.userModel.findOne({ email: email }).populate('role').exec();
   }
