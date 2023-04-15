@@ -37,7 +37,7 @@ export class User {
   @Prop()
   password: string;
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }] })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Role.name })
   role: Role;
 }
 
