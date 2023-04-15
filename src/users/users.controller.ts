@@ -36,13 +36,4 @@ export class UsersController {
   addRole(@Body() dto: ChangeRoleDto) {
     return this.usersService.addRole(dto);
   }
-
-  @ApiOperation({ summary: 'Remove role for user' })
-  @ApiResponse({ status: 200 })
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
-  @Post('/remove-role')
-  removeRole(@Body() dto: ChangeRoleDto) {
-    return this.usersService.removeRole(dto);
-  }
 }
