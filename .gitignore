@@ -36,3 +36,4 @@ lerna-debug.log*
 *.env
 .prod.env
 .dev.env
+moxy-384018.json
