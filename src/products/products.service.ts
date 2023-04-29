@@ -4,6 +4,7 @@ import { Product, ProductDocument } from './product.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { StorageService } from 'src/storage/storage.service';
+import { EditProductDto } from './dto/edit-product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -12,9 +13,9 @@ export class ProductsService {
     private storageService: StorageService,
   ) {}
   async createProduct(dto: CreateProductDto, images: [any]): Promise<Product> {
+    const result = [];
+    const product = new this.productModel(dto);
     if (images) {
-      const result = [];
-      const product = new this.productModel(dto);
       for (const image of images) {
         const imageUrl = await this.storageService.uploadFile(image);
 
@@ -22,10 +23,49 @@ export class ProductsService {
         result.push(imageUrl);
       }
       product.$set('images', result);
-      return await product.save();
-    } else {
-      throw new HttpException('No image file.', HttpStatus.BAD_REQUEST);
     }
+    return await product.save();
+  }
+
+  async editProduct(
+    id: string,
+    dto: EditProductDto,
+    images: [any],
+  ): Promise<Product> {
+    const product = await this.getProductbyId(id);
+    if (product) {
+      const imagesArr = dto.currentImages ? dto.currentImages : [];
+      if (images) {
+        for (const image of images) {
+          const imageUrl = await this.storageService.uploadFile(image);
+
+          console.log('Saved image url: ', imageUrl);
+          imagesArr.push(imageUrl);
+        }
+      }
+      return await this.productModel.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            images: imagesArr,
+            name: dto.name,
+            description: dto.description,
+            color: dto.color,
+            costPrice: dto.costPrice,
+            salePrice: dto.salePrice,
+            warehouseQuantity: dto.warehouseQuantity,
+          },
+        },
+        { new: true },
+      );
+    } else {
+      throw new HttpException(
+        'Unable to find such Product',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return await product.save();
   }
 
   async getAllProducts() {

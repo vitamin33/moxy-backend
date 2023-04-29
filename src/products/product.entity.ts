@@ -33,7 +33,7 @@ export class Product {
   salePrice: number;
 
   @ApiProperty({ example: 24, description: 'Quantity of product on warehouse' })
-  @Prop()
+  @Prop({ default: 0 })
   warehouseQuantity: number;
 
   @ApiProperty({ example: 'red', description: 'Product color' })
