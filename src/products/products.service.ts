@@ -30,13 +30,13 @@ export class ProductsService {
   async editProduct(
     id: string,
     dto: EditProductDto,
-    images: [any],
+    newImages: [any],
   ): Promise<Product> {
     const product = await this.getProductbyId(id);
     if (product) {
       const imagesArr = dto.currentImages ? dto.currentImages : [];
-      if (images) {
-        for (const image of images) {
+      if (newImages) {
+        for (const image of newImages) {
           const imageUrl = await this.storageService.uploadFile(image);
 
           console.log('Saved image url: ', imageUrl);
@@ -64,8 +64,6 @@ export class ProductsService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
-    return await product.save();
   }
 
   async getAllProducts() {
