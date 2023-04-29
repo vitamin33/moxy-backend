@@ -24,14 +24,20 @@ export class ProductsController {
     return this.productService.createProduct(dto, images);
   }
 
+  @ApiOperation({
+    summary:
+      'Edit product with specific id. Send new images with newImages parameter as file.' +
+      'And send existed images with currentImages array of image URLs.',
+  })
+  @ApiResponse({ status: 200, type: [Product] })
   @Post('edit/:id')
-  @UseInterceptors(FilesInterceptor('images'))
+  @UseInterceptors(FilesInterceptor('newImages'))
   async editProduct(
     @Param('id') id: string,
     @Body() dto: EditProductDto,
-    @UploadedFiles() images,
+    @UploadedFiles() newImages,
   ) {
-    return this.productService.editProduct(id, dto, images);
+    return this.productService.editProduct(id, dto, newImages);
   }
 
   @ApiOperation({ summary: 'Get all product list' })
