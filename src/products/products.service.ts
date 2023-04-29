@@ -27,4 +27,12 @@ export class ProductsService {
       throw new HttpException('No image file.', HttpStatus.BAD_REQUEST);
     }
   }
+
+  async getAllProducts() {
+    return this.productModel.find().exec();
+  }
+
+  async getProductbyId(id: string) {
+    return this.productModel.findById(id).exec();
+  }
 }
