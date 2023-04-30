@@ -11,7 +11,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { ProductsService } from './products.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Product } from './product.entity';
+import { Product, ProductDocument } from './product.entity';
 import { EditProductDto } from './dto/edit-product.dto';
 
 @Controller('products')
@@ -20,7 +20,10 @@ export class ProductsController {
 
   @Post('create')
   @UseInterceptors(FilesInterceptor('images'))
-  async createProduct(@Body() dto: CreateProductDto, @UploadedFiles() images) {
+  async createProduct(
+    @Body() dto: CreateProductDto,
+    @UploadedFiles() images,
+  ): Promise<ProductDocument> {
     return this.productService.createProduct(dto, images);
   }
 
@@ -43,12 +46,12 @@ export class ProductsController {
   @ApiOperation({ summary: 'Get all product list' })
   @ApiResponse({ status: 200, type: [Product] })
   @Get()
-  async getAllProducts() {
+  async getAllProducts(): Promise<ProductDocument[]> {
     return this.productService.getAllProducts();
   }
 
   @Get(':id')
-  getProductById(@Param('id') id: string): Promise<Product> {
+  getProductById(@Param('id') id: string): Promise<ProductDocument> {
     return this.productService.getProductbyId(id);
   }
 }

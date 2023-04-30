@@ -1,8 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { HydratedDocument } from 'mongoose';
-
-export type ProductDocument = HydratedDocument<Product>;
+interface AdditionalDocument extends Document {
+  marginValue: number;
+}
+type FullProductDocument = Product & Document & AdditionalDocument;
+export type ProductDocument = HydratedDocument<FullProductDocument>;
 
 @Schema()
 export class Product {

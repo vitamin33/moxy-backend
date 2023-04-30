@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { StorageService } from 'src/storage/storage.service';
 import { EditProductDto } from './dto/edit-product.dto';
+import { map } from 'rxjs';
 
 @Injectable()
 export class ProductsService {
@@ -12,7 +13,10 @@ export class ProductsService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private storageService: StorageService,
   ) {}
-  async createProduct(dto: CreateProductDto, images: [any]): Promise<Product> {
+  async createProduct(
+    dto: CreateProductDto,
+    images: [any],
+  ): Promise<ProductDocument> {
     const result = [];
     const product = new this.productModel(dto);
     if (images) {
@@ -66,11 +70,19 @@ export class ProductsService {
     }
   }
 
-  async getAllProducts() {
-    return this.productModel.find().exec();
+  async getAllProducts(): Promise<any[]> {
+    const products = await this.productModel.find();
+    const mappedProducts = products.map((product) => {
+      const marginValue = product.salePrice - product.costPrice;
+      const productObj = product.toObject();
+      return { ...productObj, marginValue };
+    });
+    return mappedProducts;
   }
 
-  async getProductbyId(id: string) {
-    return this.productModel.findById(id).exec();
+  async getProductbyId(id: string): Promise<ProductDocument> {
+    const product = await this.productModel.findById(id).lean();
+    product.marginValue = product.salePrice - product.costPrice;
+    return product;
   }
 }
