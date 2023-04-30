@@ -5,7 +5,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { StorageService } from 'src/storage/storage.service';
 import { EditProductDto } from './dto/edit-product.dto';
-import { map } from 'rxjs';
 
 @Injectable()
 export class ProductsService {
