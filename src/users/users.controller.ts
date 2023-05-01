@@ -5,7 +5,6 @@ import {
   Post,
   UseGuards,
   UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
@@ -14,6 +13,7 @@ import { User } from './user.entity';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/role-auth.decorator';
 import { ChangeRoleDto } from './dto/change-role.dto';
+import { ValidationPipe } from 'src/pipes/validation.pipe';
 
 @ApiTags('Users')
 @Controller('users')

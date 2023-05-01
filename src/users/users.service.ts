@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RolesService } from 'src/roles/roles.service';
 import { ChangeRoleDto } from './dto/change-role.dto';
+import { GuestUserDto } from 'src/orders/dto/create-order.dto';
 
 @Injectable()
 export class UsersService {
@@ -15,7 +16,14 @@ export class UsersService {
 
   async createUser(dto: CreateUserDto): Promise<User> {
     const user = new this.userModel(dto);
-    const role = await this.roleService.getRoleByValue('MANAGER');
+    const role = await this.roleService.getRoleByValue('USER');
+    user.$set('role', role);
+    return await user.save();
+  }
+
+  async createGuestUser(dto: GuestUserDto): Promise<User> {
+    const user = new this.userModel(dto);
+    const role = await this.roleService.getRoleByValue('GUEST');
     user.$set('role', role);
     return await user.save();
   }
