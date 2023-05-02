@@ -1,4 +1,4 @@
-import { IsEnum } from 'class-validator';
+import { ArrayNotEmpty, IsEnum, IsNotEmpty } from 'class-validator';
 import { DeliveryType, PaymentType, Status } from '../order.entity';
 
 export class CreateOrderDto {
@@ -8,11 +8,13 @@ export class CreateOrderDto {
   @IsEnum(Status)
   readonly status: string;
   @IsEnum(PaymentType)
+  @IsNotEmpty({ message: 'paymentType should be present' })
   readonly paymentType: string;
   readonly cashAdvanceValue: number;
   readonly novaPostMachineNumber: number;
   readonly novaPostNumber: number;
   readonly deliveryCity: string;
+  @ArrayNotEmpty({ message: 'Order should have at least one product.' })
   readonly products: string[];
   readonly client: GuestUserDto;
 }

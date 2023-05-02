@@ -1,10 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { HydratedDocument } from 'mongoose';
-interface AdditionalDocument extends Document {
-  marginValue: number;
-}
-type FullProductDocument = Product & Document & AdditionalDocument;
+
+type FullProductDocument = Product & Document;
 export type ProductDocument = HydratedDocument<FullProductDocument>;
 
 @Schema()
@@ -12,6 +10,8 @@ export class Product {
   @ApiProperty({ example: 'Bag', description: 'Product name' })
   @Prop()
   name: string;
+
+  marginValue: number;
 
   @ApiProperty({
     example: 'This product is awesome',
@@ -45,3 +45,7 @@ export class Product {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
+
+ProductSchema.virtual('marginValue').get(function (this: Product) {
+  return this.salePrice - this.costPrice;
+});

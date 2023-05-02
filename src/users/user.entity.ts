@@ -1,13 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import mongoose, { HydratedDocument } from 'mongoose';
+import { Transform, Type } from 'class-transformer';
+import mongoose, { ObjectId } from 'mongoose';
+import { Order } from 'src/orders/order.entity';
 import { Role } from 'src/roles/role.entity';
 
-export type UserDocument = HydratedDocument<User>;
+export type UserDocument = User & Document;
 
-@Schema()
+@Schema({
+  toJSON: {
+    getters: true,
+    virtuals: true,
+  },
+})
 export class User {
-  id: string;
+  @Transform(({ value }) => value.toString())
+  _id: ObjectId;
 
   @ApiProperty({ example: 'Anatolii', description: 'First name' })
   @Prop()
@@ -39,6 +47,20 @@ export class User {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Role.name })
   role: Role;
+
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
+  })
+  @Type(() => Order)
+  orders: Order[];
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+const UserSchema = SchemaFactory.createForClass(User);
+
+// UserSchema.virtual('orders', {
+//   ref: 'Order',
+//   localField: '_id',
+//   foreignField: 'client',
+// });
+
+export { UserSchema };

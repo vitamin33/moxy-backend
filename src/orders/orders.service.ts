@@ -15,11 +15,7 @@ export class OrdersService {
   ) {}
 
   async getAllOrders(): Promise<OrderDocument[]> {
-    return this.orderModel
-      .find()
-      .populate('client')
-      .populate('products')
-      .exec();
+    return this.orderModel.find().populate('products').exec();
   }
   async createOrder(orderDto: CreateOrderDto): Promise<OrderDocument> {
     let client: User;
@@ -39,6 +35,8 @@ export class OrdersService {
       client,
     });
     await createdOrder.populate('products');
-    return createdOrder.save();
+    const resultOrder = await createdOrder.save();
+    await this.usersService.addOrder(client._id.toString(), createdOrder);
+    return resultOrder;
   }
 }

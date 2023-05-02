@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { RolesService } from 'src/roles/roles.service';
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { GuestUserDto } from 'src/orders/dto/create-order.dto';
+import { Order } from 'src/orders/order.entity';
 
 @Injectable()
 export class UsersService {
@@ -29,7 +30,7 @@ export class UsersService {
   }
 
   async getAllUsers() {
-    return this.userModel.find().populate('role').exec();
+    return this.userModel.find().populate('role').populate('orders').exec();
   }
 
   async addRole(dto: ChangeRoleDto) {
@@ -44,6 +45,19 @@ export class UsersService {
     } else {
       throw new HttpException(
         'Unable to find such Role or User',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async addOrder(userId: string, order: Order) {
+    const user = await this.getUserById(userId);
+    if (user) {
+      user.orders.push(order);
+      return await user.save();
+    } else {
+      throw new HttpException(
+        `Unable to find such User: ${userId}`,
         HttpStatus.BAD_REQUEST,
       );
     }

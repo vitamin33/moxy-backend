@@ -1,36 +1,32 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
+import mongoose, { ObjectId } from 'mongoose';
 import { Product } from 'src/products/product.entity';
 import { User } from 'src/users/user.entity';
 
-interface OrderValue extends Document {
-  fullPrice: number;
-}
-type FullOrderDocument = Order & Document & OrderValue;
-export type OrderDocument = HydratedDocument<FullOrderDocument>;
+export type OrderDocument = Order & Document;
 
 export enum DeliveryType {
-  NovaPost,
-  NovaPostMachine,
-  UkrPost,
+  NovaPost = 'NovaPost',
+  NovaPostMachine = 'NovaPostMachine',
+  UkrPost = 'UkrPost',
 }
 
 export enum Status {
-  New,
-  Accepted,
-  Paid,
-  Packed,
-  Sent,
-  Sale,
-  Canceled,
-  Returned,
+  New = 'New',
+  Accepted = 'Accepted',
+  Paid = 'Paid',
+  Packed = 'Packed',
+  Sent = 'Sent',
+  Sale = 'Sale',
+  Canceled = 'Canceled',
+  Returned = 'Returned',
 }
 
 export enum PaymentType {
-  CashAdvance,
-  FullPayment,
+  CashAdvance = 'CashAdvance',
+  FullPayment = 'FullPayment',
 }
 
 @Schema()
@@ -75,7 +71,7 @@ export class Order {
   @Prop({ type: String, enum: PaymentType, default: PaymentType.FullPayment })
   paymentType: PaymentType;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   @Type(() => User)
   client: User;
 
@@ -84,6 +80,17 @@ export class Order {
   })
   @Type(() => Product)
   products: Product[];
+
+  fullSalePrice: number;
+
+  fullCostPrice: number;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
+
+OrderSchema.virtual('fullSalePrice').get(function (this: Order) {
+  return this.products.reduce((n, { salePrice }) => n + salePrice, 0);
+});
+OrderSchema.virtual('fullCostPrice').get(function (this: Order) {
+  return this.products.reduce((n, { costPrice }) => n + costPrice, 0);
+});

@@ -80,8 +80,6 @@ export class ProductsService {
   }
 
   async getProductbyId(id: string): Promise<ProductDocument> {
-    const product = await this.productModel.findById(id).lean();
-    product.marginValue = product.salePrice - product.costPrice;
-    return product;
+    return await this.productModel.findById(id).lean();
   }
 }
