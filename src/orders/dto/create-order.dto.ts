@@ -4,6 +4,7 @@ import { DeliveryType, PaymentType, Status } from '../order.entity';
 export class CreateOrderDto {
   readonly userId: string;
   @IsEnum(DeliveryType)
+  @IsNotEmpty({ message: 'deliveryType should be present' })
   readonly deliveryType: string;
   @IsEnum(Status)
   readonly status: string;

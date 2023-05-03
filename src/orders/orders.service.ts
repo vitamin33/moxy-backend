@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Order } from './order.entity';
 import { Model } from 'mongoose';
@@ -6,6 +11,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UsersService } from 'src/users/users.service';
 import { OrderDocument } from './order.entity';
 import { User } from 'src/users/user.entity';
+import { ChangeOrderDto } from './dto/change-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -38,5 +44,26 @@ export class OrdersService {
     const resultOrder = await createdOrder.save();
     await this.usersService.addOrder(client._id.toString(), createdOrder);
     return resultOrder;
+  }
+
+  async editOrder(orderDto: ChangeOrderDto): Promise<OrderDocument> {
+    const updatedOrder = await this.orderModel.findByIdAndUpdate(
+      { _id: orderDto.orderId },
+      orderDto,
+      { new: true },
+    );
+
+    if (!updatedOrder) {
+      throw new NotFoundException(`Order #${orderDto.orderId} not found`);
+    }
+    return updatedOrder;
+  }
+
+  async getOrderById(id: string) {
+    return this.orderModel
+      .findOne({ _id: id })
+      .populate('products')
+      .populate('client')
+      .exec();
   }
 }

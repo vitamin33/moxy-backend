@@ -13,6 +13,7 @@ import { Order, OrderDocument } from './order.entity';
 import { Roles } from 'src/auth/role-auth.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
+import { ChangeOrderDto } from './dto/change-order.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -26,12 +27,20 @@ export class OrdersController {
     return this.ordersService.createOrder(orderDto);
   }
 
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Edit order' })
+  @ApiResponse({ status: 200, type: Order })
+  @UsePipes(ValidationPipe)
+  @Post('edit')
+  async edit(@Body() orderDto: ChangeOrderDto): Promise<OrderDocument> {
+    return this.ordersService.editOrder(orderDto);
+  }
+
+  @ApiOperation({ summary: 'Get all orders' })
   @ApiResponse({ status: 200, type: [Order] })
   @Roles('ADMIN')
   @UseGuards(RolesGuard)
   @Get()
-  async getAllUsers(): Promise<OrderDocument[]> {
+  async getAllOrders(): Promise<OrderDocument[]> {
     return this.ordersService.getAllOrders();
   }
 }
