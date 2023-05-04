@@ -51,7 +51,7 @@ export class UsersController {
   @ApiResponse({ status: 200 })
   @Roles('ADMIN')
   @UseGuards(RolesGuard)
-  @Post('/edit-user')
+  @Post('/edit')
   editUserInfo(@Body() dto: EditUserDto) {
     return this.usersService.editUser(dto);
   }

@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from './user.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -52,7 +57,16 @@ export class UsersService {
   }
 
   async editUser(dto: EditUserDto) {
-    throw new Error('Method not implemented.');
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      { _id: dto.userId },
+      dto,
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      throw new NotFoundException(`User #${dto.userId} not found`);
+    }
+    return updatedUser;
   }
 
   async addOrder(userId: string, order: Order) {

@@ -1,6 +1,7 @@
 import { IsMobilePhone } from 'class-validator';
 
 export class EditUserDto {
+  readonly userId: string;
   readonly firstName: string;
   readonly secondName: string;
   readonly middleName: string;
