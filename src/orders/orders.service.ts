@@ -12,6 +12,7 @@ import { UsersService } from 'src/users/users.service';
 import { OrderDocument } from './order.entity';
 import { User } from 'src/users/user.entity';
 import { ChangeOrderDto } from './dto/change-order.dto';
+import { FindByStatusesDto } from './dto/find-by-status.dto';
 
 @Injectable()
 export class OrdersService {
@@ -23,6 +24,14 @@ export class OrdersService {
   async getAllOrders(): Promise<OrderDocument[]> {
     return this.orderModel.find().populate('products').exec();
   }
+
+  async getOrdersByStatuses(dto: FindByStatusesDto): Promise<OrderDocument[]> {
+    return this.orderModel
+      .find({ status: { $in: dto.statuses } })
+      .populate('products')
+      .exec();
+  }
+
   async createOrder(orderDto: CreateOrderDto): Promise<OrderDocument> {
     let client: User;
     if (orderDto.userId) {

@@ -14,6 +14,7 @@ import { Roles } from 'src/auth/role-auth.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { ChangeOrderDto } from './dto/change-order.dto';
+import { FindByStatusesDto } from './dto/find-by-status.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -42,5 +43,17 @@ export class OrdersController {
   @Get()
   async getAllOrders(): Promise<OrderDocument[]> {
     return this.ordersService.getAllOrders();
+  }
+
+  @ApiOperation({ summary: 'Get orders by status' })
+  @ApiResponse({ status: 200, type: [Order] })
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
+  @UsePipes(ValidationPipe)
+  @Post('find')
+  async getOrdersByStatus(
+    @Body() dto: FindByStatusesDto,
+  ): Promise<OrderDocument[]> {
+    return this.ordersService.getOrdersByStatuses(dto);
   }
 }
