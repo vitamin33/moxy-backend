@@ -7,12 +7,7 @@ import { Role } from 'src/roles/role.entity';
 
 export type UserDocument = User & Document;
 
-@Schema({
-  toJSON: {
-    getters: true,
-    virtuals: true,
-  },
-})
+@Schema()
 export class User {
   @Transform(({ value }) => value.toString())
   _id: ObjectId;
@@ -29,6 +24,9 @@ export class User {
   middleName: string;
 
   @Prop()
+  instagramLink: string;
+
+  @Prop()
   mobileNumber: string;
 
   @Prop()
@@ -37,6 +35,10 @@ export class User {
   @ApiProperty({ example: 24, description: 'Nova Poshta number' })
   @Prop()
   novaPoshtaNumber: number;
+
+  @ApiProperty({ example: 243, description: 'Nova Poshta machine number' })
+  @Prop()
+  novaPostMachineNumber: number;
 
   @ApiProperty({ example: 'crazyded@gmail.com', description: 'Email' })
   @Prop()
@@ -56,11 +58,5 @@ export class User {
 }
 
 const UserSchema = SchemaFactory.createForClass(User);
-
-// UserSchema.virtual('orders', {
-//   ref: 'Order',
-//   localField: '_id',
-//   foreignField: 'client',
-// });
 
 export { UserSchema };

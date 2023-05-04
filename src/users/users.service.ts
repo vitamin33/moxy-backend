@@ -7,6 +7,7 @@ import { RolesService } from 'src/roles/roles.service';
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { GuestUserDto } from 'src/orders/dto/create-order.dto';
 import { Order } from 'src/orders/order.entity';
+import { EditUserDto } from './dto/edit-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -48,6 +49,10 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  async editUser(dto: EditUserDto) {
+    throw new Error('Method not implemented.');
   }
 
   async addOrder(userId: string, order: Order) {

@@ -2,6 +2,22 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { HydratedDocument } from 'mongoose';
 
+export enum Color {
+  Black = 'Black',
+  White = 'White',
+  Grey = 'Grey',
+  Pink = 'Pink',
+  PinkLeo = 'PinkLeo',
+  Leo = 'Leo',
+  Brown = 'Brown',
+  Beige = 'Beige',
+  Purple = 'Beige',
+  Zebra = 'Zebra',
+  Jeans = 'Jeans',
+  Green = 'Green',
+  Bars = 'Bars',
+}
+
 type FullProductDocument = Product & Document;
 export type ProductDocument = HydratedDocument<FullProductDocument>;
 
@@ -39,8 +55,8 @@ export class Product {
   @Prop({ default: 0 })
   warehouseQuantity: number;
 
-  @ApiProperty({ example: 'red', description: 'Product color' })
-  @Prop()
+  @ApiProperty({ example: 'Black', description: 'Product color' })
+  @Prop({ type: String, enum: Color, default: Color.Black })
   color: string;
 }
 

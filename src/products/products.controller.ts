@@ -6,6 +6,7 @@ import {
   Post,
   UploadedFiles,
   UseInterceptors,
+  UsePipes,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductsService } from './products.service';
@@ -13,6 +14,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Product, ProductDocument } from './product.entity';
 import { EditProductDto } from './dto/edit-product.dto';
+import { ValidationPipe } from 'src/pipes/validation.pipe';
 
 @Controller('products')
 export class ProductsController {
@@ -20,6 +22,7 @@ export class ProductsController {
 
   @Post('create')
   @UseInterceptors(FilesInterceptor('images'))
+  @UsePipes(ValidationPipe)
   async createProduct(
     @Body() dto: CreateProductDto,
     @UploadedFiles() images,
@@ -35,6 +38,7 @@ export class ProductsController {
   @ApiResponse({ status: 200, type: [Product] })
   @Post('edit/:id')
   @UseInterceptors(FilesInterceptor('newImages'))
+  @UsePipes(ValidationPipe)
   async editProduct(
     @Param('id') id: string,
     @Body() dto: EditProductDto,

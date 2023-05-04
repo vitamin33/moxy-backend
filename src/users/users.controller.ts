@@ -14,6 +14,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/role-auth.decorator';
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
+import { EditUserDto } from './dto/edit-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -44,5 +45,14 @@ export class UsersController {
   @Post('/add-role')
   addRole(@Body() dto: ChangeRoleDto) {
     return this.usersService.addRole(dto);
+  }
+
+  @ApiOperation({ summary: 'Edit user info' })
+  @ApiResponse({ status: 200 })
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
+  @Post('/edit-user')
+  editUserInfo(@Body() dto: EditUserDto) {
+    return this.usersService.editUser(dto);
   }
 }
