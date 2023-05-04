@@ -14,6 +14,7 @@ export class ChangeOrderDto {
   readonly cashAdvanceValue: number;
   readonly novaPostMachineNumber: number;
   readonly novaPostNumber: number;
+  readonly ukrPostNumber: number;
   readonly deliveryCity: string;
   readonly products: string[];
 }

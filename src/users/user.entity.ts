@@ -40,6 +40,10 @@ export class User {
   @Prop()
   novaPostMachineNumber: number;
 
+  @ApiProperty({ example: 12, description: 'Ukr Post number for delivering' })
+  @Prop()
+  ukrPostNumber: number;
+
   @ApiProperty({ example: 'crazyded@gmail.com', description: 'Email' })
   @Prop()
   email: string;

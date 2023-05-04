@@ -42,6 +42,10 @@ export class Order {
   @Prop()
   novaPostNumber: number;
 
+  @ApiProperty({ example: 12, description: 'Ukr Post number for delivering' })
+  @Prop()
+  ukrPostNumber: number;
+
   @ApiProperty({ example: 150, description: 'Cash advance payment value' })
   @Prop()
   cashAdvanceValue: number;

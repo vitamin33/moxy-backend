@@ -10,5 +10,6 @@ export class EditUserDto {
   readonly mobileNumber: number;
   readonly city: string;
   readonly novaPoshtaNumber: number;
+  readonly ukrPostNumber: number;
   readonly novaPostMachineNumber: number;
 }
