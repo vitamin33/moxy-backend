@@ -11,7 +11,7 @@ export enum Color {
   Leo = 'Leo',
   Brown = 'Brown',
   Beige = 'Beige',
-  Purple = 'Beige',
+  Purple = 'Purple',
   Zebra = 'Zebra',
   Jeans = 'Jeans',
   Green = 'Green',
