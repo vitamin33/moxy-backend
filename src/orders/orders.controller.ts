@@ -14,7 +14,7 @@ import { Roles } from 'src/auth/role-auth.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { ChangeOrderDto } from './dto/change-order.dto';
-import { FindByStatusesDto } from './dto/find-by-status.dto';
+import { FindByDto } from './dto/find-by.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -51,9 +51,7 @@ export class OrdersController {
   @UseGuards(RolesGuard)
   @UsePipes(ValidationPipe)
   @Post('find')
-  async getOrdersByStatus(
-    @Body() dto: FindByStatusesDto,
-  ): Promise<OrderDocument[]> {
-    return this.ordersService.getOrdersByStatuses(dto);
+  async getOrdersBy(@Body() dto: FindByDto): Promise<OrderDocument[]> {
+    return this.ordersService.getOrdersBy(dto);
   }
 }

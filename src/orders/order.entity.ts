@@ -29,7 +29,7 @@ export enum PaymentType {
   FullPayment = 'FullPayment',
 }
 
-@Schema()
+@Schema({ timestamps: true })
 export class Order {
   @Transform(({ value }) => value.toString())
   _id: ObjectId;

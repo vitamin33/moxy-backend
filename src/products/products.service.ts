@@ -8,6 +8,9 @@ import { EditProductDto } from './dto/edit-product.dto';
 
 @Injectable()
 export class ProductsService {
+  importProducts(products: any): Promise<ProductDocument[]> {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private storageService: StorageService,

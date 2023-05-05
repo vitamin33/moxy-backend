@@ -12,7 +12,7 @@ import { UsersService } from 'src/users/users.service';
 import { OrderDocument } from './order.entity';
 import { User } from 'src/users/user.entity';
 import { ChangeOrderDto } from './dto/change-order.dto';
-import { FindByStatusesDto } from './dto/find-by-status.dto';
+import { FindByDto } from './dto/find-by.dto';
 
 @Injectable()
 export class OrdersService {
@@ -25,11 +25,28 @@ export class OrdersService {
     return this.orderModel.find().populate('products').exec();
   }
 
-  async getOrdersByStatuses(dto: FindByStatusesDto): Promise<OrderDocument[]> {
-    return this.orderModel
-      .find({ status: { $in: dto.statuses } })
-      .populate('products')
-      .exec();
+  async getOrdersBy(dto: FindByDto): Promise<OrderDocument[]> {
+    const query = this.orderModel.find();
+    if (dto.statuses) {
+      query.all('status', dto.statuses);
+    }
+    if (dto.paymentTypes) {
+      query.all('paymentType', dto.paymentTypes);
+    }
+    if (dto.deliveryTypes) {
+      query.all('deliveryType', dto.deliveryTypes);
+    }
+    if (dto.fromDate) {
+      const fromDate = new Date(dto.fromDate).toISOString();
+      console.log(`fromDate: ${fromDate}`);
+      query.gte('updatedAt', fromDate);
+    }
+    if (dto.toDate) {
+      const toDate = new Date(dto.toDate).toISOString();
+      console.log(`toDate: ${toDate}`);
+      query.lte('updatedAt', toDate);
+    }
+    return query.populate('products').exec();
   }
 
   async createOrder(orderDto: CreateOrderDto): Promise<OrderDocument> {

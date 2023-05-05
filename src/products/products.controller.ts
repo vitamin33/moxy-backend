@@ -30,6 +30,12 @@ export class ProductsController {
     return this.productService.createProduct(dto, images);
   }
 
+  @Post('import')
+  @UseInterceptors(FilesInterceptor('products'))
+  async importProducts(@UploadedFiles() products): Promise<ProductDocument[]> {
+    return this.productService.importProducts(products);
+  }
+
   @ApiOperation({
     summary:
       'Edit product with specific id. Send new images with newImages parameter as file.' +
