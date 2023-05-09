@@ -38,12 +38,10 @@ export class OrdersService {
     }
     if (dto.fromDate) {
       const fromDate = new Date(dto.fromDate).toISOString();
-      console.log(`fromDate: ${fromDate}`);
       query.gte('updatedAt', fromDate);
     }
     if (dto.toDate) {
       const toDate = new Date(dto.toDate).toISOString();
-      console.log(`toDate: ${toDate}`);
       query.lte('updatedAt', toDate);
     }
     return query.populate('products').exec();

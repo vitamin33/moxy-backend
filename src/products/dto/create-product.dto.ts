@@ -1,12 +1,20 @@
-import { IsEnum } from 'class-validator';
+import { IsEnum, ValidateNested } from 'class-validator';
 import { Color } from '../product.entity';
+import { Type } from 'class-transformer';
+
+export class DimensionDto {
+  @IsEnum(Color)
+  color: string;
+  quantity: number;
+}
 
 export class CreateProductDto {
-  readonly name: string;
-  readonly description: string;
-  readonly costPrice: number;
-  readonly salePrice: number;
-  readonly warehouseQuantity: number;
-  @IsEnum(Color)
-  readonly color: string;
+  name: string;
+  idName: string;
+  description: string;
+  costPrice: number;
+  salePrice: number;
+  @Type(() => DimensionDto)
+  @ValidateNested()
+  dimensions: DimensionDto[];
 }

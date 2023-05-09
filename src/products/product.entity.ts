@@ -22,10 +22,32 @@ type FullProductDocument = Product & Document;
 export type ProductDocument = HydratedDocument<FullProductDocument>;
 
 @Schema()
+export class Dimension {
+  @ApiProperty({ example: 'Black', description: 'Product color' })
+  @Prop({ type: String, enum: Color, default: Color.Black })
+  color: string;
+
+  @Prop()
+  size: string;
+
+  @Prop()
+  material: string;
+
+  @Prop({ required: true, default: 0 })
+  quantity: number;
+}
+@Schema()
 export class Product {
   @ApiProperty({ example: 'Bag', description: 'Product name' })
   @Prop()
   name: string;
+
+  @ApiProperty({
+    example: 'style_bag',
+    description: 'Human readable ID name with snake case',
+  })
+  @Prop()
+  idName: string;
 
   marginValue: number;
 
@@ -51,17 +73,29 @@ export class Product {
   @Prop()
   salePrice: number;
 
-  @ApiProperty({ example: 24, description: 'Quantity of product on warehouse' })
-  @Prop({ default: 0 })
   warehouseQuantity: number;
 
-  @ApiProperty({ example: 'Black', description: 'Product color' })
-  @Prop({ type: String, enum: Color, default: Color.Black })
-  color: string;
+  @Prop({
+    type: [
+      {
+        color: { type: String, enum: Color, required: true },
+        quantity: { type: Number, required: true, default: 0 },
+      },
+    ],
+    required: true,
+  })
+  dimensions: {
+    color: string;
+    quantity: number;
+  }[];
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
 
 ProductSchema.virtual('marginValue').get(function (this: Product) {
   return this.salePrice - this.costPrice;
+});
+
+ProductSchema.virtual('warehouseQuantity').get(function (this: Product) {
+  return this.dimensions.reduce((n, { quantity }) => n + quantity, 0);
 });
