@@ -15,7 +15,6 @@ export enum DeliveryType {
 
 export enum Status {
   New = 'New',
-  Accepted = 'Accepted',
   Paid = 'Paid',
   Packed = 'Packed',
   Sent = 'Sent',
