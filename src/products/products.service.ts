@@ -86,7 +86,7 @@ export class ProductsService {
   }
 
   async getProductbyIdName(idName: string): Promise<ProductDocument> {
-    return await this.productModel.findOne({ idName: idName }).lean();
+    return await this.productModel.findOne({ idName: idName }).exec();
   }
 
   async importProducts(products: [any]) {
@@ -106,7 +106,8 @@ export class ProductsService {
       dto.dimensions = [dimentsionDto];
       return dto;
     });
-    productDtos.forEach(async (dto) => {
+    const result = [];
+    for (const dto of productDtos) {
       const product = await this.getProductbyIdName(dto.idName);
       if (product) {
         product.name = dto.name;
@@ -121,7 +122,8 @@ export class ProductsService {
       } else {
         await this.createProduct(dto, null);
       }
-    });
-    return [];
+      result.push(product);
+    }
+    return result;
   }
 }
