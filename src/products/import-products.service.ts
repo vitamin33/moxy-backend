@@ -23,6 +23,7 @@ export class ImportProductsService {
 
     const products = rows.map((row): ExelProduct => {
       let name = getCellValue(row, 2);
+      const idName = getCellValue(row, 3);
       const matches = name.match(regExp);
       let color = undefined;
       if (matches) {
@@ -42,9 +43,12 @@ export class ImportProductsService {
         }
         name = name.substring(0, name.indexOf('(') - 1);
       }
+      if (!color) {
+        color = 'Unified';
+      }
       return {
         name: name,
-        idName: getCellValue(row, 3),
+        idName: idName,
         price: +getCellValue(row, 5),
         costPrice: +getCellValue(row, 9),
         warehouseQuantity: +getCellValue(row, 10),

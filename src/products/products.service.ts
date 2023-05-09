@@ -85,6 +85,10 @@ export class ProductsService {
     return await this.productModel.findById(id).lean();
   }
 
+  async getProductbyIdName(idName: string): Promise<ProductDocument> {
+    return await this.productModel.findOne({ idName: idName }).lean();
+  }
+
   async importProducts(products: [any]) {
     const parsedProducts = await this.importProductsService.parseExelFile(
       products,
@@ -103,10 +107,21 @@ export class ProductsService {
       return dto;
     });
     productDtos.forEach(async (dto) => {
-      await this.createProduct(dto, null);
+      const product = await this.getProductbyIdName(dto.idName);
+      if (product) {
+        product.name = dto.name;
+        product.salePrice = dto.salePrice;
+        product.costPrice = dto.costPrice;
+        product.idName = dto.idName;
+        const dimentsionDto = new DimensionDto();
+        dimentsionDto.color = dto.dimensions[0].color;
+        dimentsionDto.quantity = dto.dimensions[0].quantity;
+        product.dimensions.push(dimentsionDto);
+        await product.save();
+      } else {
+        await this.createProduct(dto, null);
+      }
     });
-
-    console.log(`Parsed products: ${productDtos}`);
     return [];
   }
 }

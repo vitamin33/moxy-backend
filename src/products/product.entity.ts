@@ -16,6 +16,8 @@ export enum Color {
   Jeans = 'Jeans',
   Green = 'Green',
   Bars = 'Bars',
+  Snake = 'Snake',
+  Unified = 'Unified',
 }
 
 type FullProductDocument = Product & Document;
@@ -78,7 +80,12 @@ export class Product {
   @Prop({
     type: [
       {
-        color: { type: String, enum: Color, required: true },
+        color: {
+          type: String,
+          enum: Color,
+          required: true,
+          default: Color.Unified,
+        },
         quantity: { type: Number, required: true, default: 0 },
       },
     ],
