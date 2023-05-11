@@ -10,12 +10,8 @@ export class EditProductDto {
   @IsNotEmpty()
   description: string;
   @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
   costPrice: number;
   @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
   salePrice: number;
   @Type(() => DimensionDto)
   @ValidateNested()
