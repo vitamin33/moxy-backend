@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, Min, ValidateNested } from 'class-validator';
+import { IsNotEmpty, ValidateNested } from 'class-validator';
 import { DimensionDto } from './create-product.dto';
 import { Type } from 'class-transformer';
 
