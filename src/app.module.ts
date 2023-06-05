@@ -14,7 +14,9 @@ import { OrdersModule } from './orders/orders.module';
     ConfigModule.forRoot({
       envFilePath: `.${process.env.NODE_ENV}.env`,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_CONFIG),
+    MongooseModule.forRoot(process.env.MONGODB_CONFIG, {
+      dbName: process.env.DB_NAME,
+    }),
     UsersModule,
     RolesModule,
     AuthModule,
