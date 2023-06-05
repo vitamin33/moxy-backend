@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { HydratedDocument } from 'mongoose';
+import { Transform } from 'class-transformer';
+import { HydratedDocument, ObjectId } from 'mongoose';
 
 export enum Color {
   Black = 'Black',
@@ -23,7 +24,16 @@ export enum Color {
 type FullProductDocument = Product & Document;
 export type ProductDocument = HydratedDocument<FullProductDocument>;
 
-@Schema()
+@Schema({
+  toJSON: {
+    virtuals: true,
+    transform: function (doc: any, ret: any) {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class Dimension {
   @ApiProperty({ example: 'Black', description: 'Product color' })
   @Prop({ type: String, enum: Color, default: Color.Black })
@@ -40,6 +50,9 @@ export class Dimension {
 }
 @Schema()
 export class Product {
+  @Transform(({ value }) => value.toString())
+  _id: ObjectId;
+
   @ApiProperty({ example: 'Bag', description: 'Product name' })
   @Prop()
   name: string;
@@ -95,6 +108,8 @@ export class Product {
     color: string;
     quantity: number;
   }[];
+
+  id: string;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
@@ -105,4 +120,7 @@ ProductSchema.virtual('marginValue').get(function (this: Product) {
 
 ProductSchema.virtual('warehouseQuantity').get(function (this: Product) {
   return this.dimensions.reduce((n, { quantity }) => n + quantity, 0);
+});
+ProductSchema.virtual('id').get(function (this: Product) {
+  return this._id;
 });

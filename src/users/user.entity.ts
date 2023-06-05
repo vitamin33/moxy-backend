@@ -7,7 +7,16 @@ import { Role } from 'src/roles/role.entity';
 
 export type UserDocument = User & Document;
 
-@Schema()
+@Schema({
+  toJSON: {
+    virtuals: true,
+    transform: function (doc: any, ret: any) {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class User {
   @Transform(({ value }) => value.toString())
   _id: ObjectId;
@@ -60,8 +69,15 @@ export class User {
   })
   @Type(() => Order)
   orders: Order[];
+
+  @ApiProperty({ description: 'User id. This is the same as _id in db.' })
+  id: string;
 }
 
 const UserSchema = SchemaFactory.createForClass(User);
 
 export { UserSchema };
+
+UserSchema.virtual('id').get(function (this: User) {
+  return this._id;
+});

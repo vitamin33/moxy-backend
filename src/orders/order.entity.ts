@@ -28,7 +28,17 @@ export enum PaymentType {
   FullPayment = 'FullPayment',
 }
 
-@Schema({ timestamps: true })
+@Schema({
+  toJSON: {
+    virtuals: true,
+    transform: function (doc: any, ret: any) {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+  timestamps: true,
+})
 export class Order {
   @Transform(({ value }) => value.toString())
   _id: ObjectId;
@@ -87,6 +97,8 @@ export class Order {
   fullSalePrice: number;
 
   fullCostPrice: number;
+
+  id: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
@@ -96,4 +108,7 @@ OrderSchema.virtual('fullSalePrice').get(function (this: Order) {
 });
 OrderSchema.virtual('fullCostPrice').get(function (this: Order) {
   return this.products.reduce((n, { costPrice }) => n + costPrice, 0);
+});
+OrderSchema.virtual('id').get(function (this: Order) {
+  return this._id;
 });
