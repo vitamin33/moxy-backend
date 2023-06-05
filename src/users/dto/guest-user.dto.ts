@@ -8,13 +8,13 @@ export class GuestUserDto {
     message: 'Mobile number with wrong format.',
   })
   @Transform(({ value }) => {
-    if (value.length() == 13) {
+    if (value.length == 13) {
       return value.substring(3);
-    } else if (value.length() == 14) {
+    } else if (value.length == 14) {
       value.substring(4);
-    } else if (value.length() == 12) {
+    } else if (value.length == 12) {
       value.substring(2);
-    } else if (value.length() == 11) {
+    } else if (value.length == 11) {
       value.substring(1);
     }
     return value;
