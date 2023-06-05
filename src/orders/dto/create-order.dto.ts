@@ -1,4 +1,10 @@
-import { ArrayNotEmpty, IsEnum, IsNotEmpty } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  Matches,
+} from 'class-validator';
 import { DeliveryType, PaymentType, Status } from '../order.entity';
 
 export class CreateOrderDto {
@@ -22,10 +28,15 @@ export class CreateOrderDto {
 }
 
 export class GuestUserDto {
-  readonly mobileNumber: number;
-  readonly firstName: string;
-  readonly secondName: string;
-  readonly middleName: string;
-  readonly novaPostNumber: number;
-  readonly city: string;
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\+[1-9]\d{1,14}$/, {
+    message: 'Mobile number with wrong format.',
+  })
+  mobileNumber: string;
+  firstName: string;
+  secondName: string;
+  middleName: string;
+  novaPostNumber: number;
+  city: string;
 }

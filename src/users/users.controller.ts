@@ -15,6 +15,7 @@ import { Roles } from 'src/auth/role-auth.decorator';
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { EditUserDto } from './dto/edit-user.dto';
+import { GuestUserDto } from './dto/guest-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -27,6 +28,14 @@ export class UsersController {
   @Post()
   create(@Body() userDto: CreateUserDto) {
     return this.usersService.createUser(userDto);
+  }
+
+  @ApiOperation({ summary: 'Create guest user.' })
+  @ApiResponse({ status: 200, type: User })
+  @UsePipes(ValidationPipe)
+  @Post('create-guest')
+  createGuest(@Body() userDto: GuestUserDto) {
+    return this.usersService.createGuestUser(userDto);
   }
 
   @ApiOperation({ summary: 'Get all users' })

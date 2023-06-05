@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Exclude, Transform, Type } from 'class-transformer';
 import mongoose, { ObjectId } from 'mongoose';
 import { Order } from 'src/orders/order.entity';
 import { Role } from 'src/roles/role.entity';
@@ -24,7 +24,7 @@ export class User {
   middleName: string;
 
   @Prop()
-  instagramLink: string;
+  instagram: string;
 
   @Prop()
   mobileNumber: string;
@@ -48,6 +48,7 @@ export class User {
   @Prop()
   email: string;
 
+  @Exclude()
   @Prop()
   password: string;
 

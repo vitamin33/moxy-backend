@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Order } from './order.entity';
 import { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { GuestUserDto as UserDto } from 'src/users/dto/guest-user.dto';
 import { UsersService } from 'src/users/users.service';
 import { OrderDocument } from './order.entity';
 import { User } from 'src/users/user.entity';
@@ -58,7 +59,13 @@ export class OrdersService {
         );
       }
     } else {
-      client = await this.usersService.createGuestUser(orderDto.client);
+      const dto = new UserDto();
+      dto.firstName = orderDto.client.firstName;
+      dto.secondName = orderDto.client.secondName;
+      dto.mobileNumber = orderDto.client.mobileNumber;
+      dto.city = orderDto.client.city;
+
+      client = await this.usersService.createGuestUser(dto);
     }
     const createdOrder = new this.orderModel({
       ...orderDto,

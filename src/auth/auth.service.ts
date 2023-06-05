@@ -21,7 +21,9 @@ export class AuthService {
     return this.generateToken(user);
   }
   private async validateUser(userDto: CreateUserDto): Promise<User> {
-    const user = await this.userService.getUserByEmail(userDto.email);
+    const user = await this.userService.getUserByMobileNumber(
+      userDto.mobileNumber,
+    );
     const passwordEquals = await bcrypt.compare(
       userDto.password,
       user.password,
@@ -29,15 +31,19 @@ export class AuthService {
     if (user && passwordEquals) {
       return user;
     } else {
-      throw new UnauthorizedException({ message: 'Wrong password or email' });
+      throw new UnauthorizedException({
+        message: 'Wrong password or mobile number.',
+      });
     }
   }
 
   async register(userDto: CreateUserDto) {
-    const candidate = await this.userService.getUserByEmail(userDto.email);
+    const candidate = await this.userService.getUserByMobileNumber(
+      userDto.mobileNumber,
+    );
     if (candidate) {
       throw new HttpException(
-        'User with such email is already registered',
+        'User with such mobile number is already registered',
         HttpStatus.CONFLICT,
       );
     }
@@ -50,7 +56,11 @@ export class AuthService {
   }
 
   private async generateToken(user: User) {
-    const payload = { email: user.email, id: user._id, role: user.role };
+    const payload = {
+      mobileNumber: user.mobileNumber,
+      id: user._id,
+      role: user.role,
+    };
     return {
       token: this.jwtService.sign(payload),
       userId: user._id,

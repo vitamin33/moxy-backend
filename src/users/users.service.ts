@@ -10,9 +10,9 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RolesService } from 'src/roles/roles.service';
 import { ChangeRoleDto } from './dto/change-role.dto';
-import { GuestUserDto } from 'src/orders/dto/create-order.dto';
 import { Order } from 'src/orders/order.entity';
 import { EditUserDto } from './dto/edit-user.dto';
+import { GuestUserDto } from './dto/guest-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -23,7 +23,7 @@ export class UsersService {
 
   async createUser(dto: CreateUserDto): Promise<User> {
     const user = new this.userModel(dto);
-    const role = await this.roleService.getRoleByValue('USER');
+    const role = await this.roleService.getRoleByValue('ADMIN');
     user.$set('role', role);
     return await user.save();
   }
@@ -84,6 +84,12 @@ export class UsersService {
 
   async getUserByEmail(email: string) {
     return this.userModel.findOne({ email: email }).populate('role').exec();
+  }
+  async getUserByMobileNumber(number: string) {
+    return this.userModel
+      .findOne({ mobileNumber: number })
+      .populate('role')
+      .exec();
   }
   async getUserById(id: string) {
     return this.userModel.findOne({ _id: id }).populate('role').exec();
