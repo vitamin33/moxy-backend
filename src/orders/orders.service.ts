@@ -23,7 +23,11 @@ export class OrdersService {
   ) {}
 
   async getAllOrders(): Promise<OrderDocument[]> {
-    return this.orderModel.find().populate('products').exec();
+    return this.orderModel
+      .find()
+      .populate('products')
+      .populate('client')
+      .exec();
   }
 
   async getOrdersBy(dto: FindByDto): Promise<OrderDocument[]> {
