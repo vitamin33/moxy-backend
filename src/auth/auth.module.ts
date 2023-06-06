@@ -1,8 +1,14 @@
-import { Module, forwardRef } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  RequestMethod,
+  forwardRef,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
+import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 
 @Module({
   providers: [AuthService],
@@ -18,4 +24,10 @@ import { JwtModule } from '@nestjs/jwt';
   ],
   exports: [AuthService, JwtModule],
 })
-export class AuthModule {}
+export class AuthModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

@@ -1,4 +1,9 @@
-import { Module, forwardRef } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  RequestMethod,
+  forwardRef,
+} from '@nestjs/common';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -6,6 +11,7 @@ import { User, UserSchema } from 'src/users/user.entity';
 import { Order, OrderSchema } from './order.entity';
 import { UsersModule } from 'src/users/users.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 
 @Module({
   imports: [
@@ -19,4 +25,10 @@ import { AuthModule } from 'src/auth/auth.module';
   controllers: [OrdersController],
   providers: [OrdersService],
 })
-export class OrdersModule {}
+export class OrdersModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}
