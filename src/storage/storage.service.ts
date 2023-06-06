@@ -3,7 +3,7 @@ import { Storage } from '@google-cloud/storage';
 import { v4 as uuid } from 'uuid';
 import { format } from 'util';
 
-const storage = new Storage({ keyFilename: './moxy-384018.json' });
+const storage = new Storage({ keyFilename: './google-credentials.json' });
 
 @Injectable()
 export class StorageService {
