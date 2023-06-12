@@ -63,13 +63,17 @@ export class OrdersService {
         );
       }
     } else {
-      const dto = new UserDto();
-      dto.firstName = orderDto.client.firstName;
-      dto.secondName = orderDto.client.secondName;
-      dto.mobileNumber = orderDto.client.mobileNumber;
-      dto.city = orderDto.client.city;
-
-      client = await this.usersService.createGuestUser(dto);
+      client = await this.usersService.getUserByMobileNumber(
+        orderDto.client.mobileNumber,
+      );
+      if (!client) {
+        const dto = new UserDto();
+        dto.firstName = orderDto.client.firstName;
+        dto.secondName = orderDto.client.secondName;
+        dto.mobileNumber = orderDto.client.mobileNumber;
+        dto.city = orderDto.client.city;
+        client = await this.usersService.createGuestUser(dto);
+      }
     }
     const createdOrder = new this.orderModel({
       ...orderDto,

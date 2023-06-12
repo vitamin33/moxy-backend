@@ -31,10 +31,18 @@ export class UsersService {
   }
 
   async createGuestUser(dto: GuestUserDto): Promise<User> {
-    const user = new this.userModel(dto);
-    const role = await this.roleService.getRoleByValue('GUEST');
-    user.$set('role', role);
-    return await user.save();
+    const client = await this.getUserByMobileNumber(dto.mobileNumber);
+    if (!client) {
+      const user = new this.userModel(dto);
+      const role = await this.roleService.getRoleByValue('GUEST');
+      user.$set('role', role);
+      return await user.save();
+    } else {
+      throw new HttpException(
+        'User with such mobile number already exists.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   async getAllUsers() {

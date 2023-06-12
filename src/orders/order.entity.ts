@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import mongoose, { ObjectId } from 'mongoose';
-import { Product } from 'src/products/product.entity';
+import { Color } from 'src/products/product.entity';
 import { User } from 'src/users/user.entity';
 
 export type OrderDocument = Order & Document;
@@ -26,6 +26,18 @@ export enum Status {
 export enum PaymentType {
   CashAdvance = 'CashAdvance',
   FullPayment = 'FullPayment',
+}
+
+@Schema()
+export class OrderedItem {
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
+  product: mongoose.Schema.Types.ObjectId;
+
+  @Prop({ type: String, enum: Color })
+  color: Color;
+
+  @Prop({ type: Number, required: true, default: 0 })
+  quantity: number;
 }
 
 @Schema({
@@ -89,26 +101,27 @@ export class Order {
   client: User;
 
   @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: Product.name }],
+    type: [
+      {
+        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+        color: { type: String, enum: Color },
+        quantity: { type: Number, required: true, default: 0 },
+      },
+    ],
+    required: true,
+    default: [],
   })
-  @Type(() => Product)
-  products: Product[];
-
-  fullSalePrice: number;
-
-  fullCostPrice: number;
+  orderedItems: {
+    product: mongoose.Schema.Types.ObjectId;
+    color: Color;
+    quantity: number;
+  }[];
 
   id: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
 
-OrderSchema.virtual('fullSalePrice').get(function (this: Order) {
-  return this.products.reduce((n, { salePrice }) => n + salePrice, 0);
-});
-OrderSchema.virtual('fullCostPrice').get(function (this: Order) {
-  return this.products.reduce((n, { costPrice }) => n + costPrice, 0);
-});
 OrderSchema.virtual('id').get(function (this: Order) {
   return this._id;
 });

@@ -7,6 +7,7 @@ import {
 } from 'class-validator';
 import { DeliveryType, PaymentType, Status } from '../order.entity';
 import { Transform } from 'class-transformer';
+import { ProductDto } from './product.dto';
 
 export class CreateOrderDto {
   readonly userId: string;
@@ -24,7 +25,7 @@ export class CreateOrderDto {
   readonly ukrPostNumber: number;
   readonly deliveryCity: string;
   @ArrayNotEmpty({ message: 'Order should have at least one product.' })
-  readonly products: string[];
+  readonly products: ProductDto[];
   readonly client: GuestUserDto;
 }
 
