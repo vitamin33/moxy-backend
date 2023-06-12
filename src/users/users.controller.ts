@@ -38,6 +38,13 @@ export class UsersController {
     return this.usersService.createGuestUser(userDto);
   }
 
+  @ApiOperation({ summary: 'Parse Nova Poshta clients.' })
+  @ApiResponse({ status: 200, type: [User] })
+  @Get('parse-clients')
+  parseNovaPoshtaClients() {
+    return this.usersService.parseNovaPoshtaClients();
+  }
+
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, type: [User] })
   @Roles('ADMIN')

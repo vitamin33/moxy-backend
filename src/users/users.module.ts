@@ -13,6 +13,7 @@ import { RolesModule } from 'src/roles/roles.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { Order, OrderSchema } from 'src/orders/order.entity';
 import { LoggerMiddleware } from 'src/middleware/logger.middleware';
+import { NovaPoshtaModule } from 'src/nova-poshta/nova-poshta.module';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -22,6 +23,7 @@ import { LoggerMiddleware } from 'src/middleware/logger.middleware';
     ]),
     RolesModule,
     forwardRef(() => AuthModule),
+    NovaPoshtaModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],

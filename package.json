@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@google-cloud/storage": "^6.9.5",
+    "@nestjs/axios": "^2.0.0",
+    "@nestjs/cli": "^9.0.0",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^9.0.0",
@@ -35,8 +37,7 @@
     "exceljs": "^4.3.0",
     "mongoose": "^7.0.3",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0",
-    "@nestjs/cli": "^9.0.0"
+    "rxjs": "^7.2.0"
   },
   "devDependencies": {
     "@nestjs/schematics": "^9.0.0",

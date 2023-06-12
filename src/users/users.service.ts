@@ -13,12 +13,14 @@ import { ChangeRoleDto } from './dto/change-role.dto';
 import { Order } from 'src/orders/order.entity';
 import { EditUserDto } from './dto/edit-user.dto';
 import { GuestUserDto } from './dto/guest-user.dto';
+import { NovaPoshtaService } from 'src/nova-poshta/nova-poshta.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private roleService: RolesService,
+    private novaPoshtaService: NovaPoshtaService,
   ) {}
 
   async createUser(dto: CreateUserDto): Promise<User> {
@@ -80,6 +82,18 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  async parseNovaPoshtaClients(): Promise<User[]> {
+    const users = await this.novaPoshtaService.parseNovaPoshtaClients();
+    for (const user of users) {
+      const guestUser = new GuestUserDto();
+      guestUser.firstName = user.firstName;
+      guestUser.secondName = user.secondName;
+      guestUser.mobileNumber = user.mobileNumber;
+      this.createGuestUser(guestUser);
+    }
+    return users;
   }
 
   async getUserByEmail(email: string) {

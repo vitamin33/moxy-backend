@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
+import { NovaPoshtaModule } from './nova-poshta/nova-poshta.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     AuthModule,
     ProductsModule,
     OrdersModule,
+    NovaPoshtaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
