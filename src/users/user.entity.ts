@@ -61,6 +61,10 @@ export class User {
   @Prop()
   password: string;
 
+  @Exclude()
+  @Prop()
+  refreshToken?: string;
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Role.name })
   role: Role;
 

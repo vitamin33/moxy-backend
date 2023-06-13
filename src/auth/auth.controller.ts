@@ -3,6 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @ApiTags('Authorization')
 @Controller('auth')
@@ -18,5 +19,10 @@ export class AuthController {
   @UsePipes(ValidationPipe)
   register(@Body() userDto: CreateUserDto) {
     return this.authService.register(userDto);
+  }
+
+  @Post('/refresh-token')
+  async refreshToken(@Body() refreshDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshDto.refreshToken);
   }
 }

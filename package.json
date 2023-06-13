@@ -37,7 +37,8 @@
     "exceljs": "^4.3.0",
     "mongoose": "^7.0.3",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@nestjs/schematics": "^9.0.0",
