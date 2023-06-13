@@ -14,12 +14,14 @@ import { OrderDocument } from './order.entity';
 import { User } from 'src/users/user.entity';
 import { ChangeOrderDto } from './dto/change-order.dto';
 import { FindByDto } from './dto/find-by.dto';
+import { ProductsService } from 'src/products/products.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     private usersService: UsersService,
+    private productsService: ProductsService,
   ) {}
 
   async getAllOrders(): Promise<OrderDocument[]> {
@@ -77,16 +79,9 @@ export class OrdersService {
     }
     const orderedItems = [];
     for (const product of orderDto.products) {
-      const dimensions = [];
-      for (const dimension of product.dimensions) {
-        dimensions.push({
-          color: dimension.color,
-          quantity: dimension.quantity,
-        });
-      }
       orderedItems.push({
         product: product._id,
-        dimensions: dimensions,
+        dimensions: product.dimensions,
       });
     }
     const createdOrder = new this.orderModel({
@@ -100,9 +95,16 @@ export class OrdersService {
   }
 
   async editOrder(orderDto: ChangeOrderDto): Promise<OrderDocument> {
+    const orderedItems = [];
+    for (const product of orderDto.products) {
+      orderedItems.push({
+        product: product._id,
+        dimensions: product.dimensions,
+      });
+    }
     const updatedOrder = await this.orderModel.findByIdAndUpdate(
       { _id: orderDto.orderId },
-      orderDto,
+      { ...orderDto, orderedItems },
       { new: true },
     );
 

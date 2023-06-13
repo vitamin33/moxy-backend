@@ -12,6 +12,7 @@ import { Order, OrderSchema } from './order.entity';
 import { UsersModule } from 'src/users/users.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { LoggerMiddleware } from 'src/middleware/logger.middleware';
+import { ProductsModule } from 'src/products/products.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { LoggerMiddleware } from 'src/middleware/logger.middleware';
       { name: Order.name, schema: OrderSchema },
     ]),
     UsersModule,
+    ProductsModule,
     forwardRef(() => AuthModule),
   ],
   controllers: [OrdersController],

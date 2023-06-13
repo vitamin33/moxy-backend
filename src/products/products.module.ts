@@ -14,6 +14,7 @@ import { LoggerMiddleware } from 'src/middleware/logger.middleware';
   ],
   controllers: [ProductsController],
   providers: [ProductsService, ImportProductsService],
+  exports: [ProductsService],
 })
 export class ProductsModule {
   configure(consumer: MiddlewareConsumer) {
