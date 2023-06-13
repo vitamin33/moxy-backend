@@ -75,11 +75,25 @@ export class OrdersService {
         client = await this.usersService.createGuestUser(dto);
       }
     }
+    const orderedItems = [];
+    for (const product of orderDto.products) {
+      const dimensions = [];
+      for (const dimension of product.dimensions) {
+        dimensions.push({
+          color: dimension.color,
+          quantity: dimension.quantity,
+        });
+      }
+      orderedItems.push({
+        product: product._id,
+        dimensions: dimensions,
+      });
+    }
     const createdOrder = new this.orderModel({
       ...orderDto,
       client,
+      orderedItems,
     });
-    await createdOrder.populate('products');
     const resultOrder = await createdOrder.save();
     await this.usersService.addOrder(client._id.toString(), createdOrder);
     return resultOrder;

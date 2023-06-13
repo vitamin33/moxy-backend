@@ -29,16 +29,26 @@ export enum PaymentType {
 }
 
 @Schema()
-export class OrderedItem {
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
-  product: mongoose.Schema.Types.ObjectId;
-
+export class Dimension {
   @Prop({ type: String, enum: Color })
   color: Color;
 
   @Prop({ type: Number, required: true, default: 0 })
   quantity: number;
 }
+
+export const DimensionSchema = SchemaFactory.createForClass(Dimension);
+
+@Schema()
+export class OrderedItem {
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
+  product: mongoose.Schema.Types.ObjectId;
+
+  @Prop({ type: [DimensionSchema] })
+  dimensions: Dimension[];
+}
+
+export const OrderedItemSchema = SchemaFactory.createForClass(OrderedItem);
 
 @Schema({
   toJSON: {
@@ -100,22 +110,8 @@ export class Order {
   @Type(() => User)
   client: User;
 
-  @Prop({
-    type: [
-      {
-        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-        color: { type: String, enum: Color },
-        quantity: { type: Number, required: true, default: 0 },
-      },
-    ],
-    required: true,
-    default: [],
-  })
-  orderedItems: {
-    product: mongoose.Schema.Types.ObjectId;
-    color: Color;
-    quantity: number;
-  }[];
+  @Prop({ type: [OrderedItemSchema], required: true, default: [] })
+  orderedItems: OrderedItem[];
 
   id: string;
 }
