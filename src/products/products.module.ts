@@ -6,9 +6,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { StorageModule } from 'src/storage/storage.module';
 import { ImportProductsService } from './import-products.service';
 import { LoggerMiddleware } from 'src/middleware/logger.middleware';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
     StorageModule,
   ],

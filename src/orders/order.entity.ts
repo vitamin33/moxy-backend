@@ -6,6 +6,7 @@ import { Color } from 'src/products/product.entity';
 import { User } from 'src/users/user.entity';
 
 export type OrderDocument = Order & Document;
+export type OrderedItemDocument = OrderedItem & Document;
 
 export enum DeliveryType {
   NovaPost = 'NovaPost',

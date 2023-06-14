@@ -24,12 +24,37 @@ export class OrdersService {
     private productsService: ProductsService,
   ) {}
 
-  async getAllOrders(): Promise<OrderDocument[]> {
-    return this.orderModel
-      .find()
-      .populate('products')
-      .populate('client')
-      .exec();
+  async getAllOrders() {
+    const orders = await this.orderModel.find().populate('client').exec();
+
+    const ordersWithImageUrls = await Promise.all(
+      orders.map(async (order) => {
+        const orderedItemsWithImageUrls = await Promise.all(
+          order.orderedItems.map(async (orderedItem) => {
+            const product = await this.productsService.getProductbyId(
+              orderedItem.product.toString(),
+            );
+            const imageUrl =
+              product.images.length > 0
+                ? product.images[0] // Use the first value in the images array
+                : undefined; // Set a default value when images array is empty
+
+            return {
+              product: orderedItem.product.toString(),
+              dimensions: orderedItem.dimensions,
+              imageUrl,
+            };
+          }),
+        );
+
+        return {
+          ...order.toObject(),
+          orderedItems: orderedItemsWithImageUrls,
+        };
+      }),
+    );
+
+    return ordersWithImageUrls;
   }
 
   async getOrdersBy(dto: FindByDto): Promise<OrderDocument[]> {
@@ -51,7 +76,7 @@ export class OrdersService {
       const toDate = new Date(dto.toDate).toISOString();
       query.lte('updatedAt', toDate);
     }
-    return query.populate('products').exec();
+    return query.exec();
   }
 
   async createOrder(orderDto: CreateOrderDto): Promise<OrderDocument> {
@@ -115,10 +140,6 @@ export class OrdersService {
   }
 
   async getOrderById(id: string) {
-    return this.orderModel
-      .findOne({ _id: id })
-      .populate('products')
-      .populate('client')
-      .exec();
+    return this.orderModel.findOne({ _id: id }).populate('client').exec();
   }
 }

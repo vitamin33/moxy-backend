@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AuthExceptionFilter } from './auth/auth-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalFilters(new AuthExceptionFilter());
   const config = new DocumentBuilder()
     .setTitle('Moxy REST API')
     .setDescription('Moxy Brand Shop REST API documentation.')

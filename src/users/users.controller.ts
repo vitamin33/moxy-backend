@@ -16,6 +16,7 @@ import { ChangeRoleDto } from './dto/change-role.dto';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { EditUserDto } from './dto/edit-user.dto';
 import { GuestUserDto } from './dto/guest-user.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiTags('Users')
 @Controller('users')
@@ -47,8 +48,8 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, type: [User] })
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'MANAGER')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   getAllUsers() {
     return this.usersService.getAllUsers();
@@ -57,7 +58,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Add role for user' })
   @ApiResponse({ status: 200 })
   @Roles('ADMIN')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('/add-role')
   addRole(@Body() dto: ChangeRoleDto) {
     return this.usersService.addRole(dto);
@@ -66,7 +67,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Edit user info' })
   @ApiResponse({ status: 200 })
   @Roles('ADMIN')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('/edit')
   editUserInfo(@Body() dto: EditUserDto) {
     return this.usersService.editUser(dto);

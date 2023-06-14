@@ -15,7 +15,9 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { ChangeOrderDto } from './dto/change-order.dto';
 import { FindByDto } from './dto/find-by.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('orders')
 export class OrdersController {
   constructor(private ordersService: OrdersService) {}
@@ -41,7 +43,7 @@ export class OrdersController {
   @Roles('ADMIN')
   @UseGuards(RolesGuard)
   @Get()
-  async getAllOrders(): Promise<OrderDocument[]> {
+  async getAllOrders() {
     return this.ordersService.getAllOrders();
   }
 

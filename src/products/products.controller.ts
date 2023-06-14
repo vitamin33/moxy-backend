@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
@@ -15,7 +16,9 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Product, ProductDocument } from './product.entity';
 import { EditProductDto } from './dto/edit-product.dto';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('products')
 export class ProductsController {
   constructor(private productService: ProductsService) {}

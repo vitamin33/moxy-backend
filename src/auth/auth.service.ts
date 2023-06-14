@@ -25,8 +25,9 @@ export class AuthService {
     await this.userService.storeRefreshToken(user.id, refreshToken);
 
     return {
-      accessToken,
-      refreshToken,
+      userId: user._id,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     };
   }
   private async validateUser(userDto: CreateUserDto): Promise<User> {
@@ -84,7 +85,7 @@ export class AuthService {
     };
 
     return this.jwtService.sign(payload, {
-      expiresIn: '1m',
+      expiresIn: '24h',
     });
   }
 
