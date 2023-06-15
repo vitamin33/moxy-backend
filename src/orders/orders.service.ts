@@ -41,6 +41,7 @@ export class OrdersService {
 
             return {
               product: orderedItem.product.toString(),
+              productName: product.name,
               dimensions: orderedItem.dimensions,
               imageUrl,
             };
