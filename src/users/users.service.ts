@@ -14,6 +14,8 @@ import { Order } from 'src/orders/order.entity';
 import { EditUserDto } from './dto/edit-user.dto';
 import { GuestUserDto } from './dto/guest-user.dto';
 import { NovaPoshtaService } from 'src/nova-poshta/nova-poshta.service';
+import * as ExcelJS from 'exceljs';
+import { Response } from 'express';
 
 @Injectable()
 export class UsersService {
@@ -46,7 +48,11 @@ export class UsersService {
   }
 
   async getAllUsers() {
-    return this.userModel.find().populate('role').populate('orders').exec();
+    return await this.userModel
+      .find()
+      .populate('role')
+      .populate('orders')
+      .exec();
   }
 
   async addRole(dto: ChangeRoleDto) {
@@ -102,6 +108,42 @@ export class UsersService {
       this.createGuestUser(guestUser);
     }
     return users;
+  }
+
+  async exportUsersToExcel(res: Response): Promise<void> {
+    const users = await this.userModel.find().lean().exec();
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Users');
+
+    // Set the header row
+    worksheet.addRow([
+      'First Name',
+      'Second Name',
+      'Mobile Number',
+      'City',
+      'Instagram',
+    ]);
+
+    for (const user of users) {
+      worksheet.addRow([
+        user.firstName,
+        user.secondName,
+        user.mobileNumber,
+        user.city,
+        user.instagram,
+      ]);
+    }
+
+    // Set the response headers for file download
+    res.setHeader('Content-Disposition', 'attachment; filename="users.xlsx"');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    // Write the workbook to the response
+    await workbook.xlsx.write(res);
+    res.end();
   }
 
   async getUserByEmail(email: string) {

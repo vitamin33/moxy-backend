@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Res,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { EditUserDto } from './dto/edit-user.dto';
 import { GuestUserDto } from './dto/guest-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Response } from 'express';
 
 @ApiTags('Users')
 @Controller('users')
@@ -44,6 +46,11 @@ export class UsersController {
   @Get('parse-clients')
   parseNovaPoshtaClients() {
     return this.usersService.parseNovaPoshtaClients();
+  }
+
+  @Get('export')
+  async exportUsers(@Res() res: Response): Promise<void> {
+    await this.usersService.exportUsersToExcel(res);
   }
 
   @ApiOperation({ summary: 'Get all users' })

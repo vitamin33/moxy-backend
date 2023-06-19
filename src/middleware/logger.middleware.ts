@@ -11,8 +11,8 @@ export class LoggerMiddleware implements NestMiddleware {
       originalUrl: req.originalUrl,
     });
 
-    // Getting the response log
-    getResponseLog(res);
+    // // Getting the response log
+    // getResponseLog(res);
 
     if (next) {
       next();
