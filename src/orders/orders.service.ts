@@ -113,6 +113,8 @@ export class OrdersService {
     const createdOrder = new this.orderModel({
       ...orderDto,
       client,
+      city: orderDto.city,
+      novaPost: orderDto.novaPost,
       orderedItems,
     });
     const resultOrder = await createdOrder.save();

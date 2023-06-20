@@ -30,6 +30,32 @@ export enum PaymentType {
 }
 
 @Schema()
+export class NovaPost {
+  @Prop({ required: true })
+  ref: string;
+  @Prop()
+  postMachineType: string;
+  @Prop({ required: true })
+  number: number;
+}
+
+export const NovaPostSchema = SchemaFactory.createForClass(NovaPost);
+
+@Schema()
+export class City {
+  @Prop({ required: true })
+  ref: string;
+  @Prop()
+  mainDescription: string;
+  @Prop()
+  presentName: string;
+  @Prop()
+  deliveryCityRef: string;
+}
+
+export const CitySchema = SchemaFactory.createForClass(City);
+
+@Schema()
 export class Dimension {
   @Prop({ type: String, enum: Color })
   color: Color;
@@ -82,9 +108,17 @@ export class Order {
   @Prop()
   cashAdvanceValue: number;
 
-  @ApiProperty({ example: 233, description: 'Nova Post number for delivering' })
-  @Prop()
-  novaPostMachineNumber: number;
+  @ApiProperty({
+    description: 'Nova Post object data for delivering with Nova Poshta.',
+  })
+  @Prop({ type: NovaPostSchema })
+  novaPost: NovaPost;
+
+  @ApiProperty({
+    description: 'City object data for delivering with Nova Poshta.',
+  })
+  @Prop({ type: CitySchema })
+  city: City;
 
   @ApiProperty({
     example: 'NovaPost',

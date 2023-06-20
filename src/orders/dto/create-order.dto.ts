@@ -20,13 +20,25 @@ export class CreateOrderDto {
   @IsNotEmpty({ message: 'paymentType should be present' })
   readonly paymentType: string;
   readonly cashAdvanceValue: number;
-  readonly novaPostMachineNumber: number;
-  readonly novaPostNumber: number;
+  readonly novaPost: NovaPostDto;
   readonly ukrPostNumber: number;
-  readonly deliveryCity: string;
+  readonly city: CityDto;
   @ArrayNotEmpty({ message: 'Order should have at least one product.' })
   readonly products: ProductDto[];
   readonly client: GuestUserDto;
+}
+
+export class CityDto {
+  ref: string;
+  presentName: string;
+  mainDescription: string;
+  deliveryCityRef: string;
+}
+
+export class NovaPostDto {
+  ref: string;
+  number: number;
+  postMachineType: string;
 }
 
 export class GuestUserDto {
