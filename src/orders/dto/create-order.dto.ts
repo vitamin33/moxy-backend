@@ -4,6 +4,8 @@ import {
   IsNotEmpty,
   IsString,
   Matches,
+  Min,
+  ValidateIf,
 } from 'class-validator';
 import { DeliveryType, PaymentType, Status } from '../order.entity';
 import { Transform } from 'class-transformer';
@@ -19,6 +21,10 @@ export class CreateOrderDto {
   @IsEnum(PaymentType)
   @IsNotEmpty({ message: 'paymentType should be present' })
   readonly paymentType: string;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @ValidateIf((object, _) => object.paymentType === PaymentType.CashAdvance)
+  @IsNotEmpty({ message: 'cashAdvanceValue should be present' })
+  @Min(1, { message: 'cashAdvanceValue should be greater than 0' })
   readonly cashAdvanceValue: number;
   readonly novaPost: NovaPostDto;
   readonly ukrPostNumber: number;

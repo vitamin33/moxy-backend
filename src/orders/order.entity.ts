@@ -10,7 +10,6 @@ export type OrderedItemDocument = OrderedItem & Document;
 
 export enum DeliveryType {
   NovaPost = 'NovaPost',
-  NovaPostMachine = 'NovaPostMachine',
   UkrPost = 'UkrPost',
 }
 
@@ -95,10 +94,6 @@ export class Order {
   @ApiProperty({ example: 'Lviv', description: 'Delivery city' })
   @Prop()
   deliveryCity: string;
-
-  @ApiProperty({ example: 23, description: 'Nova Post number for delivering' })
-  @Prop()
-  novaPostNumber: number;
 
   @ApiProperty({ example: 12, description: 'Ukr Post number for delivering' })
   @Prop()
