@@ -43,6 +43,7 @@ export class CityDto {
 
 export class NovaPostDto {
   ref: string;
+  presentName: string;
   number: number;
   postMachineType: string;
 }

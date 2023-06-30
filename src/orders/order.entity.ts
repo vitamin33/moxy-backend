@@ -33,6 +33,8 @@ export class NovaPost {
   @Prop({ required: true })
   ref: string;
   @Prop()
+  presentName: string;
+  @Prop()
   postMachineType: string;
   @Prop({ required: true })
   number: number;
