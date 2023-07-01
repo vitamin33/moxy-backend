@@ -28,6 +28,7 @@ export class AuthService {
       userId: user._id,
       accessToken: accessToken,
       refreshToken: refreshToken,
+      userRole: user.role.name,
     };
   }
   private async validateUser(userDto: CreateUserDto): Promise<User> {
@@ -46,9 +47,7 @@ export class AuthService {
     }
   }
 
-  async register(
-    userDto: CreateUserDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async register(userDto: CreateUserDto) {
     const candidate = await this.userService.getUserByMobileNumber(
       userDto.mobileNumber,
     );
@@ -72,8 +71,9 @@ export class AuthService {
     await this.userService.storeRefreshToken(user.id, refreshToken);
 
     return {
-      accessToken,
-      refreshToken,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      userRole: user.role.name,
     };
   }
 

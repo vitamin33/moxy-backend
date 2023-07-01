@@ -6,7 +6,7 @@ export type RoleDocument = HydratedDocument<Role>;
 
 @Schema()
 export class Role {
-  @ApiProperty({ example: 'Admin', description: 'Name of role' })
+  @ApiProperty({ example: 'ADMIN', description: 'Name of role' })
   @Prop()
   name: string;
 
