@@ -27,7 +27,7 @@ export class UsersService {
 
   async createUser(dto: CreateUserDto): Promise<User> {
     const user = new this.userModel(dto);
-    const role = await this.roleService.getRoleByValue('ADMIN');
+    const role = await this.roleService.getRoleByValue('USER');
     user.$set('role', role);
     return await user.save();
   }
@@ -45,6 +45,34 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  async updateUserRole(
+    userId: string,
+    password: string,
+    roleName: string,
+  ): Promise<User> {
+    const user = await this.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+
+    if (user.role.name !== 'GUEST') {
+      throw new HttpException(
+        'Only guest users can be updated',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // update user role
+    const dto = new ChangeRoleDto();
+    dto.name = roleName;
+    dto.userId = userId;
+    this.addRole(dto);
+
+    user.password = password;
+
+    return await user.save();
   }
 
   async getAllUsers() {

@@ -53,28 +53,49 @@ export class AuthService {
     );
 
     if (candidate) {
-      throw new HttpException(
-        'User with such mobile number is already registered',
-        HttpStatus.CONFLICT,
-      );
+      if (candidate.role.name !== 'GUEST') {
+        throw new HttpException(
+          'User with such mobile number is already registered',
+          HttpStatus.CONFLICT,
+        );
+      } else {
+        // Update existing guest user to a regular user
+        const updatedUser = await this.userService.updateUserRole(
+          candidate.id,
+          await bcrypt.hash(userDto.password, 5),
+          'USER',
+        );
+
+        const accessToken = this.generateAccessToken(updatedUser);
+        const refreshToken = this.generateRefreshToken(updatedUser.id);
+
+        await this.userService.storeRefreshToken(updatedUser.id, refreshToken);
+
+        return {
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          userRole: updatedUser.role.name,
+        };
+      }
+    } else {
+      // Create a new user
+      const hashPassword = await bcrypt.hash(userDto.password, 5);
+      const user = await this.userService.createUser({
+        ...userDto,
+        password: hashPassword,
+      });
+
+      const accessToken = this.generateAccessToken(user);
+      const refreshToken = this.generateRefreshToken(user.id);
+
+      await this.userService.storeRefreshToken(user.id, refreshToken);
+
+      return {
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        userRole: user.role.name,
+      };
     }
-
-    const hashPassword = await bcrypt.hash(userDto.password, 5);
-    const user = await this.userService.createUser({
-      ...userDto,
-      password: hashPassword,
-    });
-
-    const accessToken = this.generateAccessToken(user);
-    const refreshToken = this.generateRefreshToken(user.id);
-
-    await this.userService.storeRefreshToken(user.id, refreshToken);
-
-    return {
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      userRole: user.role.name,
-    };
   }
 
   private generateAccessToken(user: User): string {
