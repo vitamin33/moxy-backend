@@ -56,4 +56,14 @@ export class OrdersController {
   async getOrdersBy(@Body() dto: FindByDto): Promise<OrderDocument[]> {
     return this.ordersService.getOrdersBy(dto);
   }
+
+  @ApiOperation({ summary: 'Get orders dashboard' })
+  @ApiResponse({ status: 200, type: [Order] })
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
+  @UsePipes(ValidationPipe)
+  @Get('dashboard')
+  async getOrdersDashboard() {
+    return this.ordersService.getOrdersDashboard();
+  }
 }
