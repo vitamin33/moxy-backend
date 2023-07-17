@@ -22,7 +22,7 @@
   "dependencies": {
     "@google-cloud/storage": "^6.9.5",
     "@nestjs/axios": "^3.0.0",
-    "@nestjs/cli": "^9.0.0",
+    "@nestjs/cli": "^10.1.8",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^9.0.0",
