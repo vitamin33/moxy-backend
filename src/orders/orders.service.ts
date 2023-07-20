@@ -58,10 +58,6 @@ export class OrdersService {
     return ordersWithImageUrls;
   }
 
-  async getOrdersDashboard() {
-    return {};
-  }
-
   async getOrdersBy(dto: FindByDto): Promise<OrderDocument[]> {
     const query = this.orderModel.find();
     if (dto.statuses) {
