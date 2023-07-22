@@ -33,26 +33,17 @@ export class DashboardService {
 
     // Get the orders count by time frame (by day, week, or month) for graph
     const ordersCountByTimeFrame = await this.calculateOrdersCountByTimeFrame(
-      timeFrame,
       fromDate,
       toDate,
     );
 
     // Get the total orders sale value by time frame for graph
     const totalSaleValueByTimeFrame =
-      await this.calculateTotalSaleValueByTimeFrame(
-        timeFrame,
-        fromDate,
-        toDate,
-      );
+      await this.calculateTotalSaleValueByTimeFrame(fromDate, toDate);
 
     // Get the total orders cost value by time frame for graph
     const totalCostValueByTimeFrame =
-      await this.calculateTotalCostValueByTimeFrame(
-        timeFrame,
-        fromDate,
-        toDate,
-      );
+      await this.calculateTotalCostValueByTimeFrame(fromDate, toDate);
 
     return {
       totalSaleValue,
@@ -71,7 +62,7 @@ export class DashboardService {
     const dateRangeInDays =
       Math.abs(toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24);
 
-    if (dateRangeInDays <= 30) {
+    if (dateRangeInDays <= 32) {
       return 'day';
     } else if (dateRangeInDays <= 90) {
       return 'week';
@@ -236,12 +227,10 @@ export class DashboardService {
     return result.length > 0 ? result[0].totalOrdersCount : 0;
   }
   private async calculateOrdersCountByTimeFrame(
-    timeFrame: 'day' | 'week' | 'month',
     fromDate: Date,
     toDate: Date,
   ): Promise<{ date: Date; value: number }[]> {
     const dateField = '$createdAt';
-    const timeFrameGrouping = this.getTimeFrameGrouping(dateField, timeFrame);
 
     const result = await this.orderModel.aggregate([
       {
@@ -253,27 +242,8 @@ export class DashboardService {
         },
       },
       {
-        $unwind: '$orderedItems',
-      },
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'orderedItems.product',
-          foreignField: '_id',
-          as: 'productInfo',
-        },
-      },
-      {
-        $unwind: '$productInfo',
-      },
-      {
-        $addFields: {
-          timeFrameGroup: timeFrameGrouping[timeFrame],
-        },
-      },
-      {
         $group: {
-          _id: '$timeFrameGroup',
+          _id: { $dateToString: { format: '%Y-%m-%d', date: dateField } },
           count: { $sum: 1 },
         },
       },
@@ -281,30 +251,19 @@ export class DashboardService {
         $sort: { _id: 1 },
       },
     ]);
-
-    // Format the result into an array of { x, y } coordinates
+    // Format the result into an array of { date, value } coordinates
     const coordinates = result.map((item) => ({
       date: new Date(item._id),
       value: item.count,
     }));
 
-    // If the result contains gaps in the time frames (e.g., no orders on certain days), fill in the gaps with zero counts
-    const filledCoordinates = this.fillTimeFrameGaps(
-      coordinates,
-      fromDate,
-      toDate,
-      timeFrame,
-    );
-
-    return filledCoordinates;
+    return coordinates;
   }
   private async calculateTotalSaleValueByTimeFrame(
-    timeFrame: 'day' | 'week' | 'month',
     fromDate: Date,
     toDate: Date,
   ): Promise<{ date: Date; value: number }[]> {
     const dateField = '$createdAt';
-    const timeFrameGrouping = this.getTimeFrameGrouping(dateField, timeFrame);
 
     const result = await this.orderModel.aggregate([
       {
@@ -340,7 +299,7 @@ export class DashboardService {
               },
             },
           },
-          timeFrameGroup: timeFrameGrouping[timeFrame],
+          date: { $dateToString: { format: '%Y-%m-%d', date: dateField } },
         },
       },
       {
@@ -348,7 +307,7 @@ export class DashboardService {
       },
       {
         $group: {
-          _id: '$timeFrameGroup',
+          _id: '$date',
           totalSaleValue: { $sum: '$saleValue' },
         },
       },
@@ -363,23 +322,13 @@ export class DashboardService {
       value: item.totalSaleValue,
     }));
 
-    // Fill in the gaps in the time frames with zero sale value
-    const filledCoordinates = this.fillTimeFrameGaps(
-      coordinates,
-      fromDate,
-      toDate,
-      timeFrame,
-    );
-
-    return filledCoordinates;
+    return coordinates;
   }
   private async calculateTotalCostValueByTimeFrame(
-    timeFrame: 'day' | 'week' | 'month',
     fromDate: Date,
     toDate: Date,
-  ): Promise<{ date: Date; value: number }[]> {
+  ): Promise<{ date: Date; value: any }[]> {
     const dateField = '$createdAt';
-    const timeFrameGrouping = this.getTimeFrameGrouping(dateField, timeFrame);
 
     const result = await this.orderModel.aggregate([
       {
@@ -415,7 +364,7 @@ export class DashboardService {
               },
             },
           },
-          timeFrameGroup: timeFrameGrouping[timeFrame],
+          date: { $dateToString: { format: '%Y-%m-%d', date: dateField } },
         },
       },
       {
@@ -423,7 +372,7 @@ export class DashboardService {
       },
       {
         $group: {
-          _id: '$timeFrameGroup',
+          _id: '$date',
           totalCostValue: { $sum: '$costValue' },
         },
       },
@@ -432,115 +381,12 @@ export class DashboardService {
       },
     ]);
 
-    // Format the result into an array of { x, y } coordinates
+    // Format the result into an array of { date, totalCostValue } coordinates
     const coordinates = result.map((item) => ({
       date: new Date(item._id),
       value: item.totalCostValue,
     }));
 
-    // Fill in the gaps in the time frames with zero cost value
-    const filledCoordinates = this.fillTimeFrameGaps(
-      coordinates,
-      fromDate,
-      toDate,
-      timeFrame,
-    );
-
-    return filledCoordinates;
-  }
-
-  private getTimeFrameGrouping(
-    dateField: string,
-    timeFrame: 'day' | 'week' | 'month',
-  ): any {
-    switch (timeFrame) {
-      case 'day':
-        return { $dateToString: { format: '%Y-%m-%d', date: dateField } };
-      case 'week':
-        return {
-          $concat: [
-            { $toString: { $year: dateField } },
-            '-',
-            {
-              $cond: {
-                if: { $lte: [{ $week: dateField }, 9] },
-                then: { $concat: ['0', { $toString: { $week: dateField } }] },
-                else: { $toString: { $week: dateField } },
-              },
-            },
-          ],
-        };
-      case 'month':
-        return { $dateToString: { format: '%Y-%m', date: dateField } };
-      default:
-        throw new Error(`Invalid time frame: ${timeFrame}`);
-    }
-  }
-
-  // Helper function to fill gaps in time frames with zero values
-  fillTimeFrameGaps(
-    coordinates: { date: Date; value: number }[],
-    fromDate: Date,
-    toDate: Date,
-    timeFrame: 'day' | 'week' | 'month',
-  ): { date: Date; value: number }[] {
-    const filledCoordinates: { date: Date; value: number }[] = [];
-    let currentDate = new Date(fromDate);
-
-    while (currentDate <= toDate) {
-      const matchingCoordinate = coordinates.find((coord) =>
-        this.isTimeFrameMatch(currentDate, coord.date, timeFrame),
-      );
-      if (matchingCoordinate) {
-        filledCoordinates.push(matchingCoordinate);
-      } else {
-        filledCoordinates.push({ date: new Date(currentDate), value: 0 });
-      }
-
-      currentDate = this.addTimeFrame(currentDate, 1, timeFrame);
-    }
-
-    return filledCoordinates;
-  }
-
-  isTimeFrameMatch(
-    date1: Date,
-    date2: Date,
-    timeFrame: 'day' | 'week' | 'month',
-  ): boolean {
-    if (timeFrame === 'day') {
-      return (
-        date1.toISOString().slice(0, 10) === date2.toISOString().slice(0, 10)
-      );
-    } else if (timeFrame === 'week') {
-      const week1 = getISOWeek(date1);
-      const week2 = getISOWeek(date2);
-      return week1 === week2;
-    } else if (timeFrame === 'month') {
-      return (
-        date1.getFullYear() === date2.getFullYear() &&
-        date1.getMonth() === date2.getMonth()
-      );
-    }
-
-    return false;
-  }
-
-  addTimeFrame(
-    date: Date,
-    count: number,
-    timeFrame: 'day' | 'week' | 'month',
-  ): Date {
-    const newDate = new Date(date);
-
-    if (timeFrame === 'day') {
-      newDate.setDate(newDate.getDate() + count);
-    } else if (timeFrame === 'week') {
-      newDate.setDate(newDate.getDate() + count * 7);
-    } else if (timeFrame === 'month') {
-      newDate.setMonth(newDate.getMonth() + count);
-    }
-
-    return newDate;
+    return coordinates;
   }
 }
