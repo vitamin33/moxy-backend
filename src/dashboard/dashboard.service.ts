@@ -253,7 +253,7 @@ export class DashboardService {
     ]);
     // Format the result into an array of { date, value } coordinates
     const coordinates = result.map((item) => ({
-      date: new Date(item._id),
+      date: item._id,
       value: item.count,
     }));
 
@@ -318,7 +318,7 @@ export class DashboardService {
 
     // Format the result into an array of { x, y } coordinates
     const coordinates = result.map((item) => ({
-      date: new Date(item._id),
+      date: item._id,
       value: item.totalSaleValue,
     }));
 
@@ -383,7 +383,7 @@ export class DashboardService {
 
     // Format the result into an array of { date, totalCostValue } coordinates
     const coordinates = result.map((item) => ({
-      date: new Date(item._id),
+      date: item._id,
       value: item.totalCostValue,
     }));
 
