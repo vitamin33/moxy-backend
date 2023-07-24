@@ -29,7 +29,7 @@
     "@nestjs/jwt": "^10.0.3",
     "@nestjs/mongoose": "^9.2.2",
     "@nestjs/platform-express": "^9.0.0",
-    "@nestjs/swagger": "^6.3.0",
+    "@nestjs/swagger": "^7.1.2",
     "axios": "^1.4.0",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
