@@ -42,6 +42,7 @@ export class OrdersService {
             return {
               product: orderedItem.product.toString(),
               productName: product.name,
+              productPrice:product.salePrice,
               dimensions: orderedItem.dimensions,
               imageUrl,
             };
