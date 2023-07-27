@@ -4,19 +4,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Order, OrderDocument } from 'src/orders/order.entity';
 import { Model } from 'mongoose';
 
-interface RangeData {
-  fromDate: string;
-  toDate: string;
-  key: string;
-  value: number;
-}
-
-interface DateRange {
-  unitNumber: number;
-  fromDate: string;
-  toDate: string;
-}
-
 @Injectable()
 export class DashboardService {
   constructor(
