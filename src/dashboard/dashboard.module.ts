@@ -7,6 +7,10 @@ import { Order, OrderSchema } from 'src/orders/order.entity';
 import { UsersModule } from 'src/users/users.module';
 import { ProductsModule } from 'src/products/products.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { SaleCalculationService } from './service/sale-calculation.service';
+import { CostCalculationService } from './service/cost-calculation.service';
+import { OrderCountService } from './service/order-count.service';
+import { TimeFrameService } from './service/time-frame.service';
 
 @Module({
   imports: [
@@ -19,6 +23,12 @@ import { AuthModule } from 'src/auth/auth.module';
     forwardRef(() => AuthModule),
   ],
   controllers: [DashboardController],
-  providers: [DashboardService],
+  providers: [
+    DashboardService,
+    SaleCalculationService,
+    CostCalculationService,
+    OrderCountService,
+    TimeFrameService,
+  ],
 })
 export class DashboardModule {}
