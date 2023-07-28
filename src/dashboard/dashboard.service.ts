@@ -28,6 +28,46 @@ export class DashboardService {
       toDate,
     );
 
+    // Get the previous total sale value
+    const previousTotalSaleValue = await this.getPreviousTotalSaleValue(
+      fromDate,
+      toDate,
+    );
+
+    // Get the previous total cost value
+    const previousTotalCostValue = await this.getPreviousTotalCostValue(
+      fromDate,
+      toDate,
+    );
+
+    // Get the previous total orders count
+    const previousTotalOrdersCount = await this.getPreviousTotalOrdersCount(
+      fromDate,
+      toDate,
+    );
+
+    // Calculate the percentage change for totalSaleValue
+    const saleValuePercentageChange =
+      previousTotalSaleValue !== 0
+        ? ((totalSaleValue - previousTotalSaleValue) / previousTotalSaleValue) *
+          100
+        : 0;
+
+    // Calculate the percentage change for totalCostValue
+    const costValuePercentageChange =
+      previousTotalCostValue !== 0
+        ? ((totalCostValue - previousTotalCostValue) / previousTotalCostValue) *
+          100
+        : 0;
+
+    // Calculate the percentage change for totalOrdersCount
+    const ordersCountPercentageChange =
+      previousTotalOrdersCount !== 0
+        ? ((totalOrdersCount - previousTotalOrdersCount) /
+            previousTotalOrdersCount) *
+          100
+        : 0;
+
     // Get the orders count by time frame (by day, week, or month) for graph
     const ordersCountByTimeFrame = await this.calculateOrdersCountByTimeFrame(
       fromDate,
@@ -55,6 +95,12 @@ export class DashboardService {
       totalSaleValue,
       totalCostValue,
       totalOrdersCount,
+      previousTotalSaleValue,
+      previousTotalCostValue,
+      previousTotalOrdersCount,
+      saleValuePercentageChange,
+      costValuePercentageChange,
+      ordersCountPercentageChange,
       ordersCountByTimeFrame,
       totalSaleValueByTimeFrame,
       totalCostValueByTimeFrame,
@@ -407,6 +453,42 @@ export class DashboardService {
 
     return transformToTimeFrameCoordinates(coordinates, timef);
   }
+
+  // Function to get the previous total sale value for the same time frame as the current period
+  private async getPreviousTotalSaleValue(
+    fromDate: Date,
+    toDate: Date,
+  ): Promise<number> {
+    const { previousFromDate, previousToDate } = getPreviousPeriodDates(
+      fromDate,
+      toDate,
+    );
+    return this.calculateTotalSaleValue(previousFromDate, previousToDate);
+  }
+
+  // Function to get the previous total cost value for the same time frame as the current period
+  private async getPreviousTotalCostValue(
+    fromDate: Date,
+    toDate: Date,
+  ): Promise<number> {
+    const { previousFromDate, previousToDate } = getPreviousPeriodDates(
+      fromDate,
+      toDate,
+    );
+    return this.calculateTotalCostValue(previousFromDate, previousToDate);
+  }
+
+  // Function to get the previous total orders count for the same time frame as the current period
+  private async getPreviousTotalOrdersCount(
+    fromDate: Date,
+    toDate: Date,
+  ): Promise<number> {
+    const { previousFromDate, previousToDate } = getPreviousPeriodDates(
+      fromDate,
+      toDate,
+    );
+    return this.calculateTotalOrdersCount(previousFromDate, previousToDate);
+  }
 }
 function transformToTimeFrameCoordinates(
   coordinates: RangeData[],
@@ -552,4 +634,19 @@ function getMonthWithRange(date: string): DateRange {
     fromDate,
     toDate,
   };
+}
+
+// Helper function to get the previous period's start and end dates
+function getPreviousPeriodDates(
+  fromDate: Date,
+  toDate: Date,
+): { previousFromDate: Date; previousToDate: Date } {
+  const timeDifferenceInMilliseconds = toDate.getTime() - fromDate.getTime();
+  const previousFromDate = new Date(
+    fromDate.getTime() - timeDifferenceInMilliseconds,
+  );
+  const previousToDate = new Date(
+    toDate.getTime() - timeDifferenceInMilliseconds,
+  );
+  return { previousFromDate, previousToDate };
 }
