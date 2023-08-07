@@ -42,7 +42,7 @@ export class OrdersService {
             return {
               product: orderedItem.product.toString(),
               productName: product.name,
-              productPrice:product.salePrice,
+              productPrice: product.salePrice,
               dimensions: orderedItem.dimensions,
               imageUrl,
             };
@@ -124,22 +124,32 @@ export class OrdersService {
   }
 
   async editOrder(orderDto: ChangeOrderDto): Promise<OrderDocument> {
-    const orderedItems = [];
-    for (const product of orderDto.products) {
-      orderedItems.push({
-        product: product._id,
-        dimensions: product.dimensions,
-      });
-    }
+    // Check if orderDto.products is present and not empty
+    const shouldUpdateProducts =
+      orderDto.products && orderDto.products.length > 0;
+
+    // If products are present, update the orderedItems field
+    const orderedItems = shouldUpdateProducts
+      ? orderDto.products.map((product) => ({
+          product: product._id,
+          dimensions: product.dimensions,
+        }))
+      : undefined;
+
+    // Remove the products field from orderDto to avoid updating it
+    delete orderDto.products;
+
+    // Update the order, including the orderedItems field if necessary
     const updatedOrder = await this.orderModel.findByIdAndUpdate(
       { _id: orderDto.orderId },
-      { ...orderDto, orderedItems },
+      shouldUpdateProducts ? { ...orderDto, orderedItems } : orderDto,
       { new: true },
     );
 
     if (!updatedOrder) {
       throw new NotFoundException(`Order #${orderDto.orderId} not found`);
     }
+
     return updatedOrder;
   }
 
