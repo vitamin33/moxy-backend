@@ -6,7 +6,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrdersService } from './orders.service';
 import { Order, OrderDocument } from './order.entity';
@@ -17,6 +17,7 @@ import { ChangeOrderDto } from './dto/change-order.dto';
 import { FindByDto } from './dto/find-by.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
+@ApiTags('Orders')
 @UseGuards(JwtAuthGuard)
 @Controller('orders')
 export class OrdersController {

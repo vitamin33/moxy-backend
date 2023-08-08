@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Transform, Type } from 'class-transformer';
 import mongoose, { ObjectId } from 'mongoose';
 import { Order } from 'src/orders/order.entity';
+import { Product } from 'src/products/product.entity';
 import { Role } from 'src/roles/role.entity';
 
 export type UserDocument = User & Document;
@@ -73,6 +74,12 @@ export class User {
   })
   @Type(() => Order)
   orders: Order[];
+
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+  })
+  @Type(() => Product)
+  favoriteProducts: Product[];
 
   @ApiProperty({ description: 'User id. This is the same as _id in db.' })
   id: string;

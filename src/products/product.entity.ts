@@ -110,6 +110,9 @@ export class Product {
   }[];
 
   id: string;
+
+  @Prop({ default: 0 })
+  numFavorites: number;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

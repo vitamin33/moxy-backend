@@ -16,6 +16,8 @@ import { GuestUserDto } from './dto/guest-user.dto';
 import { NovaPoshtaService } from 'src/nova-poshta/nova-poshta.service';
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
+import { FavoritesService } from './favorites.service';
+import { Product } from 'src/products/product.entity';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +25,7 @@ export class UsersService {
     @InjectModel(User.name) private userModel: Model<User>,
     private roleService: RolesService,
     private novaPoshtaService: NovaPoshtaService,
+    private favoritesService: FavoritesService,
   ) {}
 
   async createUser(dto: CreateUserDto): Promise<User> {
@@ -189,5 +192,20 @@ export class UsersService {
 
   async storeRefreshToken(userId: string, refreshToken: string) {
     await this.userModel.updateOne({ _id: userId }, { refreshToken }).exec();
+  }
+
+  async addFavoriteProduct(userId: string, productId: string): Promise<User> {
+    return this.favoritesService.addFavoriteProduct(userId, productId);
+  }
+
+  async removeFavoriteProduct(
+    userId: string,
+    productId: string,
+  ): Promise<User> {
+    return this.favoritesService.removeFavoriteProduct(userId, productId);
+  }
+
+  async getFavoriteProducts(userId: string): Promise<Product[]> {
+    return this.favoritesService.getFavoriteProducts(userId);
   }
 }

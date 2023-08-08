@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
@@ -23,6 +24,8 @@ export class JwtAuthGuard implements CanActivate {
       }
       const user = this.jwtService.verify(token);
       req.user = user;
+      req.userId = user.id; // Assuming your JWT payload has a field called "id"
+
       return true;
     } catch (error) {
       throw new UnauthorizedException({ message: 'User unauthorized' });

@@ -12,12 +12,15 @@ import {
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductsService } from './products.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Product, ProductDocument } from './product.entity';
 import { EditProductDto } from './dto/edit-product.dto';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/role-auth.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 
+@ApiTags('Products')
 @UseGuards(JwtAuthGuard)
 @Controller('products')
 export class ProductsController {
@@ -25,6 +28,8 @@ export class ProductsController {
 
   @Post('create')
   @UseInterceptors(FilesInterceptor('images'))
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
   @UsePipes(ValidationPipe)
   async createProduct(
     @Body() dto: CreateProductDto,
@@ -34,6 +39,8 @@ export class ProductsController {
   }
 
   @Post('import')
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
   @UseInterceptors(FilesInterceptor('products'))
   async importProducts(@UploadedFiles() products): Promise<ProductDocument[]> {
     return this.productService.importProducts(products);
@@ -46,6 +53,8 @@ export class ProductsController {
   })
   @ApiResponse({ status: 200, type: [Product] })
   @Post('edit/:id')
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
   @UseInterceptors(FilesInterceptor('newImages'))
   @UsePipes(ValidationPipe)
   async editProduct(
