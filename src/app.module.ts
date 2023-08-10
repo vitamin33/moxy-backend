@@ -11,6 +11,7 @@ import { OrdersModule } from './orders/orders.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { NovaPoshtaModule } from './nova-poshta/nova-poshta.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     OrdersModule,
     NovaPoshtaModule,
     DashboardModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
