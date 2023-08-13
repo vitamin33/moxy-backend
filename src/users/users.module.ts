@@ -17,7 +17,7 @@ import { NovaPoshtaModule } from 'src/nova-poshta/nova-poshta.module';
 import { FavoritesService } from './favorites.service';
 import { ProductsModule } from 'src/products/products.module';
 import { Product, ProductSchema } from 'src/products/product.entity';
-import { FavoritesController } from './favourites.controller';
+import { FavoritesController } from './favorites.controller';
 @Module({
   imports: [
     MongooseModule.forFeature([

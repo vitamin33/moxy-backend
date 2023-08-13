@@ -25,7 +25,11 @@ export class OrdersService {
   ) {}
 
   async getAllOrders() {
-    const orders = await this.orderModel.find().populate('client').exec();
+    const orders = await this.orderModel
+      .find()
+      .sort({ createdAt: -1 })
+      .populate('client')
+      .exec();
 
     const ordersWithImageUrls = await Promise.all(
       orders.map(async (order) => {
