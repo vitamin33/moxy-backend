@@ -193,19 +193,4 @@ export class UsersService {
   async storeRefreshToken(userId: string, refreshToken: string) {
     await this.userModel.updateOne({ _id: userId }, { refreshToken }).exec();
   }
-
-  async addFavoriteProduct(userId: string, productId: string): Promise<User> {
-    return this.favoritesService.addFavoriteProduct(userId, productId);
-  }
-
-  async removeFavoriteProduct(
-    userId: string,
-    productId: string,
-  ): Promise<User> {
-    return this.favoritesService.removeFavoriteProduct(userId, productId);
-  }
-
-  async getFavoriteProducts(userId: string): Promise<Product[]> {
-    return this.favoritesService.getFavoriteProducts(userId);
-  }
 }
