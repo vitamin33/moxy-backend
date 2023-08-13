@@ -1,4 +1,119 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { AddOrChangeProductDto } from './dto/add-change-product.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Basket, BasketDocument } from './basket.entity';
+import { Model } from 'mongoose';
+import { UsersService } from 'src/users/users.service';
+import { ProductsService } from 'src/products/products.service';
+import { RemoveProductDto } from './dto/remove-product.dto';
+import { Color } from 'src/products/product.entity';
 
 @Injectable()
-export class BasketService {}
+export class BasketService {
+  constructor(
+    @InjectModel(Basket.name) private basketModel: Model<BasketDocument>,
+    private usersService: UsersService,
+    private productsService: ProductsService,
+  ) {}
+
+  async addOrChangeProduct(
+    userId: string,
+    addDto: AddOrChangeProductDto,
+  ): Promise<Basket> {
+    const user = await this.usersService.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    let basket = await this.basketModel.findOne({ client: user }).exec();
+    if (!basket) {
+      basket = new this.basketModel({ client: user });
+    }
+
+    const existingItem = basket.basketItems.find(
+      (item) => item.product.toString() === addDto.product.productId,
+    );
+
+    if (existingItem) {
+      const existingDimension = existingItem.dimensions.find(
+        (dim) => dim.color === addDto.product.dimension.color,
+      );
+
+      if (existingDimension) {
+        existingDimension.quantity += addDto.product.dimension.quantity;
+      } else {
+        const color =
+          Color[addDto.product.dimension.color as keyof typeof Color];
+        existingItem.dimensions.push({
+          color: color,
+          quantity: addDto.product.dimension.quantity,
+        });
+      }
+    } else {
+      const product = await this.productsService.getProductbyId(
+        addDto.product.productId,
+      );
+      if (!product) {
+        throw new NotFoundException(
+          `Product with ID ${addDto.product.productId} not found`,
+        );
+      }
+      const color = Color[addDto.product.dimension.color as keyof typeof Color];
+      basket.basketItems.push({
+        product: product._id,
+        dimensions: [
+          {
+            color: color,
+            quantity: addDto.product.dimension.quantity,
+          },
+        ],
+      });
+    }
+
+    await basket.save();
+    return basket;
+  }
+
+  async removeProduct(
+    userId: string,
+    removeDto: RemoveProductDto,
+  ): Promise<BasketDocument> {
+    const user = await this.usersService.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const basket = await this.basketModel
+      .findOne({ client: user })
+      .populate('orderedItems.product');
+    if (!basket) {
+      throw new NotFoundException('Basket not found');
+    }
+
+    const itemIndex = basket.basketItems.findIndex(
+      (item) => item.product.toString() === removeDto.productId,
+    );
+
+    if (itemIndex === -1) {
+      throw new NotFoundException('Basket item not found');
+    }
+
+    basket.basketItems.splice(itemIndex, 1);
+
+    await basket.save();
+    return basket;
+  }
+
+  async getBasket(userId: string): Promise<Basket> {
+    const user = await this.usersService.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    const basket = await this.basketModel
+      .findOne({ client: user })
+      .populate('orderedItems.product')
+      .exec();
+    return basket;
+  }
+}
