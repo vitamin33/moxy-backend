@@ -12,6 +12,7 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
 import { NovaPoshtaModule } from './nova-poshta/nova-poshta.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ProfileModule } from './profile/profile.module';
+import { BasketModule } from './basket/basket.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ProfileModule } from './profile/profile.module';
     NovaPoshtaModule,
     DashboardModule,
     ProfileModule,
+    BasketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

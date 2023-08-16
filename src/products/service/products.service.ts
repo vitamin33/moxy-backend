@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateProductDto, DimensionDto } from './dto/create-product.dto';
-import { Product, ProductDocument } from './product.entity';
+import { CreateProductDto, DimensionDto } from '../dto/create-product.dto';
+import { Product, ProductDocument } from '../product.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { StorageService } from 'src/storage/storage.service';
-import { EditProductDto } from './dto/edit-product.dto';
+import { EditProductDto } from '../dto/edit-product.dto';
 import { ImportProductsService } from './import-products.service';
 
 @Injectable()

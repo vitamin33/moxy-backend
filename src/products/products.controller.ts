@@ -10,7 +10,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
-import { ProductsService } from './products.service';
+import { ProductsService } from './service/products.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Product, ProductDocument } from './product.entity';

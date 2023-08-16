@@ -1,12 +1,13 @@
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ProductsController } from './products.controller';
-import { ProductsService } from './products.service';
+import { ProductsService } from './service/products.service';
 import { Product, ProductSchema } from './product.entity';
 import { MongooseModule } from '@nestjs/mongoose';
 import { StorageModule } from 'src/storage/storage.module';
-import { ImportProductsService } from './import-products.service';
+import { ImportProductsService } from './service/import-products.service';
 import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 import { AuthModule } from 'src/auth/auth.module';
+import { ProductAvailabilityService } from './service/product-availability.service';
 
 @Module({
   imports: [
