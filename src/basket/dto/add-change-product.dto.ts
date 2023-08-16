@@ -15,6 +15,7 @@ export class AddOrChangeProductDto {
 }
 
 export class BasketItemDto {
+  @IsNotEmpty({ message: 'productId should be present' })
   readonly productId: string;
   readonly dimension: DimensionDto;
 }

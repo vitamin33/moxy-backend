@@ -50,4 +50,13 @@ export class BasketController {
     const userId = req.user.id;
     return this.basketService.removeProduct(userId, removeDto);
   }
+
+  @ApiOperation({ summary: 'Clear basket' })
+  @ApiResponse({ status: 200 })
+  @UsePipes(ValidationPipe)
+  @Get('clear')
+  async clearBasket(@Request() req: any) {
+    const userId = req.user.id;
+    return this.basketService.clearBasket(userId);
+  }
 }

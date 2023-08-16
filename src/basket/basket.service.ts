@@ -2,11 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { AddOrChangeProductDto } from './dto/add-change-product.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Basket, BasketDocument } from './basket.entity';
-import { Model } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { UsersService } from 'src/users/users.service';
 import { ProductsService } from 'src/products/products.service';
 import { RemoveProductDto } from './dto/remove-product.dto';
-import { Color } from 'src/products/product.entity';
+import { Color, Product } from 'src/products/product.entity';
 
 @Injectable()
 export class BasketService {
@@ -40,7 +40,7 @@ export class BasketService {
       );
 
       if (existingDimension) {
-        existingDimension.quantity += addDto.product.dimension.quantity;
+        existingDimension.quantity = addDto.product.dimension.quantity;
       } else {
         const color =
           Color[addDto.product.dimension.color as keyof typeof Color];
@@ -83,16 +83,15 @@ export class BasketService {
       throw new NotFoundException('User not found');
     }
 
-    const basket = await this.basketModel
-      .findOne({ client: user })
-      .populate('orderedItems.product');
+    const basket = await this.basketModel.findOne({ client: user });
     if (!basket) {
       throw new NotFoundException('Basket not found');
     }
 
-    const itemIndex = basket.basketItems.findIndex(
-      (item) => item.product.toString() === removeDto.productId,
-    );
+    const itemIndex = basket.basketItems.findIndex((item) => {
+      const itemId = item.product.toString();
+      return itemId === removeDto.productId;
+    });
 
     if (itemIndex === -1) {
       throw new NotFoundException('Basket item not found');
@@ -112,8 +111,17 @@ export class BasketService {
 
     const basket = await this.basketModel
       .findOne({ client: user })
-      .populate('orderedItems.product')
+      .populate('basketItems.product')
       .exec();
     return basket;
+  }
+
+  async clearBasket(userId: string): Promise<void> {
+    const user = await this.usersService.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.basketModel.deleteOne({ client: user });
   }
 }
