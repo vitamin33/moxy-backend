@@ -14,7 +14,7 @@ import { OrderDocument } from './order.entity';
 import { User } from 'src/users/user.entity';
 import { ChangeOrderDto } from './dto/change-order.dto';
 import { FindByDto } from './dto/find-by.dto';
-import { ProductsService } from 'src/products/products.service';
+import { ProductsService } from 'src/products/service/products.service';
 
 @Injectable()
 export class OrdersService {

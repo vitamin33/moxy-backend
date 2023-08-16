@@ -4,9 +4,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Basket, BasketDocument } from './basket.entity';
 import mongoose, { Model, Types } from 'mongoose';
 import { UsersService } from 'src/users/users.service';
-import { ProductsService } from 'src/products/products.service';
+import { ProductsService } from 'src/products/service/products.service';
 import { RemoveProductDto } from './dto/remove-product.dto';
 import { Color, Product } from 'src/products/product.entity';
+import { ProductAvailabilityService } from 'src/products/service/product-availability.service';
 
 @Injectable()
 export class BasketService {
@@ -14,8 +15,8 @@ export class BasketService {
     @InjectModel(Basket.name) private basketModel: Model<BasketDocument>,
     private usersService: UsersService,
     private productsService: ProductsService,
+    private productAvailabilityService: ProductAvailabilityService,
   ) {}
-
   async addOrChangeProduct(
     userId: string,
     addDto: AddOrChangeProductDto,
@@ -28,6 +29,35 @@ export class BasketService {
     let basket = await this.basketModel.findOne({ client: user }).exec();
     if (!basket) {
       basket = new this.basketModel({ client: user });
+    }
+
+    const product = await this.productsService.getProductbyId(
+      addDto.product.productId,
+    );
+    if (!product) {
+      throw new NotFoundException(
+        `Product with ID ${addDto.product.productId} not found`,
+      );
+    }
+
+    const dimension = product.dimensions.find(
+      (dim) => dim.color === addDto.product.dimension.color,
+    );
+    if (!dimension) {
+      throw new NotFoundException(
+        `Dimension with color ${addDto.product.dimension.color} not found for product ${product.id}`,
+      );
+    }
+
+    const isAvailable =
+      await this.productAvailabilityService.isProductAvailable(
+        addDto.product.productId,
+        addDto.product.dimension,
+      );
+    if (!isAvailable) {
+      throw new Error(
+        `Product with ID ${product.id} and dimension color ${addDto.product.dimension.color} is not available in the required quantity`,
+      );
     }
 
     const existingItem = basket.basketItems.find(
@@ -50,14 +80,6 @@ export class BasketService {
         });
       }
     } else {
-      const product = await this.productsService.getProductbyId(
-        addDto.product.productId,
-      );
-      if (!product) {
-        throw new NotFoundException(
-          `Product with ID ${addDto.product.productId} not found`,
-        );
-      }
       const color = Color[addDto.product.dimension.color as keyof typeof Color];
       basket.basketItems.push({
         product: product._id,
