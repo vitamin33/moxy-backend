@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { StorageService } from 'src/modules/storage/storage.service';
 import { EditProductDto } from '../dto/edit-product.dto';
 import { ImportProductsService } from './import-products.service';
+import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
 
 @Injectable()
 export class ProductsService {
@@ -124,6 +125,26 @@ export class ProductsService {
       }
       result.push(product);
     }
+    return result;
+  }
+
+  async setProductForSale(
+    productId: string,
+    forSale: boolean,
+  ): Promise<Product> {
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new ProductNotAvailableException(productId);
+    }
+
+    product.forSale = forSale;
+    return product.save();
+  }
+
+  async getSellingProducts() {
+    console.log('Getting selling products...');
+    const result = await this.productModel.find({ forSale: false }).lean();
+    console.log('Result:', result);
     return result;
   }
 }
