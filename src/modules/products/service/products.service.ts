@@ -142,9 +142,6 @@ export class ProductsService {
   }
 
   async getSellingProducts() {
-    console.log('Getting selling products...');
-    const result = await this.productModel.find({ forSale: false }).lean();
-    console.log('Result:', result);
-    return result;
+    return await this.productModel.find({ forSale: true }).lean();
   }
 }
