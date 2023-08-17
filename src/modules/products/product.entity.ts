@@ -113,6 +113,13 @@ export class Product {
 
   @Prop({ default: 0 })
   numFavorites: number;
+
+  @ApiProperty({
+    example: true,
+    description: 'Indicates whether the product is for sale',
+  })
+  @Prop({ default: true }) // Default value is true (for sale)
+  forSale: boolean;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

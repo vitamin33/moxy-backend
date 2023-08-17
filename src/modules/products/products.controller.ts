@@ -19,6 +19,7 @@ import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { JwtAuthGuard } from 'src/modules/auth/jwt-auth.guard';
 import { Roles } from 'src/modules/auth/role-auth.decorator';
 import { RolesGuard } from 'src/modules/auth/roles.guard';
+import { SetProductForSaleDto } from './dto/set-product-forsale.dto';
 
 @ApiTags('Products')
 @UseGuards(JwtAuthGuard)
@@ -72,8 +73,24 @@ export class ProductsController {
     return this.productService.getAllProducts();
   }
 
-  @Get(':id')
+  @Get('details/:id')
   getProductById(@Param('id') id: string): Promise<ProductDocument> {
     return this.productService.getProductbyId(id);
+  }
+
+  @ApiOperation({ summary: 'Set product for sale (Admin Only)' })
+  @ApiResponse({ status: 200, type: Product })
+  @Post('set-for-sale')
+  @Roles('ADMIN') // Requires ADMIN role
+  @UseGuards(RolesGuard)
+  async setProductForSale(@Body() dto: SetProductForSaleDto) {
+    return this.productService.setProductForSale(dto.productId, dto.forSale);
+  }
+
+  @ApiOperation({ summary: 'Get selling products' })
+  @ApiResponse({ status: 200, type: [Product] })
+  @Get('selling-products')
+  async getSellingProducts() {
+    return this.productService.getSellingProducts();
   }
 }
