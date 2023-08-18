@@ -72,6 +72,29 @@ export class ProductsService {
     }
   }
 
+  async deleteProduct(productId: string): Promise<void> {
+    try {
+      // Find the product
+      const product = await this.productModel.findById(productId);
+      if (!product) {
+        throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Delete product images from Google Cloud Storage
+      for (const imageUrl of product.images) {
+        await this.storageService.deleteFile(imageUrl);
+      }
+
+      // Delete the product from MongoDB
+      await this.productModel.findByIdAndDelete(productId);
+    } catch (error) {
+      throw new HttpException(
+        'Error while deleting the product',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async getAllProducts(): Promise<any[]> {
     const products = await this.productModel.find();
     const mappedProducts = products.map((product) => {
