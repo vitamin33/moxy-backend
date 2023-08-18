@@ -31,4 +31,21 @@ export class StorageService {
       );
     }
   }
+
+  async deleteFile(fileUrl: string): Promise<void> {
+    try {
+      const imageFileName = fileUrl.split('/').pop();
+      if (imageFileName) {
+        await storage
+          .bucket(process.env.STORAGE_MEDIA_BUCKET)
+          .file(imageFileName)
+          .delete();
+      }
+    } catch (error) {
+      throw new HttpException(
+        'Error during deleting from GoogleStorage',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -92,5 +93,15 @@ export class ProductsController {
   @Get('selling-products')
   async getSellingProducts() {
     return this.productService.getSellingProducts();
+  }
+
+  @ApiOperation({ summary: 'Delete product (Admin Only)' })
+  @ApiResponse({ status: 200, description: 'Product deleted successfully' })
+  @Delete(':id')
+  @Roles('ADMIN') // Requires ADMIN role
+  @UseGuards(RolesGuard)
+  async deleteProduct(@Param('id') id: string) {
+    await this.productService.deleteProduct(id);
+    return { message: 'Product deleted successfully' };
   }
 }
