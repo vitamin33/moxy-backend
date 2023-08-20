@@ -6,7 +6,7 @@ import { GlobalExceptionFilter } from './common/filter/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalFilters(new AuthExceptionFilter());
+  app.useGlobalFilters(new AuthExceptionFilter(), new GlobalExceptionFilter());
   const config = new DocumentBuilder()
     .setTitle('Moxy REST API')
     .setDescription('Moxy Brand Shop REST API documentation.')
@@ -16,7 +16,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/api/docs', app, document);
   app.enableCors();
-  app.useGlobalFilters(new GlobalExceptionFilter());
 
   await app.listen(process.env.PORT || 3000);
 }
