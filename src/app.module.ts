@@ -13,6 +13,7 @@ import { NovaPoshtaModule } from './modules/nova-poshta/nova-poshta.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { BasketModule } from './modules/basket/basket.module';
+import { PromosModule } from './modules/promos/promos.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { BasketModule } from './modules/basket/basket.module';
     DashboardModule,
     ProfileModule,
     BasketModule,
+    PromosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
