@@ -14,7 +14,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { BasketModule } from './modules/basket/basket.module';
 import { PromosModule } from './modules/promos/promos.module';
-import { CheckoutModule } from './checkout/checkout.module';
+import { CheckoutModule } from './modules/checkout/checkout.module';
 
 @Module({
   imports: [

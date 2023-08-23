@@ -26,6 +26,7 @@ import { ProductsModule } from 'src/modules/products/products.module';
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
+  exports: [OrdersService],
 })
 export class OrdersModule {
   configure(consumer: MiddlewareConsumer) {
