@@ -21,6 +21,7 @@ import { JwtAuthGuard } from 'src/modules/auth/jwt-auth.guard';
 import { Roles } from 'src/modules/auth/role-auth.decorator';
 import { RolesGuard } from 'src/modules/auth/roles.guard';
 import { SetProductForSaleDto } from './dto/set-product-forsale.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @ApiTags('Products')
 @UseGuards(JwtAuthGuard)
@@ -67,6 +68,7 @@ export class ProductsController {
     return this.productService.editProduct(id, dto, newImages);
   }
 
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get all product list' })
   @ApiResponse({ status: 200, type: [Product] })
   @Get()
@@ -74,6 +76,7 @@ export class ProductsController {
     return this.productService.getAllProducts();
   }
 
+  @UseInterceptors(CacheInterceptor)
   @Get('details/:id')
   getProductById(@Param('id') id: string): Promise<ProductDocument> {
     return this.productService.getProductbyId(id);
@@ -88,6 +91,7 @@ export class ProductsController {
     return this.productService.setProductForSale(dto.productId, dto.forSale);
   }
 
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get selling products' })
   @ApiResponse({ status: 200, type: [Product] })
   @Get('selling-products')
