@@ -16,8 +16,8 @@ export class MonobankService {
     this.axiosInstance = axios.create();
   }
 
-  async getInvoiceStatus(invoiceId: string): Promise<any> {
-    const cacheKey = `invoice_${invoiceId}`;
+  async getInvoiceStatus(invoiceId: string, status: string) {
+    const cacheKey = `${invoiceId}_${status}`;
 
     // Check if the result is already cached
     const cachedStatus = await this.cacheManager.get(cacheKey);
@@ -34,7 +34,7 @@ export class MonobankService {
     });
 
     // Store the result in cache
-    await this.cacheManager.set(cacheKey, response.data);
+    await this.cacheManager.set(cacheKey, response.data, 1000 * 60 * 3);
 
     return response.data;
   }

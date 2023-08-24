@@ -6,7 +6,6 @@ import { InvoicesService } from './invoices.service';
 import { OrdersModule } from '../orders/orders.module';
 import { AuthModule } from '../auth/auth.module';
 import { MonobankModule } from '../monobank/monobank.module';
-import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [OrdersModule, AuthModule, MonobankModule],

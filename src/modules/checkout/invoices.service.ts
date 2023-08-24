@@ -13,8 +13,25 @@ export class InvoicesService {
     // This could involve updating order status, sending notifications, etc.
     console.log('Received invoice status:', statusData);
     const invoiceId = statusData.invoiceId;
-    const result = await this.monobankService.getInvoiceStatus(invoiceId);
+    const status = statusData.status;
+    const result = await this.monobankService.getInvoiceStatus(
+      invoiceId,
+      status,
+    );
+    const finalStatus = result.status;
+    const success = successPayment(finalStatus);
 
-    return { message: 'Invoce status: $result' };
+    return { message: `Invoice status: ${finalStatus}` };
+  }
+}
+
+function successPayment(status: string): boolean {
+  const normalizedInput = status.toLowerCase();
+
+  switch (normalizedInput) {
+    case 'success':
+      return true;
+    default:
+      return false;
   }
 }
