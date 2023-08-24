@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import {
+  CacheModule,
+  MiddlewareConsumer,
+  Module,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -15,6 +20,7 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { BasketModule } from './modules/basket/basket.module';
 import { PromosModule } from './modules/promos/promos.module';
 import { CheckoutModule } from './modules/checkout/checkout.module';
+import { MonobankModule } from './modules/monobank/monobank.module';
 
 @Module({
   imports: [
@@ -24,6 +30,7 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
     MongooseModule.forRoot(process.env.MONGODB_CONFIG, {
       dbName: process.env.DB_NAME,
     }),
+    CacheModule.register({ isGlobal: true }),
     UsersModule,
     RolesModule,
     AuthModule,

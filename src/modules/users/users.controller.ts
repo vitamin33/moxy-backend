@@ -5,6 +5,7 @@ import {
   Post,
   Res,
   UseGuards,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,6 +20,7 @@ import { GuestUserDto } from './dto/guest-user.dto';
 import { JwtAuthGuard } from 'src/modules/auth/jwt-auth.guard';
 import { Response } from 'express';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @ApiTags('Users')
 @Controller('users')
@@ -53,6 +55,7 @@ export class UsersController {
     await this.usersService.exportUsersToExcel(res);
   }
 
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, type: [User] })
   @Roles('ADMIN', 'MANAGER')
