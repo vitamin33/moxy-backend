@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsUrl } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsUrl,
+} from 'class-validator';
 
 export class AddPromoDto {
   @IsNotEmpty()
@@ -13,4 +20,9 @@ export class AddPromoDto {
 
   @IsNotEmpty()
   productId: string;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  readonly finalDate: Date;
 }
