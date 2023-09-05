@@ -32,7 +32,7 @@ export class StorageService {
     }
   }
 
-  async deleteFile(fileUrl: string): Promise<void> {
+  async deleteFile(fileUrl: string): Promise<boolean> {
     try {
       const imageFileName = fileUrl.split('/').pop();
       if (imageFileName) {
@@ -40,12 +40,11 @@ export class StorageService {
           .bucket(process.env.STORAGE_MEDIA_BUCKET)
           .file(imageFileName)
           .delete();
+        return true;
       }
+      return false;
     } catch (error) {
-      throw new HttpException(
-        'Error during deleting from GoogleStorage',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return false;
     }
   }
 }

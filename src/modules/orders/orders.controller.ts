@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   UseGuards,
   UsePipes,
@@ -56,5 +58,14 @@ export class OrdersController {
   @Post('find')
   async getOrdersBy(@Body() dto: FindByDto): Promise<OrderDocument[]> {
     return this.ordersService.getOrdersBy(dto);
+  }
+
+  @ApiOperation({ summary: 'Delete order by ID' })
+  @ApiResponse({ status: 200, description: 'Order deleted successfully' })
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
+  @Delete(':id')
+  async deleteOrder(@Param('id') orderId: string) {
+    await this.ordersService.deleteOrder(orderId);
   }
 }
