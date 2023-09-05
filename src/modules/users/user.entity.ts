@@ -5,6 +5,7 @@ import mongoose, { ObjectId } from 'mongoose';
 import { Order } from 'src/modules/orders/order.entity';
 import { Product } from 'src/modules/products/product.entity';
 import { Role } from 'src/modules/roles/role.entity';
+import { AddressBook } from './adressbook.entity';
 
 export type UserDocument = User & Document;
 
@@ -42,17 +43,8 @@ export class User {
   @Prop()
   city: string;
 
-  @ApiProperty({ example: 24, description: 'Nova Poshta number' })
-  @Prop()
-  novaPoshtaNumber: number;
-
-  @ApiProperty({ example: 243, description: 'Nova Poshta machine number' })
-  @Prop()
-  novaPostMachineNumber: number;
-
-  @ApiProperty({ example: 12, description: 'Ukr Post number for delivering' })
-  @Prop()
-  ukrPostNumber: number;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'AddressBook' }) 
+  addressBook: AddressBook;
 
   @ApiProperty({ example: 'crazyded@gmail.com', description: 'Email' })
   @Prop()
