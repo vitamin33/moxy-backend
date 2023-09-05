@@ -5,9 +5,36 @@ import mongoose, { ObjectId } from 'mongoose';
 import { Order } from 'src/modules/orders/order.entity';
 import { Product } from 'src/modules/products/product.entity';
 import { Role } from 'src/modules/roles/role.entity';
-import { AddressBook } from './adressbook.entity';
 
 export type UserDocument = User & Document;
+
+@Schema()
+export class NovaPost {
+  @Prop({ required: true })
+  ref: string;
+  @Prop()
+  presentName: string;
+  @Prop()
+  postMachineType: string;
+  @Prop({ required: true })
+  number: number;
+}
+
+export const NovaPostSchema = SchemaFactory.createForClass(NovaPost);
+
+@Schema()
+export class City {
+  @Prop({ required: true })
+  ref: string;
+  @Prop()
+  mainDescription: string;
+  @Prop()
+  presentName: string;
+  @Prop()
+  deliveryCityRef: string;
+}
+
+export const CitySchema = SchemaFactory.createForClass(City);
 
 @Schema({
   toJSON: {
@@ -40,11 +67,17 @@ export class User {
   @Prop()
   mobileNumber: string;
 
-  @Prop()
-  city: string;
+  @ApiProperty({
+    description: 'City object data for delivering with Nova Poshta.',
+  })
+  @Prop({ type: CitySchema })
+  city: City;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'AddressBook' }) 
-  addressBook: AddressBook;
+  @ApiProperty({
+    description: 'Nova Post object data for delivering with Nova Poshta.',
+  })
+  @Prop({ type: NovaPostSchema })
+  novaPost: NovaPost;
 
   @ApiProperty({ example: 'crazyded@gmail.com', description: 'Email' })
   @Prop()

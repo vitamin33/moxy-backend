@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { City, NovaPost } from '../user.entity';
 
 export class EditUserDto {
   readonly userId: string;
@@ -25,8 +26,6 @@ export class EditUserDto {
     return value;
   })
   readonly mobileNumber: string;
-  readonly city: string;
-  readonly novaPoshtaNumber: number;
-  readonly ukrPostNumber: number;
-  readonly novaPostMachineNumber: number;
+  readonly city: City;
+  readonly novaPost: NovaPost;
 }
