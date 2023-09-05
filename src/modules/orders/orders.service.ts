@@ -35,6 +35,9 @@ export class OrdersService {
             const product = await this.productsService.getProductbyId(
               orderedItem.product.toString(),
             );
+            if (!product) {
+              return null;
+            }
             const imageUrl =
               product.images.length > 0
                 ? product.images[0] // Use the first value in the images array
@@ -149,6 +152,10 @@ export class OrdersService {
     }
 
     return updatedOrder;
+  }
+
+  async deleteOrder(orderId: string) {
+    await this.orderModel.findByIdAndDelete(orderId).exec();
   }
 
   async getOrderById(id: string) {
