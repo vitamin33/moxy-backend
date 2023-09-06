@@ -52,6 +52,9 @@ export class Basket {
   @Prop({ type: [BasketItemSchema], required: true, default: [] })
   basketItems: BasketItem[];
 
+  @Prop({ type: Number, required: true, default: 2000 })
+  freeShippingThreshold: number;
+
   id: string;
 }
 
