@@ -1,7 +1,6 @@
 import { MongoClient, UpdateResult } from 'mongodb';
 
-const url =
-  'mongodb+srv://serbynvitalii:grbUkwkhH0gYudEZ@moxy.ez6ytuk.mongodb.net/';
+const url = 'mongodb+srv://serbynvitalii:<password>@moxy.ez6ytuk.mongodb.net/';
 
 const migrate = async () => {
   const client = new MongoClient(url);
@@ -10,12 +9,12 @@ const migrate = async () => {
     await client.connect();
 
     const db = client.db();
-    const productsCollection = db.collection('products');
+    const usersCollection = db.collection('users');
 
-    // Update each document to add the forSale field with a default value of true
-    const updateResult: UpdateResult = await productsCollection.updateMany(
-      { forSale: { $exists: false } }, // Update documents where forSale field doesn't exist
-      { $set: { forSale: true } },
+    // Remove the novaPostMachineNumber field from all documents
+    const updateResult: UpdateResult = await usersCollection.updateMany(
+      {},
+      { $unset: { novaPostMachineNumber: 1 } },
     );
 
     console.log(
