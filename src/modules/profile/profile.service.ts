@@ -12,8 +12,9 @@ export class ProfileService {
 
     if (!user) {
       throw new UserNotFoundException(userId);
-    }
+    } 
 
-    return user;
+    return  await user.save();
+
   }
 }
