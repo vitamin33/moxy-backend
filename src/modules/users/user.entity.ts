@@ -8,6 +8,34 @@ import { Role } from 'src/modules/roles/role.entity';
 
 export type UserDocument = User & Document;
 
+@Schema()
+export class NovaPost {
+  @Prop({ required: true })
+  ref: string;
+  @Prop()
+  presentName: string;
+  @Prop()
+  postMachineType: string;
+  @Prop({ required: true })
+  number: number;
+}
+
+export const NovaPostSchema = SchemaFactory.createForClass(NovaPost);
+
+@Schema()
+export class City {
+  @Prop({ required: true })
+  ref: string;
+  @Prop()
+  mainDescription: string;
+  @Prop()
+  presentName: string;
+  @Prop()
+  deliveryCityRef: string;
+}
+
+export const CitySchema = SchemaFactory.createForClass(City);
+
 @Schema({
   toJSON: {
     virtuals: true,
@@ -39,20 +67,17 @@ export class User {
   @Prop()
   mobileNumber: string;
 
-  @Prop()
-  city: string;
+  @ApiProperty({
+    description: 'City object data for delivering with Nova Poshta.',
+  })
+  @Prop({ type: CitySchema })
+  city: City;
 
-  @ApiProperty({ example: 24, description: 'Nova Poshta number' })
-  @Prop()
-  novaPoshtaNumber: number;
-
-  @ApiProperty({ example: 243, description: 'Nova Poshta machine number' })
-  @Prop()
-  novaPostMachineNumber: number;
-
-  @ApiProperty({ example: 12, description: 'Ukr Post number for delivering' })
-  @Prop()
-  ukrPostNumber: number;
+  @ApiProperty({
+    description: 'Nova Post object data for delivering with Nova Poshta.',
+  })
+  @Prop({ type: NovaPostSchema })
+  novaPost: NovaPost;
 
   @ApiProperty({ example: 'crazyded@gmail.com', description: 'Email' })
   @Prop()
