@@ -126,6 +126,12 @@ export class UsersService {
     }
   }
 
+  async changePassword(userId: string, hashedPassword: string) {
+    await this.userModel
+      .updateOne({ _id: userId }, { password: hashedPassword })
+      .exec();
+  }
+
   async parseNovaPoshtaClients(): Promise<User[]> {
     const users = await this.novaPoshtaService.parseNovaPoshtaClients();
     for (const user of users) {
