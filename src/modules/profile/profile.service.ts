@@ -8,13 +8,14 @@ import { User, UserDocument } from 'src/modules/users/user.entity';
 export class ProfileService {
   @InjectModel(User.name) private userModel: Model<UserDocument>;
   async getProfile(userId: string): Promise<User> {
-    const user = await this.userModel.findById(userId).exec();
+    const user = await (
+      await this.userModel.findById(userId)
+    ).populate('orders');
 
     if (!user) {
       throw new UserNotFoundException(userId);
-    } 
+    }
 
-    return  await user.save();
-
+    return await user.save();
   }
 }
