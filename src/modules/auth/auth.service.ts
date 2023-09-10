@@ -145,4 +145,21 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
+
+  async validatePassword(userId: string, password: string): Promise<boolean> {
+    const user = await this.userService.getUserById(userId);
+
+    if (!user) {
+      return false; // User not found
+    }
+
+    return bcrypt.compare(password, user.password);
+  }
+
+  async changePassword(userId: string, newPassword: string) {
+    const hashedPassword = await bcrypt.hash(newPassword, 5);
+
+    // Update the user's password in the database
+    await this.userService.changePassword(userId, hashedPassword);
+  }
 }
