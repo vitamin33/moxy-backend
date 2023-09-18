@@ -18,4 +18,16 @@ export class ProfileService {
 
     return await user.save();
   }
+
+  async getProfileOrders(userId: string) {
+    const user = await (
+      await this.userModel.findById(userId)
+    ).populate('orders');
+
+    if (!user) {
+      throw new UserNotFoundException(userId);
+    }
+
+    return { profileOrders: user.orders };
+  }
 }

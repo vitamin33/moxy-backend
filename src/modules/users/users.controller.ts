@@ -73,7 +73,6 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Edit user info' })
   @ApiResponse({ status: 200 })
-  @Roles('ADMIN')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('/edit')
   editUserInfo(@Body() dto: EditUserDto) {

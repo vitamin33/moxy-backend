@@ -14,4 +14,10 @@ export class ProfileController {
     const userId = req.user.id;
     return this.profileService.getProfile(userId);
   }
+
+  @Get('orders')
+  async getProfileOrders(@Request() req: any) {
+    const userId = req.user.id;
+    return this.profileService.getProfileOrders(userId);
+  }
 }
