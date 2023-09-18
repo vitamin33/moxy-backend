@@ -3,10 +3,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { User, UserDocument } from 'src/modules/users/user.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ProfileService {
-  @InjectModel(User.name) private userModel: Model<UserDocument>;
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private usersService: UsersService,
+  ) {}
+
   async getProfile(userId: string): Promise<User> {
     const user = await (
       await this.userModel.findById(userId)
@@ -20,9 +25,7 @@ export class ProfileService {
   }
 
   async getProfileOrders(userId: string) {
-    const user = await (
-      await this.userModel.findById(userId)
-    ).populate('orders');
+    const user = await await this.usersService.getUserByIdWithOrders(userId);
 
     if (!user) {
       throw new UserNotFoundException(userId);
