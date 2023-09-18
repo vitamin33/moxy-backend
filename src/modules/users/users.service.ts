@@ -193,6 +193,20 @@ export class UsersService {
     return this.userModel.findOne({ _id: id }).populate('role').exec();
   }
 
+  async getUserByIdWithOrders(id: string) {
+    return this.userModel
+      .findOne({ _id: id })
+      .populate({
+        path: 'orders',
+        populate: {
+          path: 'orderedItems.product', // Populate the 'product' field in 'orderedItems'
+          model: 'Product',
+        },
+      })
+      .populate('role')
+      .exec();
+  }
+
   async storeRefreshToken(userId: string, refreshToken: string) {
     await this.userModel.updateOne({ _id: userId }, { refreshToken }).exec();
   }
