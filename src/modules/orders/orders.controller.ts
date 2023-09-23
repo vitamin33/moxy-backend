@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -46,8 +47,17 @@ export class OrdersController {
   @Roles('ADMIN')
   @UseGuards(RolesGuard)
   @Get()
-  async getAllOrders() {
-    return this.ordersService.getAllOrders();
+  async getAllOrders(
+    @Query('page') page?: number, // Page number from query
+    @Query('limit') limit?: number,
+  ) {
+    // Default values if not provided
+    page = page || 1;
+    limit = limit || 10; // You can change the default limit as needed
+
+    // Calculate the skip value based on page and limit
+    const skip = (page - 1) * limit;
+    return this.ordersService.getPaginatedAllOrders(skip, limit);
   }
 
   @ApiOperation({ summary: 'Get orders by status' })
@@ -56,8 +66,18 @@ export class OrdersController {
   @UseGuards(RolesGuard)
   @UsePipes(ValidationPipe)
   @Post('find')
-  async getOrdersBy(@Body() dto: FindByDto): Promise<OrderDocument[]> {
-    return this.ordersService.getOrdersBy(dto);
+  async getOrdersBy(
+    @Body() dto: FindByDto,
+    @Query('page') page?: number, // Page number from query
+    @Query('limit') limit?: number,
+  ): Promise<OrderDocument[]> {
+    // Default values if not provided
+    page = page || 1;
+    limit = limit || 10; // You can change the default limit as needed
+
+    // Calculate the skip value based on page and limit
+    const skip = (page - 1) * limit;
+    return this.ordersService.getPaginatedOrdersBy(dto, skip, limit);
   }
 
   @ApiOperation({ summary: 'Delete order by ID' })

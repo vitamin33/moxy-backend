@@ -7,7 +7,7 @@ import {
   Min,
   ValidateIf,
 } from 'class-validator';
-import { DeliveryType, PaymentType, Status } from '../order.entity';
+import { City, DeliveryType, PaymentType, Status } from '../order.entity';
 import { Transform } from 'class-transformer';
 import { ProductDto } from './product.dto';
 
@@ -71,5 +71,5 @@ export class GuestUserDto {
   secondName: string;
   middleName: string;
   novaPostNumber: number;
-  city: string;
+  city: City;
 }

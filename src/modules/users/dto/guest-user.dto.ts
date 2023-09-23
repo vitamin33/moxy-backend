@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { City } from 'src/modules/orders/order.entity';
 
 export class GuestUserDto {
   @IsString()
@@ -23,5 +24,5 @@ export class GuestUserDto {
   firstName: string;
   secondName: string;
   instagram: string;
-  city: string;
+  city: City;
 }
