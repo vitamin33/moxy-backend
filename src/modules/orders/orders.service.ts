@@ -21,11 +21,17 @@ export class OrdersService {
     private productsService: ProductsService,
   ) {}
 
-  async getAllOrders() {
+  async getPaginatedAllOrders(skip: number, limit: number) {
+    // Fetch a subset of orders using the skip and limit options
     const orders = await this.orderModel
       .find()
       .sort({ createdAt: -1 })
-      .populate('client')
+      .populate({
+        path: 'client',
+        select: '-orders -city -favoriteProducts -role', // Exclude fields
+      })
+      .skip(skip)
+      .limit(limit)
       .exec();
 
     const ordersWithImageUrls = await Promise.all(
@@ -63,26 +69,47 @@ export class OrdersService {
     return ordersWithImageUrls;
   }
 
-  async getOrdersBy(dto: FindByDto): Promise<OrderDocument[]> {
+  async getPaginatedOrdersBy(
+    dto: FindByDto,
+    skip: number,
+    limit: number,
+  ): Promise<OrderDocument[]> {
     const query = this.orderModel.find();
-    if (dto.statuses) {
-      query.all('status', dto.statuses);
+
+    if (dto.statuses && dto.statuses.length > 0) {
+      query.in('status', dto.statuses);
     }
-    if (dto.paymentTypes) {
-      query.all('paymentType', dto.paymentTypes);
+
+    if (dto.paymentTypes && dto.paymentTypes.length > 0) {
+      query.in('paymentType', dto.paymentTypes);
     }
-    if (dto.deliveryTypes) {
-      query.all('deliveryType', dto.deliveryTypes);
+
+    if (dto.deliveryTypes && dto.deliveryTypes.length > 0) {
+      query.in('deliveryType', dto.deliveryTypes);
     }
+
     if (dto.fromDate) {
       const fromDate = new Date(dto.fromDate).toISOString();
-      query.gte('updatedAt', fromDate);
+      query.gte('createdAt', fromDate);
     }
+
     if (dto.toDate) {
       const toDate = new Date(dto.toDate).toISOString();
-      query.lte('updatedAt', toDate);
+      query.lte('createdAt', toDate);
     }
-    return query.exec();
+
+    // Apply pagination by adding the skip and limit options
+    const paginatedOrders = await query
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'client',
+        select: '-orders -city -favoriteProducts -role', // Exclude fields
+      })
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    return paginatedOrders;
   }
 
   async createOrder(orderDto: CreateOrderDto): Promise<OrderDocument> {
@@ -101,7 +128,7 @@ export class OrdersService {
         dto.firstName = orderDto.client.firstName;
         dto.secondName = orderDto.client.secondName;
         dto.mobileNumber = orderDto.client.mobileNumber;
-        dto.city = orderDto.client.city;
+        dto.city = orderDto.city;
         client = await this.usersService.createGuestUser(dto);
       }
     }

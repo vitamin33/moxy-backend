@@ -28,7 +28,7 @@ export enum PaymentType {
   FullPayment = 'FullPayment',
 }
 
-@Schema()
+@Schema({ _id: false })
 export class NovaPost {
   @Prop({ required: true })
   ref: string;
@@ -42,7 +42,7 @@ export class NovaPost {
 
 export const NovaPostSchema = SchemaFactory.createForClass(NovaPost);
 
-@Schema()
+@Schema({ _id: false })
 export class City {
   @Prop({ required: true })
   ref: string;
@@ -56,7 +56,7 @@ export class City {
 
 export const CitySchema = SchemaFactory.createForClass(City);
 
-@Schema()
+@Schema({ _id: false })
 export class Dimension {
   @Prop({ type: String, enum: Color })
   color: Color;
@@ -67,7 +67,7 @@ export class Dimension {
 
 export const DimensionSchema = SchemaFactory.createForClass(Dimension);
 
-@Schema()
+@Schema({ _id: false })
 export class OrderedItem {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
   product: mongoose.Schema.Types.ObjectId;

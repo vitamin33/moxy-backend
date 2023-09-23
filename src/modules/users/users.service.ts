@@ -201,6 +201,7 @@ export class UsersService {
         populate: {
           path: 'orderedItems.product', // Populate the 'product' field in 'orderedItems'
           model: 'Product',
+          select: '-dimensions', // Exclude the 'dimensions' field from 'Product'
         },
       })
       .populate('role')
