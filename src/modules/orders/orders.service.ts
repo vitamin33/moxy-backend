@@ -28,8 +28,10 @@ export class OrdersService {
       .sort({ createdAt: -1 })
       .populate({
         path: 'client',
-        select: '-orders -city -favoriteProducts -role', // Exclude fields
+        select:
+          '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
       })
+      .select('-city -novaPost')
       .skip(skip)
       .limit(limit)
       .exec();
@@ -69,11 +71,7 @@ export class OrdersService {
     return ordersWithImageUrls;
   }
 
-  async getPaginatedOrdersBy(
-    dto: FindByDto,
-    skip: number,
-    limit: number,
-  ): Promise<OrderDocument[]> {
+  async getPaginatedOrdersBy(dto: FindByDto, skip: number, limit: number) {
     const query = this.orderModel.find();
 
     if (dto.statuses && dto.statuses.length > 0) {
@@ -103,13 +101,47 @@ export class OrdersService {
       .sort({ createdAt: -1 })
       .populate({
         path: 'client',
-        select: '-orders -city -favoriteProducts -role', // Exclude fields
+        select:
+          '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
       })
+      .select('-city -novaPost')
       .skip(skip)
       .limit(limit)
       .exec();
 
-    return paginatedOrders;
+    const paginatedOrdersWithImages = await Promise.all(
+      paginatedOrders.map(async (order) => {
+        const orderedItemsWithImageUrls = await Promise.all(
+          order.orderedItems.map(async (orderedItem) => {
+            const product = await this.productsService.getProductbyId(
+              orderedItem.product.toString(),
+            );
+            if (!product) {
+              return null;
+            }
+            const imageUrl =
+              product.images.length > 0
+                ? product.images[0] // Use the first value in the images array
+                : undefined; // Set a default value when images array is empty
+
+            return {
+              product: orderedItem.product.toString(),
+              productName: product.name,
+              productPrice: product.salePrice,
+              dimensions: orderedItem.dimensions,
+              imageUrl,
+            };
+          }),
+        );
+
+        return {
+          ...order.toObject(),
+          orderedItems: orderedItemsWithImageUrls,
+        };
+      }),
+    );
+
+    return paginatedOrdersWithImages;
   }
 
   async createOrder(orderDto: CreateOrderDto): Promise<OrderDocument> {

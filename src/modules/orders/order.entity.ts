@@ -150,6 +150,15 @@ export class Order {
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
 
+// Set the 'toObject' transformation to exclude '__v' and keep '_id'
+OrderSchema.set('toObject', {
+  virtuals: true,
+  transform: function (doc: any, ret: any) {
+    delete ret.__v;
+    return ret;
+  },
+});
+
 OrderSchema.virtual('id').get(function (this: Order) {
   return this._id;
 });

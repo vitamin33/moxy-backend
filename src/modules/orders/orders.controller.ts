@@ -42,6 +42,16 @@ export class OrdersController {
     return this.ordersService.editOrder(orderDto);
   }
 
+  @ApiOperation({ summary: 'Get order by id' })
+  @ApiResponse({ status: 200, type: Order })
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
+  @Get(':id')
+  async getOrderById(@Param('id') orderId: string) {
+    // Call the service method to get the order by ID
+    return this.ordersService.getOrderById(orderId);
+  }
+
   @ApiOperation({ summary: 'Get all orders' })
   @ApiResponse({ status: 200, type: [Order] })
   @Roles('ADMIN')
@@ -70,7 +80,7 @@ export class OrdersController {
     @Body() dto: FindByDto,
     @Query('page') page?: number, // Page number from query
     @Query('limit') limit?: number,
-  ): Promise<OrderDocument[]> {
+  ) {
     // Default values if not provided
     page = page || 1;
     limit = limit || 10; // You can change the default limit as needed
