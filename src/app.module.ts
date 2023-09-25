@@ -14,6 +14,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { BasketModule } from './modules/basket/basket.module';
 import { PromosModule } from './modules/promos/promos.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { PromosModule } from './modules/promos/promos.module';
     ProfileModule,
     BasketModule,
     PromosModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

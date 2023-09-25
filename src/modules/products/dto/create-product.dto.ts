@@ -18,7 +18,9 @@ export class CreateProductDto {
   @IsNotEmpty()
   description: string;
   @IsNotEmpty()
-  costPrice: number;
+  costPriceInUsd: number;
+  @IsNotEmpty()
+  weightInGrams: number;
   @IsNotEmpty()
   salePrice: number;
   @Type(() => DimensionDto)
