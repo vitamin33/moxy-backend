@@ -38,27 +38,8 @@ export class OrdersService {
 
     const ordersWithImageUrls = await Promise.all(
       orders.map(async (order) => {
-        const orderedItemsWithImageUrls = await Promise.all(
-          order.orderedItems.map(async (orderedItem) => {
-            const product = await this.productsService.getProductbyId(
-              orderedItem.product.toString(),
-            );
-            if (!product) {
-              return null;
-            }
-            const imageUrl =
-              product.images.length > 0
-                ? product.images[0] // Use the first value in the images array
-                : undefined; // Set a default value when images array is empty
-
-            return {
-              product: orderedItem.product.toString(),
-              productName: product.name,
-              productPrice: product.salePrice,
-              dimensions: orderedItem.dimensions,
-              imageUrl,
-            };
-          }),
+        const orderedItemsWithImageUrls = await this.getOrderedItemsWithImages(
+          order,
         );
 
         return {
@@ -111,27 +92,8 @@ export class OrdersService {
 
     const paginatedOrdersWithImages = await Promise.all(
       paginatedOrders.map(async (order) => {
-        const orderedItemsWithImageUrls = await Promise.all(
-          order.orderedItems.map(async (orderedItem) => {
-            const product = await this.productsService.getProductbyId(
-              orderedItem.product.toString(),
-            );
-            if (!product) {
-              return null;
-            }
-            const imageUrl =
-              product.images.length > 0
-                ? product.images[0] // Use the first value in the images array
-                : undefined; // Set a default value when images array is empty
-
-            return {
-              product: orderedItem.product.toString(),
-              productName: product.name,
-              productPrice: product.salePrice,
-              dimensions: orderedItem.dimensions,
-              imageUrl,
-            };
-          }),
+        const orderedItemsWithImageUrls = await this.getOrderedItemsWithImages(
+          order,
         );
 
         return {
@@ -142,6 +104,31 @@ export class OrdersService {
     );
 
     return paginatedOrdersWithImages;
+  }
+
+  getOrderedItemsWithImages(order: Order): any {
+    return Promise.all(
+      order.orderedItems.map(async (orderedItem) => {
+        const product = await this.productsService.getProductbyId(
+          orderedItem.product.toString(),
+        );
+        if (!product) {
+          return null;
+        }
+        const imageUrl =
+          product.images.length > 0
+            ? product.images[0] // Use the first value in the images array
+            : undefined; // Set a default value when images array is empty
+
+        return {
+          product: orderedItem.product.toString(),
+          productName: product.name,
+          productPrice: product.salePrice,
+          dimensions: orderedItem.dimensions,
+          imageUrl,
+        };
+      }),
+    );
   }
 
   async createOrder(orderDto: CreateOrderDto): Promise<OrderDocument> {
@@ -217,7 +204,32 @@ export class OrdersService {
     await this.orderModel.findByIdAndDelete(orderId).exec();
   }
 
-  async getOrderById(id: string) {
-    return this.orderModel.findOne({ _id: id }).populate('client').exec();
+  async getOrderById(orderId: string): Promise<OrderDocument> {
+    // Specify the fields you want to include in the 'client' population
+    const clientFieldsToInclude =
+      'firstName secondName middleName instagram mobileNumber email';
+
+    // Find the order by ID in the database and populate the 'orderedItems.product' field
+    const order = await this.orderModel
+      .findById(orderId)
+
+      .populate({
+        path: 'client', // Populate the 'client' field
+        select: clientFieldsToInclude,
+      })
+      .exec();
+
+    if (!order) {
+      throw new OrderNotFoundException(orderId);
+    }
+
+    const orderedItemsWithImageUrls = await this.getOrderedItemsWithImages(
+      order,
+    );
+
+    return {
+      ...order.toObject(),
+      orderedItems: orderedItemsWithImageUrls,
+    };
   }
 }
