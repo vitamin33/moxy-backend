@@ -8,12 +8,14 @@ import { ImportProductsService } from './service/import-products.service';
 import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { ProductAvailabilityService } from './service/product-availability.service';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
   imports: [
     AuthModule,
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
     StorageModule,
+    SettingsModule,
   ],
   controllers: [ProductsController],
   providers: [ProductsService, ImportProductsService],

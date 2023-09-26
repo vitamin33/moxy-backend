@@ -7,6 +7,8 @@ import { StorageService } from 'src/modules/storage/storage.service';
 import { EditProductDto } from '../dto/edit-product.dto';
 import { ImportProductsService } from './import-products.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
+import { Settings } from 'http2';
+import { SettingsService } from 'src/modules/settings/settings.service';
 
 @Injectable()
 export class ProductsService {
@@ -14,6 +16,7 @@ export class ProductsService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private storageService: StorageService,
     private importProductsService: ImportProductsService,
+    private settingsService: SettingsService,
   ) {}
   async createProduct(
     dto: CreateProductDto,
@@ -33,12 +36,8 @@ export class ProductsService {
     return await product.save();
   }
 
-  async editProduct(
-    id: string,
-    dto: EditProductDto,
-    newImages: [any],
-  ): Promise<Product> {
-    const product = await this.getProductbyId(id);
+  async editProduct(id: string, dto: EditProductDto, newImages: [any]) {
+    const product = await this.getProductById(id);
     if (product) {
       const imagesArr = dto.currentImages ? dto.currentImages : [];
       if (newImages) {
@@ -57,7 +56,8 @@ export class ProductsService {
             name: dto.name,
             idName: dto.idName,
             description: dto.description,
-            costPrice: dto.costPrice,
+            weightInGrams: dto.weightInGrams,
+            costPriceInUsd: dto.costPriceInUsd,
             salePrice: dto.salePrice,
             dimensions: dto.dimensions,
           },
@@ -100,13 +100,22 @@ export class ProductsService {
     const mappedProducts = products.map((product) => {
       const marginValue = product.salePrice - product.costPrice;
       const productObj = product.toObject();
-      return { ...productObj, marginValue };
+      const costPrice = this.calculateCostPrice(productObj);
+      return { ...productObj, marginValue, costPrice };
     });
     return mappedProducts;
   }
 
-  async getProductbyId(id: string): Promise<ProductDocument> {
-    return await this.productModel.findById(id).lean();
+  async getProductById(id: string) {
+    const product = await this.productModel.findById(id).lean();
+
+    if (product) {
+      // Calculate costPrice and add it to the product object
+      const costPrice = this.calculateCostPrice(product);
+      product.costPrice = costPrice;
+    }
+
+    return product;
   }
 
   async getProductbyIdName(idName: string): Promise<ProductDocument> {
@@ -121,7 +130,6 @@ export class ProductsService {
     const productDtos = parsedProducts.map((product) => {
       const dto = new CreateProductDto();
       dto.name = product.name;
-      dto.costPrice = product.costPrice;
       dto.idName = product.idName;
       dto.salePrice = product.price;
       const dimentsionDto = new DimensionDto();
@@ -136,7 +144,6 @@ export class ProductsService {
       if (product) {
         product.name = dto.name;
         product.salePrice = dto.salePrice;
-        product.costPrice = dto.costPrice;
         product.idName = dto.idName;
         const dimentsionDto = new DimensionDto();
         dimentsionDto.color = dto.dimensions[0].color;
@@ -166,5 +173,22 @@ export class ProductsService {
 
   async getSellingProducts() {
     return await this.productModel.find({ forSale: true }).lean();
+  }
+
+  calculateCostPrice(product: Product): number {
+    const shippingPriceInUsd =
+      (product.weightInGrams / 1000) *
+      this.settingsService.getRateForShipping();
+    const costPriceInUah =
+      (shippingPriceInUsd + product.costPriceInUsd) *
+      this.settingsService.getUsdToUahRate();
+
+    if (!costPriceInUah) {
+      return 0;
+    }
+    // Round to 1 decimal place
+    const roundedCostPrice = parseFloat(costPriceInUah.toFixed(1));
+
+    return roundedCostPrice;
   }
 }

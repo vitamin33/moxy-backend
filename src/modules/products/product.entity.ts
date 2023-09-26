@@ -80,11 +80,19 @@ export class Product {
   @Prop()
   images: [string];
 
+  @ApiProperty({ example: 5.2, description: 'Cost price in USD' })
+  @Prop()
+  costPriceInUsd: number;
+
+  @ApiProperty({ example: 300, description: 'Weight in grams' })
+  @Prop()
+  weightInGrams: number;
+
   @ApiProperty({ example: 1.2, description: 'Cost price' })
   @Prop()
   costPrice: number;
 
-  @ApiProperty({ example: 2.3, description: 'Sale price' })
+  @ApiProperty({ example: 2.3, description: 'Sale price in UAH' })
   @Prop()
   salePrice: number;
 

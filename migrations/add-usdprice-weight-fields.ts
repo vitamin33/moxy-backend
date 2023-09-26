@@ -12,10 +12,14 @@ const migrate = async () => {
     const db = client.db();
     const productsCollection = db.collection('products');
 
-    // Update each document to add the forSale field with a default value of true
+    // Update each document to add the new fields with default values
     const updateResult: UpdateResult = await productsCollection.updateMany(
-      { forSale: { $exists: false } }, // Update documents where forSale field doesn't exist
-      { $set: { forSale: true } },
+      {},
+      {
+        $unset: {
+          costPrice: '',
+        },
+      },
     );
 
     console.log(

@@ -75,8 +75,8 @@ export class ProductsController {
   }
 
   @Get('details/:id')
-  getProductById(@Param('id') id: string): Promise<ProductDocument> {
-    return this.productService.getProductbyId(id);
+  async getProductById(@Param('id') id: string) {
+    return await this.productService.getProductById(id);
   }
 
   @ApiOperation({ summary: 'Set product for sale (Admin Only)' })

@@ -109,7 +109,7 @@ export class OrdersService {
   getOrderedItemsWithImages(order: Order): any {
     return Promise.all(
       order.orderedItems.map(async (orderedItem) => {
-        const product = await this.productsService.getProductbyId(
+        const product = await this.productsService.getProductById(
           orderedItem.product.toString(),
         );
         if (!product) {

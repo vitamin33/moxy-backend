@@ -52,7 +52,11 @@ var migrate = function () { return __awaiter(void 0, void 0, void 0, function ()
                 _a.sent();
                 db = client.db();
                 productsCollection = db.collection('products');
-                return [4 /*yield*/, productsCollection.updateMany({}, { $set: { numFavorites: 0 } })];
+                return [4 /*yield*/, productsCollection.updateMany({}, {
+                        $unset: {
+                            costPrice: '',
+                        },
+                    })];
             case 3:
                 updateResult = _a.sent();
                 console.log("Migration completed successfully. Modified ".concat(updateResult.modifiedCount, " documents."));
