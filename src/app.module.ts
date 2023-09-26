@@ -15,6 +15,7 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { BasketModule } from './modules/basket/basket.module';
 import { PromosModule } from './modules/promos/promos.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { AttributesModule } from './modules/attributes/attributes.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { SettingsModule } from './modules/settings/settings.module';
     BasketModule,
     PromosModule,
     SettingsModule,
+    AttributesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
