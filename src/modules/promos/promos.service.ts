@@ -17,7 +17,7 @@ export class PromosService {
 
   async addPromo(dto: AddPromoDto, image: any) {
     // Check if the product exists
-    const product = await this.productService.getProductbyId(dto.productId);
+    const product = await this.productService.getProductById(dto.productId);
     if (!product) {
       throw new ProductNotAvailableException(dto.productId);
     }

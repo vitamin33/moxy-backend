@@ -36,12 +36,8 @@ export class ProductsService {
     return await product.save();
   }
 
-  async editProduct(
-    id: string,
-    dto: EditProductDto,
-    newImages: [any],
-  ): Promise<Product> {
-    const product = await this.getProductbyId(id);
+  async editProduct(id: string, dto: EditProductDto, newImages: [any]) {
+    const product = await this.getProductById(id);
     if (product) {
       const imagesArr = dto.currentImages ? dto.currentImages : [];
       if (newImages) {
@@ -110,8 +106,16 @@ export class ProductsService {
     return mappedProducts;
   }
 
-  async getProductbyId(id: string): Promise<ProductDocument> {
-    return await this.productModel.findById(id).lean();
+  async getProductById(id: string) {
+    const product = await this.productModel.findById(id).lean();
+
+    if (product) {
+      // Calculate costPrice and add it to the product object
+      const costPrice = this.calculateCostPrice(product);
+      product.costPrice = costPrice;
+    }
+
+    return product;
   }
 
   async getProductbyIdName(idName: string): Promise<ProductDocument> {
@@ -173,10 +177,18 @@ export class ProductsService {
 
   calculateCostPrice(product: Product): number {
     const shippingPriceInUsd =
-      product.weightInGrams * this.settingsService.getRateForShipping();
+      (product.weightInGrams / 1000) *
+      this.settingsService.getRateForShipping();
     const costPriceInUah =
       (shippingPriceInUsd + product.costPriceInUsd) *
       this.settingsService.getUsdToUahRate();
-    return costPriceInUah;
+
+    if (!costPriceInUah) {
+      return 0;
+    }
+    // Round to 1 decimal place
+    const roundedCostPrice = parseFloat(costPriceInUah.toFixed(1));
+
+    return roundedCostPrice;
   }
 }

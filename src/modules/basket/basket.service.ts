@@ -32,7 +32,7 @@ export class BasketService {
       basket = new this.basketModel({ client: user });
     }
 
-    const product = await this.productsService.getProductbyId(
+    const product = await this.productsService.getProductById(
       addDto.product.productId,
     );
     if (!product) {
