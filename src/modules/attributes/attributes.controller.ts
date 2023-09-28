@@ -15,7 +15,6 @@ import { AddColorDto } from './dto/add-color.dto';
 import { AddSizeDto } from './dto/add-size.dto';
 import { AddMaterialDto } from './dto/add-material.dto';
 
-@UseGuards(JwtAuthGuard)
 @Controller('attributes')
 export class AttributesController {
   constructor(private readonly attributesService: AttributesService) {}
@@ -25,9 +24,9 @@ export class AttributesController {
     return this.attributesService.getAttributes();
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   @Post('colors')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async addColor(@Body() addColorDto: AddColorDto) {
     return this.attributesService.addColor(addColorDto);
   }
@@ -37,16 +36,16 @@ export class AttributesController {
     return this.attributesService.getColors();
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   @Delete('colors/:id')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async removeColor(@Param('id') id: string) {
     await this.attributesService.removeColor(id);
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   @Post('materials')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async addMaterial(@Body() addMaterialDto: AddMaterialDto) {
     return this.attributesService.addMaterial(addMaterialDto);
   }
@@ -56,16 +55,16 @@ export class AttributesController {
     return this.attributesService.getMaterials();
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   @Delete('materials/:id')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async removeMaterial(@Param('id') id: string) {
     await this.attributesService.removeMaterial(id);
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   @Post('sizes')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async addSize(@Body() addSizeDto: AddSizeDto) {
     return this.attributesService.addSize(addSizeDto);
   }
@@ -75,9 +74,9 @@ export class AttributesController {
     return this.attributesService.getSizes();
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   @Delete('sizes/:id')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async removeSize(@Param('id') id: string) {
     await this.attributesService.removeSize(id);
   }
