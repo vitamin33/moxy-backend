@@ -6,8 +6,6 @@ import {
   Delete,
   Param,
   UseGuards,
-  UseInterceptors,
-  UploadedFile,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/role-auth.decorator';
@@ -15,11 +13,17 @@ import { RolesGuard } from '../auth/roles.guard';
 import { AttributesService } from './attributes.service';
 import { AddColorDto } from './dto/add-color.dto';
 import { AddSizeDto } from './dto/add-size.dto';
+import { AddMaterialDto } from './dto/add-material.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('attributes')
 export class AttributesController {
   constructor(private readonly attributesService: AttributesService) {}
+
+  @Get()
+  async getAttributes() {
+    return this.attributesService.getAttributes();
+  }
 
   @Roles('ADMIN')
   @UseGuards(RolesGuard)
@@ -43,8 +47,8 @@ export class AttributesController {
   @Roles('ADMIN')
   @UseGuards(RolesGuard)
   @Post('materials')
-  async addMaterial(@Body() addMaterialDto: AddColorDto) {
-    return this.attributesService.addColor(addMaterialDto);
+  async addMaterial(@Body() addMaterialDto: AddMaterialDto) {
+    return this.attributesService.addMaterial(addMaterialDto);
   }
 
   @Get('materials')
