@@ -15,16 +15,28 @@ import { Color, Material, Size } from 'src/modules/attributes/attribute.entity';
 })
 export class Dimension {
   @ApiProperty({ description: 'Product color id' })
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Color.name })
-  color: mongoose.Types.ObjectId;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Color.name,
+    required: false,
+  })
+  color?: mongoose.Types.ObjectId;
 
   @ApiProperty({ description: 'Size id' })
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Size.name })
-  size: mongoose.Types.ObjectId;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Size.name,
+    required: false,
+  })
+  size?: mongoose.Types.ObjectId;
 
   @ApiProperty({ description: 'Material id' })
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Material.name })
-  material: mongoose.Types.ObjectId;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Material.name,
+    required: false,
+  })
+  material?: mongoose.Types.ObjectId;
 
   @Prop({ required: true, default: 0 })
   quantity: number;

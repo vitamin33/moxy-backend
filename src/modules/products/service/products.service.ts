@@ -31,18 +31,28 @@ export class ProductsService {
         images,
       );
     }
-    const dimensionDto: DimensionDto[] = dto.dimensions;
-    const dimensions = dimensionDto.map((dimDto) => {
-      return {
-        color: new mongoose.Types.ObjectId(dimDto.color), // Convert to ObjectId
-        size: new mongoose.Types.ObjectId(dimDto.size), // Convert to ObjectId
-        material: new mongoose.Types.ObjectId(dimDto.material), // Convert to ObjectId
+    const dimensions = this.mapDimensionDtosToDimens(dto.dimensions);
+    const product = new this.productModel({ ...dto, dimensions });
+    return await product.save();
+  }
+
+  mapDimensionDtosToDimens(dimensions: DimensionDto[]): Dimension[] {
+    return dimensions.map((dimDto) => {
+      const dimension: any = {
         quantity: dimDto.quantity,
         images: dimDto.images,
       };
+      if (dimDto.color) {
+        dimension.color = new mongoose.Types.ObjectId(dimDto.color);
+      }
+      if (dimDto.size) {
+        dimension.size = new mongoose.Types.ObjectId(dimDto.size);
+      }
+      if (dimDto.material) {
+        dimension.material = new mongoose.Types.ObjectId(dimDto.material);
+      }
+      return dimension;
     });
-    const product = new this.productModel({ ...dto, dimensions });
-    return await product.save();
   }
 
   async saveImagesAndUpdateDimensions(
@@ -77,16 +87,7 @@ export class ProductsService {
           newImages,
         );
       }
-      const dimensionDto: DimensionDto[] = dto.dimensions;
-      const dimensions = dimensionDto.map((dimDto) => {
-        return {
-          color: new mongoose.Types.ObjectId(dimDto.color), // Convert to ObjectId
-          size: new mongoose.Types.ObjectId(dimDto.size), // Convert to ObjectId
-          material: new mongoose.Types.ObjectId(dimDto.material), // Convert to ObjectId
-          quantity: dimDto.quantity,
-          images: dimDto.images,
-        };
-      });
+      const dimensions = this.mapDimensionDtosToDimens(dto.dimensions);
       return await this.productModel.findByIdAndUpdate(
         id,
         {
