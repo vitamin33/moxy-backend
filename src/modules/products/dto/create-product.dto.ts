@@ -1,14 +1,7 @@
-import { IsEnum, IsNotEmpty, ValidateNested } from 'class-validator';
-import { Color } from '../product.entity';
-import { Type } from 'class-transformer';
-
-export class DimensionDto {
-  @IsEnum(Color)
-  @IsNotEmpty()
-  color: string;
-  @IsNotEmpty()
-  quantity: number;
-}
+import { IsNotEmpty, ValidateNested } from 'class-validator';
+import { Exclude, Type } from 'class-transformer';
+import { MatchArrayLength } from 'src/common/validator/match-array-length.validator';
+import { DimensionDto } from 'src/common/dto/dimension.dto';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -23,7 +16,11 @@ export class CreateProductDto {
   weightInGrams: number;
   @IsNotEmpty()
   salePrice: number;
+
   @Type(() => DimensionDto)
   @ValidateNested()
   dimensions: DimensionDto[];
+
+  @Exclude()
+  numberOfImagesForDimensions: number[];
 }

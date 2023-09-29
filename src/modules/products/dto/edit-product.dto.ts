@@ -1,6 +1,7 @@
 import { IsNotEmpty, ValidateNested } from 'class-validator';
-import { DimensionDto } from './create-product.dto';
 import { Type } from 'class-transformer';
+import { DimensionDto } from 'src/common/dto/dimension.dto';
+import { MatchArrayLength } from 'src/common/validator/match-array-length.validator';
 
 export class EditProductDto {
   @IsNotEmpty()
@@ -18,5 +19,6 @@ export class EditProductDto {
   @Type(() => DimensionDto)
   @ValidateNested()
   dimensions: DimensionDto[];
-  readonly currentImages: string[];
+
+  numberOfImagesForDimensions: number[];
 }

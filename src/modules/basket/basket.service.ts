@@ -6,9 +6,12 @@ import mongoose, { Model, Types } from 'mongoose';
 import { UsersService } from 'src/modules/users/users.service';
 import { ProductsService } from 'src/modules/products/service/products.service';
 import { RemoveProductDto } from './dto/remove-product.dto';
-import { Color, Product } from 'src/modules/products/product.entity';
+import { Product } from 'src/modules/products/product.entity';
 import { ProductAvailabilityService } from 'src/modules/products/service/product-availability.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
+import { compareDimensionWithDto } from 'src/common/utility';
+import { DimensionDto } from 'src/common/dto/dimension.dto';
+import { Color, Material, Size } from '../attributes/attribute.entity';
 
 @Injectable()
 export class BasketService {
@@ -36,59 +39,63 @@ export class BasketService {
       addDto.product.productId,
     );
     if (!product) {
-      throw new ProductNotAvailableException(product.id);
-    }
-
-    const dimension = product.dimensions.find(
-      (dim) => dim.color === addDto.product.dimension.color,
-    );
-    if (!dimension) {
-      throw new ProductNotAvailableException(
-        product.id,
-        addDto.product.dimension.color,
+      throw new NotFoundException(
+        `Product with ID ${addDto.product.productId} not found`,
       );
     }
+
+    const dimensionDto: DimensionDto = addDto.product.dimension;
+    const dimensionColor = Color[dimensionDto.color as keyof typeof Color];
+    const dimensionSize = Size[dimensionDto.size as keyof typeof Size];
+    const dimensionMaterial =
+      Material[dimensionDto.material as keyof typeof Material];
+    const images = dimensionDto.images;
 
     const isAvailable =
       await this.productAvailabilityService.isProductAvailable(
         addDto.product.productId,
-        addDto.product.dimension,
+        dimensionDto,
       );
     if (!isAvailable) {
       throw new ProductNotAvailableException(
         product.id,
-        addDto.product.dimension.color,
-        addDto.product.dimension.quantity,
+        dimensionColor._id.toString(),
+        dimensionSize._id.toString(),
+        dimensionMaterial._id.toString(),
+        dimensionDto.quantity,
       );
     }
 
     const existingItem = basket.basketItems.find(
-      (item) => item.product.toString() === addDto.product.productId,
+      (item) => item.product === product._id,
     );
 
     if (existingItem) {
-      const existingDimension = existingItem.dimensions.find(
-        (dim) => dim.color === addDto.product.dimension.color,
+      const existingDimension = existingItem.dimensions.find((dim) =>
+        compareDimensionWithDto(dim, dimensionDto),
       );
 
       if (existingDimension) {
-        existingDimension.quantity = addDto.product.dimension.quantity;
+        existingDimension.quantity = dimensionDto.quantity;
       } else {
-        const color =
-          Color[addDto.product.dimension.color as keyof typeof Color];
         existingItem.dimensions.push({
-          color: color,
-          quantity: addDto.product.dimension.quantity,
+          color: dimensionColor._id,
+          size: dimensionSize._id,
+          material: dimensionMaterial._id,
+          quantity: dimensionDto.quantity,
+          images: images,
         });
       }
     } else {
-      const color = Color[addDto.product.dimension.color as keyof typeof Color];
       basket.basketItems.push({
         product: product._id,
         dimensions: [
           {
-            color: color,
-            quantity: addDto.product.dimension.quantity,
+            color: dimensionColor._id,
+            size: dimensionSize._id,
+            material: dimensionMaterial._id,
+            quantity: dimensionDto.quantity,
+            images: images,
           },
         ],
       });
@@ -97,7 +104,6 @@ export class BasketService {
     await basket.save();
     return basket;
   }
-
   async removeProduct(
     userId: string,
     removeDto: RemoveProductDto,
