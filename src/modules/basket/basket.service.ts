@@ -45,59 +45,71 @@ export class BasketService {
     }
 
     const dimensionDto: DimensionDto = addDto.product.dimension;
-    const dimensionColor = Color[dimensionDto.color as keyof typeof Color];
-    const dimensionSize = Size[dimensionDto.size as keyof typeof Size];
-    const dimensionMaterial =
-      Material[dimensionDto.material as keyof typeof Material];
-    const images = dimensionDto.images;
+    let dimensionColor: mongoose.Types.ObjectId | undefined;
+    let dimensionSize: mongoose.Types.ObjectId | undefined;
+    let dimensionMaterial: mongoose.Types.ObjectId | undefined;
+    let images: string[] | undefined;
 
-    const isAvailable =
-      await this.productAvailabilityService.isProductAvailable(
+    if (dimensionDto.color) {
+      dimensionColor = new mongoose.Types.ObjectId(dimensionDto.color);
+    }
+    if (dimensionDto.size) {
+      dimensionSize = new mongoose.Types.ObjectId(dimensionDto.size);
+    }
+    if (dimensionDto.material) {
+      dimensionMaterial = new mongoose.Types.ObjectId(dimensionDto.material);
+    }
+
+    const dimensionProps: any = {};
+    // Check if properties are defined and add them to the object
+    if (dimensionColor) {
+      dimensionProps.color = dimensionColor;
+    }
+    if (dimensionSize) {
+      dimensionProps.size = dimensionSize;
+    }
+    if (dimensionMaterial) {
+      dimensionProps.material = dimensionMaterial;
+    }
+    if (dimensionDto.quantity !== undefined) {
+      dimensionProps.quantity = dimensionDto.quantity;
+    }
+
+    const availableDimention =
+      await this.productAvailabilityService.findAvailableProductDimension(
         addDto.product.productId,
         dimensionDto,
       );
-    if (!isAvailable) {
+    if (!availableDimention) {
       throw new ProductNotAvailableException(
-        product.id,
-        dimensionColor._id.toString(),
-        dimensionSize._id.toString(),
-        dimensionMaterial._id.toString(),
+        addDto.product.productId,
+        dimensionColor,
+        dimensionSize,
+        dimensionMaterial,
         dimensionDto.quantity,
       );
     }
+    dimensionProps.images = availableDimention.images;
 
-    const existingItem = basket.basketItems.find(
-      (item) => item.product === product._id,
+    const existingItemIndex = basket.basketItems.findIndex(
+      (item) => item.product.toString() === product._id.toString(),
     );
 
-    if (existingItem) {
+    if (existingItemIndex !== -1) {
+      const existingItem = basket.basketItems[existingItemIndex];
       const existingDimension = existingItem.dimensions.find((dim) =>
-        compareDimensionWithDto(dim, dimensionDto),
+        compareDimensionWithDto(dim, availableDimention),
       );
 
       if (existingDimension) {
         existingDimension.quantity = dimensionDto.quantity;
       } else {
-        existingItem.dimensions.push({
-          color: dimensionColor._id,
-          size: dimensionSize._id,
-          material: dimensionMaterial._id,
-          quantity: dimensionDto.quantity,
-          images: images,
-        });
+        existingItem.dimensions.push(dimensionProps);
       }
     } else {
       basket.basketItems.push({
         product: product._id,
-        dimensions: [
-          {
-            color: dimensionColor._id,
-            size: dimensionSize._id,
-            material: dimensionMaterial._id,
-            quantity: dimensionDto.quantity,
-            images: images,
-          },
-        ],
+        dimensions: [dimensionProps],
       });
     }
 

@@ -4,18 +4,19 @@ import mongoose from 'mongoose';
 
 export function compareDimensionWithDto(
   dim1: Dimension,
-  dimDto: DimensionDto,
+  dim2: Dimension,
 ): boolean {
-  // Convert DimensionDto properties to mongoose.Types.ObjectId
-  const colorId = new mongoose.Types.ObjectId(dimDto.color);
-  const sizeId = new mongoose.Types.ObjectId(dimDto.size);
-  const materialId = new mongoose.Types.ObjectId(dimDto.material);
+  // Check if color, size, and material are defined before comparing
+  const colorMatch =
+    (!dim1.color && !dim2.color) ||
+    dim1.color?.toString() === dim2.color?.toString();
+  const sizeMatch =
+    (!dim1.size && !dim2.size) ||
+    dim1.size?.toString() === dim2.size?.toString();
+  const materialMatch =
+    (!dim1.material && !dim2.material) ||
+    dim1.material?.toString() === dim2.material?.toString();
 
-  // Compare the properties
-  return (
-    dim1.color.equals(colorId) &&
-    dim1.size.equals(sizeId) &&
-    dim1.material.equals(materialId) &&
-    dim1.quantity === dimDto.quantity
-  );
+  // Return true only if all properties match or are undefined
+  return colorMatch && sizeMatch && materialMatch;
 }

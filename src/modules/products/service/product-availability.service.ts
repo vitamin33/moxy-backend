@@ -13,10 +13,10 @@ export class ProductAvailabilityService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {}
 
-  async isProductAvailable(
+  async findAvailableProductDimension(
     productId: string,
     dimension: DimensionDto,
-  ): Promise<boolean> {
+  ): Promise<Dimension> {
     const product = await this.productModel.findById(productId).exec();
 
     if (!product) {
@@ -25,18 +25,30 @@ export class ProductAvailabilityService {
 
     const matchingDimension = product.dimensions.find((dim) => {
       // Check if dimension matches the provided color, size, and material IDs
-      return (
-        dim.color.equals(dimension.color) &&
-        dim.size.equals(dimension.size) &&
-        dim.material.equals(dimension.material)
-      );
+      let colorMatches = true;
+      let sizeMatches = true;
+      let materialMatches = true;
+
+      if (dimension.color) {
+        colorMatches = dim.color.equals(dimension.color);
+      }
+
+      if (dimension.size) {
+        sizeMatches = dim.size.equals(dimension.size);
+      }
+
+      if (dimension.material) {
+        materialMatches = dim.material.equals(dimension.material);
+      }
+
+      return colorMatches && sizeMatches && materialMatches;
     });
 
-    if (!matchingDimension) {
-      return false;
+    if (!matchingDimension || matchingDimension.quantity < dimension.quantity) {
+      return undefined;
     }
 
-    return matchingDimension.quantity >= dimension.quantity;
+    return matchingDimension;
   }
 
   // async mapDimensionDtoToDimension(dto: DimensionDto, attributes: Attributes) {
