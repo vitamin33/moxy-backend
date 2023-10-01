@@ -117,6 +117,13 @@ export class Product {
   numFavorites: number;
 
   @ApiProperty({
+    example: 0,
+    description: 'Discount price in UAH (0 means no discount)',
+  })
+  @Prop({ default: 0 })
+  discountPrice: number;
+
+  @ApiProperty({
     example: true,
     description: 'Indicates whether the product is for sale',
   })

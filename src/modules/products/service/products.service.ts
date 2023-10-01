@@ -7,10 +7,10 @@ import { StorageService } from 'src/modules/storage/storage.service';
 import { EditProductDto } from '../dto/edit-product.dto';
 import { ImportProductsService } from './import-products.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { Settings } from 'http2';
 import { SettingsService } from 'src/modules/settings/settings.service';
 import { Dimension } from 'src/common/entity/dimension.entity';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
+import { PromosService } from 'src/modules/promos/promos.service';
 
 @Injectable()
 export class ProductsService {
@@ -213,6 +213,14 @@ export class ProductsService {
 
     product.forSale = forSale;
     return product.save();
+  }
+
+  async updateProductDiscountPrice(productId: string, discount: number) {
+    const product = await this.productModel.findById(productId).exec();
+    if (product) {
+      product.discountPrice = discount;
+      await product.save();
+    }
   }
 
   async getSellingProducts() {
