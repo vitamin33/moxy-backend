@@ -1,12 +1,5 @@
-import {
-  ArrayNotEmpty,
-  IsEnum,
-  IsNotEmpty,
-  IsString,
-  Matches,
-} from 'class-validator';
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { ProductDto } from 'src/modules/orders/dto/product.dto';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 
 export class AddOrChangeProductDto {

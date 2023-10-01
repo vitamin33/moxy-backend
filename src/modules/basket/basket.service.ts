@@ -9,7 +9,7 @@ import { RemoveProductDto } from './dto/remove-product.dto';
 import { Product } from 'src/modules/products/product.entity';
 import { ProductAvailabilityService } from 'src/modules/products/service/product-availability.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { compareDimensionWithDto } from 'src/common/utility';
+import { compareDimensions } from 'src/common/utility';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { Color, Material, Size } from '../attributes/attribute.entity';
 
@@ -98,7 +98,7 @@ export class BasketService {
     if (existingItemIndex !== -1) {
       const existingItem = basket.basketItems[existingItemIndex];
       const existingDimension = existingItem.dimensions.find((dim) =>
-        compareDimensionWithDto(dim, availableDimention),
+        compareDimensions(dim, availableDimention),
       );
 
       if (existingDimension) {
