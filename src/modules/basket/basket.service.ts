@@ -6,9 +6,12 @@ import mongoose, { Model, Types } from 'mongoose';
 import { UsersService } from 'src/modules/users/users.service';
 import { ProductsService } from 'src/modules/products/service/products.service';
 import { RemoveProductDto } from './dto/remove-product.dto';
-import { Color, Product } from 'src/modules/products/product.entity';
+import { Product } from 'src/modules/products/product.entity';
 import { ProductAvailabilityService } from 'src/modules/products/service/product-availability.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
+import { compareDimensions } from 'src/common/utility';
+import { DimensionDto } from 'src/common/dto/dimension.dto';
+import { Color, Material, Size } from '../attributes/attribute.entity';
 
 @Injectable()
 export class BasketService {
@@ -36,68 +39,83 @@ export class BasketService {
       addDto.product.productId,
     );
     if (!product) {
-      throw new ProductNotAvailableException(product.id);
-    }
-
-    const dimension = product.dimensions.find(
-      (dim) => dim.color === addDto.product.dimension.color,
-    );
-    if (!dimension) {
-      throw new ProductNotAvailableException(
-        product.id,
-        addDto.product.dimension.color,
+      throw new NotFoundException(
+        `Product with ID ${addDto.product.productId} not found`,
       );
     }
 
-    const isAvailable =
-      await this.productAvailabilityService.isProductAvailable(
+    const dimensionDto: DimensionDto = addDto.product.dimension;
+    let dimensionColor: mongoose.Types.ObjectId | undefined;
+    let dimensionSize: mongoose.Types.ObjectId | undefined;
+    let dimensionMaterial: mongoose.Types.ObjectId | undefined;
+    let images: string[] | undefined;
+
+    if (dimensionDto.color) {
+      dimensionColor = new mongoose.Types.ObjectId(dimensionDto.color);
+    }
+    if (dimensionDto.size) {
+      dimensionSize = new mongoose.Types.ObjectId(dimensionDto.size);
+    }
+    if (dimensionDto.material) {
+      dimensionMaterial = new mongoose.Types.ObjectId(dimensionDto.material);
+    }
+
+    const dimensionProps: any = {};
+    // Check if properties are defined and add them to the object
+    if (dimensionColor) {
+      dimensionProps.color = dimensionColor;
+    }
+    if (dimensionSize) {
+      dimensionProps.size = dimensionSize;
+    }
+    if (dimensionMaterial) {
+      dimensionProps.material = dimensionMaterial;
+    }
+    if (dimensionDto.quantity !== undefined) {
+      dimensionProps.quantity = dimensionDto.quantity;
+    }
+
+    const availableDimention =
+      await this.productAvailabilityService.findAvailableProductDimension(
         addDto.product.productId,
-        addDto.product.dimension,
+        dimensionDto,
       );
-    if (!isAvailable) {
+    if (!availableDimention) {
       throw new ProductNotAvailableException(
-        product.id,
-        addDto.product.dimension.color,
-        addDto.product.dimension.quantity,
+        addDto.product.productId,
+        dimensionColor,
+        dimensionSize,
+        dimensionMaterial,
+        dimensionDto.quantity,
       );
     }
+    dimensionProps.images = availableDimention.images;
 
-    const existingItem = basket.basketItems.find(
-      (item) => item.product.toString() === addDto.product.productId,
+    const existingItemIndex = basket.basketItems.findIndex(
+      (item) => item.product.toString() === product._id.toString(),
     );
 
-    if (existingItem) {
-      const existingDimension = existingItem.dimensions.find(
-        (dim) => dim.color === addDto.product.dimension.color,
+    if (existingItemIndex !== -1) {
+      const existingItem = basket.basketItems[existingItemIndex];
+      const existingDimension = existingItem.dimensions.find((dim) =>
+        compareDimensions(dim, availableDimention),
       );
 
       if (existingDimension) {
-        existingDimension.quantity = addDto.product.dimension.quantity;
+        existingDimension.quantity = dimensionDto.quantity;
       } else {
-        const color =
-          Color[addDto.product.dimension.color as keyof typeof Color];
-        existingItem.dimensions.push({
-          color: color,
-          quantity: addDto.product.dimension.quantity,
-        });
+        existingItem.dimensions.push(dimensionProps);
       }
     } else {
-      const color = Color[addDto.product.dimension.color as keyof typeof Color];
       basket.basketItems.push({
         product: product._id,
-        dimensions: [
-          {
-            color: color,
-            quantity: addDto.product.dimension.quantity,
-          },
-        ],
+        dimensions: [dimensionProps],
       });
     }
 
     await basket.save();
     return basket;
   }
-
   async removeProduct(
     userId: string,
     removeDto: RemoveProductDto,

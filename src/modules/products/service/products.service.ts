@@ -1,14 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateProductDto, DimensionDto } from '../dto/create-product.dto';
+import { CreateProductDto } from '../dto/create-product.dto';
 import { Product, ProductDocument } from '../product.entity';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { StorageService } from 'src/modules/storage/storage.service';
 import { EditProductDto } from '../dto/edit-product.dto';
 import { ImportProductsService } from './import-products.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { Settings } from 'http2';
 import { SettingsService } from 'src/modules/settings/settings.service';
+import { Dimension } from 'src/common/entity/dimension.entity';
+import { DimensionDto } from 'src/common/dto/dimension.dto';
+import { PromosService } from 'src/modules/promos/promos.service';
 
 @Injectable()
 export class ProductsService {
@@ -22,44 +24,82 @@ export class ProductsService {
     dto: CreateProductDto,
     images: [any],
   ): Promise<ProductDocument> {
-    const result = [];
-    const product = new this.productModel(dto);
     if (images) {
-      for (const image of images) {
+      await this.saveImagesAndUpdateDimensions(
+        dto.dimensions,
+        dto.numberOfImagesForDimensions,
+        images,
+      );
+    }
+    const dimensions = this.mapDimensionDtosToDimens(dto.dimensions);
+    const product = new this.productModel({ ...dto, dimensions });
+    return await product.save();
+  }
+
+  mapDimensionDtosToDimens(dimensions: DimensionDto[]): Dimension[] {
+    return dimensions.map((dimDto) => {
+      const dimension: any = {
+        quantity: dimDto.quantity,
+        images: dimDto.images,
+      };
+      if (dimDto.color) {
+        dimension.color = new mongoose.Types.ObjectId(dimDto.color);
+      }
+      if (dimDto.size) {
+        dimension.size = new mongoose.Types.ObjectId(dimDto.size);
+      }
+      if (dimDto.material) {
+        dimension.material = new mongoose.Types.ObjectId(dimDto.material);
+      }
+      return dimension;
+    });
+  }
+
+  async saveImagesAndUpdateDimensions(
+    dimensions: DimensionDto[],
+    numberOfImagesForDimensions: number[],
+    images: [any],
+  ) {
+    const initImageIndex = 0;
+    for (let i = 0; i < dimensions.length; i++) {
+      const dimen = dimensions[i];
+      const numberOfImages = +numberOfImagesForDimensions[i];
+      const imagesArr = dimen.images ? dimen.images : [];
+      const lastIndex = initImageIndex + numberOfImages;
+      for (let j = initImageIndex; j < lastIndex; j++) {
+        const image = images[j];
         const imageUrl = await this.storageService.uploadFile(image);
 
         console.log('Saved image url: ', imageUrl);
-        result.push(imageUrl);
+        imagesArr.push(imageUrl);
       }
-      product.$set('images', result);
+      dimen.images = imagesArr;
     }
-    return await product.save();
   }
 
   async editProduct(id: string, dto: EditProductDto, newImages: [any]) {
     const product = await this.getProductById(id);
     if (product) {
-      const imagesArr = dto.currentImages ? dto.currentImages : [];
       if (newImages) {
-        for (const image of newImages) {
-          const imageUrl = await this.storageService.uploadFile(image);
-
-          console.log('Saved image url: ', imageUrl);
-          imagesArr.push(imageUrl);
-        }
+        await this.saveImagesAndUpdateDimensions(
+          dto.dimensions,
+          dto.numberOfImagesForDimensions,
+          newImages,
+        );
       }
+      const dimensions = this.mapDimensionDtosToDimens(dto.dimensions);
       return await this.productModel.findByIdAndUpdate(
         id,
         {
           $set: {
-            images: imagesArr,
             name: dto.name,
             idName: dto.idName,
             description: dto.description,
-            weightInGrams: dto.weightInGrams,
             costPriceInUsd: dto.costPriceInUsd,
             salePrice: dto.salePrice,
-            dimensions: dto.dimensions,
+            dimensions: dimensions,
+            attributes: dto.attributes,
+            category: dto.category,
           },
         },
         { new: true },
@@ -81,8 +121,10 @@ export class ProductsService {
       }
 
       // Delete product images from Google Cloud Storage
-      for (const imageUrl of product.images) {
-        await this.storageService.deleteFile(imageUrl);
+      for (const dimension of product.dimensions) {
+        for (const imageUrl of dimension.images) {
+          await this.storageService.deleteFile(imageUrl);
+        }
       }
 
       // Delete the product from MongoDB
@@ -98,21 +140,25 @@ export class ProductsService {
   async getAllProducts(): Promise<any[]> {
     const products = await this.productModel.find();
     const mappedProducts = products.map((product) => {
-      const marginValue = product.salePrice - product.costPrice;
       const productObj = product.toObject();
       const costPrice = this.calculateCostPrice(productObj);
+      const marginValue = product.salePrice - costPrice;
+
       return { ...productObj, marginValue, costPrice };
     });
     return mappedProducts;
   }
 
-  async getProductById(id: string) {
+  async getProductById(id: string): Promise<any> {
     const product = await this.productModel.findById(id).lean();
 
     if (product) {
       // Calculate costPrice and add it to the product object
       const costPrice = this.calculateCostPrice(product);
-      product.costPrice = costPrice;
+      return {
+        ...product,
+        costPrice,
+      };
     }
 
     return product;
@@ -133,7 +179,6 @@ export class ProductsService {
       dto.idName = product.idName;
       dto.salePrice = product.price;
       const dimentsionDto = new DimensionDto();
-      dimentsionDto.color = product.color;
       dimentsionDto.quantity = product.warehouseQuantity;
       dto.dimensions = [dimentsionDto];
       return dto;
@@ -146,9 +191,8 @@ export class ProductsService {
         product.salePrice = dto.salePrice;
         product.idName = dto.idName;
         const dimentsionDto = new DimensionDto();
-        dimentsionDto.color = dto.dimensions[0].color;
         dimentsionDto.quantity = dto.dimensions[0].quantity;
-        product.dimensions.push(dimentsionDto);
+        product.dimensions.push(this.convertToDimension(dimentsionDto));
         await product.save();
       } else {
         await this.createProduct(dto, null);
@@ -171,13 +215,37 @@ export class ProductsService {
     return product.save();
   }
 
+  async updateProductDiscountPrice(productId: string, discount: number) {
+    const product = await this.productModel.findById(productId).exec();
+    if (product) {
+      if (discount === 0) {
+        // If the discount is 0, set the discountPrice to the 0 means no discount
+        product.discountPrice = 0;
+      } else {
+        // Calculate the discountPrice based on salePrice and discount percentage
+        product.discountPrice = (product.salePrice * (100 - discount)) / 100;
+      }
+      await product.save();
+    }
+  }
+
   async getSellingProducts() {
+    return await this.productModel.find({ forSale: true }).lean();
+  }
+
+  async getRecommendedProducts() {
+    // TODO change implementation to return random product for now
+    return await this.productModel.find({ forSale: true }).lean();
+  }
+
+  async getResaleProducts() {
+    // TODO change implementation to return products from Accessories category for now
     return await this.productModel.find({ forSale: true }).lean();
   }
 
   calculateCostPrice(product: Product): number {
     const shippingPriceInUsd =
-      (product.weightInGrams / 1000) *
+      (product.attributes.weightInGrams / 1000) *
       this.settingsService.getRateForShipping();
     const costPriceInUah =
       (shippingPriceInUsd + product.costPriceInUsd) *
@@ -190,5 +258,14 @@ export class ProductsService {
     const roundedCostPrice = parseFloat(costPriceInUah.toFixed(1));
 
     return roundedCostPrice;
+  }
+
+  convertToDimension(dto: DimensionDto): Dimension {
+    const dimension = new Dimension();
+    dimension.color = new mongoose.Types.ObjectId(dto.color);
+    dimension.size = new mongoose.Types.ObjectId(dto.size);
+    dimension.material = new mongoose.Types.ObjectId(dto.material);
+    dimension.quantity = dto.quantity;
+    return dimension;
   }
 }

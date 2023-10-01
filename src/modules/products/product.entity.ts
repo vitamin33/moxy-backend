@@ -1,24 +1,41 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { HydratedDocument, ObjectId } from 'mongoose';
+import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
+import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
 
-export enum Color {
-  Black = 'Black',
-  White = 'White',
-  Grey = 'Grey',
-  Pink = 'Pink',
-  PinkLeo = 'PinkLeo',
-  Leo = 'Leo',
-  Brown = 'Brown',
-  Beige = 'Beige',
-  Purple = 'Purple',
-  Zebra = 'Zebra',
-  Jeans = 'Jeans',
-  Green = 'Green',
-  Bars = 'Bars',
-  Snake = 'Snake',
-  Unified = 'Unified',
+export enum ProductCategory {
+  Bags = 'Bags',
+  Accessories = 'Accessories',
+  Backpacks = 'Backpacks',
+}
+class ProductAttributes {
+  @ApiProperty({ example: 0, description: 'Weight in grams' })
+  weightInGrams: number;
+
+  @ApiProperty({ example: 'Season', description: 'Season' })
+  season: string;
+
+  @ApiProperty({ example: 'Furniture', description: 'Furniture' })
+  furniture: string;
+
+  @ApiProperty({ example: 'Strap', description: 'Strap' })
+  strap: string;
+
+  @ApiProperty({ example: 0, description: 'Height in cm' })
+  heightInCm: number;
+
+  @ApiProperty({ example: 0, description: 'Width in cm' })
+  widthInCm: number;
+
+  @ApiProperty({ example: 0, description: 'Length in cm' })
+  lengthInCm: number;
+
+  @ApiProperty({ example: 0, description: 'Depth in cm' })
+  depthInCm: number;
+
+  @ApiProperty({ example: 'Producer', description: 'Producer' })
+  producer: string;
 }
 
 type FullProductDocument = Product & Document;
@@ -28,27 +45,11 @@ export type ProductDocument = HydratedDocument<FullProductDocument>;
   toJSON: {
     virtuals: true,
     transform: function (doc: any, ret: any) {
-      delete ret._id;
       delete ret.__v;
       return ret;
     },
   },
 })
-export class Dimension {
-  @ApiProperty({ example: 'Black', description: 'Product color' })
-  @Prop({ type: String, enum: Color, default: Color.Black })
-  color: string;
-
-  @Prop()
-  size: string;
-
-  @Prop()
-  material: string;
-
-  @Prop({ required: true, default: 0 })
-  quantity: number;
-}
-@Schema()
 export class Product {
   @Transform(({ value }) => value.toString())
   _id: ObjectId;
@@ -77,20 +78,9 @@ export class Product {
     example: 'Array of image URLs',
     description: 'Array of image urls',
   })
-  @Prop()
-  images: [string];
-
   @ApiProperty({ example: 5.2, description: 'Cost price in USD' })
   @Prop()
   costPriceInUsd: number;
-
-  @ApiProperty({ example: 300, description: 'Weight in grams' })
-  @Prop()
-  weightInGrams: number;
-
-  @ApiProperty({ example: 1.2, description: 'Cost price' })
-  @Prop()
-  costPrice: number;
 
   @ApiProperty({ example: 2.3, description: 'Sale price in UAH' })
   @Prop()
@@ -98,29 +88,36 @@ export class Product {
 
   warehouseQuantity: number;
 
-  @Prop({
-    type: [
-      {
-        color: {
-          type: String,
-          enum: Color,
-          required: true,
-          default: Color.Unified,
-        },
-        quantity: { type: Number, required: true, default: 0 },
-      },
-    ],
-    required: true,
+  @ApiProperty({ description: 'Array of Dimension objects for this product.' })
+  @Prop({ type: [DimensionSchema], default: [] }) // Use the DimensionSchema here
+  dimensions: Dimension[];
+
+  @ApiProperty({
+    description: 'Attributes of the product',
+    type: ProductAttributes,
   })
-  dimensions: {
-    color: string;
-    quantity: number;
-  }[];
+  @Prop({ type: ProductAttributes })
+  attributes: ProductAttributes;
+
+  @ApiProperty({
+    enum: ProductCategory,
+    description: 'Product category',
+    default: ProductCategory.Bags,
+  })
+  @Prop({ enum: ProductCategory, default: ProductCategory.Bags })
+  category: ProductCategory;
 
   id: string;
 
   @Prop({ default: 0 })
   numFavorites: number;
+
+  @ApiProperty({
+    example: 0,
+    description: 'Discount price in UAH (0 means no discount)',
+  })
+  @Prop({ default: 0 })
+  discountPrice: number;
 
   @ApiProperty({
     example: true,
@@ -131,10 +128,6 @@ export class Product {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
-
-ProductSchema.virtual('marginValue').get(function (this: Product) {
-  return this.salePrice - this.costPrice;
-});
 
 ProductSchema.virtual('warehouseQuantity').get(function (this: Product) {
   return this.dimensions.reduce((n, { quantity }) => n + quantity, 0);

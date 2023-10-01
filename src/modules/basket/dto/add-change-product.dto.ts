@@ -1,13 +1,6 @@
-import {
-  ArrayNotEmpty,
-  IsEnum,
-  IsNotEmpty,
-  IsString,
-  Matches,
-} from 'class-validator';
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { ProductDto } from 'src/modules/orders/dto/product.dto';
-import { Color } from 'src/modules/products/product.entity';
+import { DimensionDto } from 'src/common/dto/dimension.dto';
 
 export class AddOrChangeProductDto {
   readonly product: BasketItemDto;
@@ -18,14 +11,6 @@ export class BasketItemDto {
   @IsNotEmpty({ message: 'productId should be present' })
   readonly productId: string;
   readonly dimension: DimensionDto;
-}
-
-export class DimensionDto {
-  @IsEnum(Color)
-  @IsNotEmpty()
-  readonly color: string;
-  @IsNotEmpty()
-  readonly quantity: number;
 }
 
 export class GuestUserDto {

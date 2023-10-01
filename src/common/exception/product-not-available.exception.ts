@@ -1,7 +1,13 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class ProductNotAvailableException extends HttpException {
-  constructor(productId: string, dimensionColor?: string, quantity?: number) {
+  constructor(
+    productId: string,
+    dimensionColor?: any,
+    dimensionSize?: any,
+    dimensionMaterial?: any,
+    quantity?: number,
+  ) {
     let message = `Product with ID ${productId} is not found`;
 
     if (dimensionColor && quantity !== undefined) {

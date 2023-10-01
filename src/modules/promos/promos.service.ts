@@ -33,6 +33,9 @@ export class PromosService {
       promo.imageUrl = imageUrl;
     }
 
+    // Update the discountPrice in the Product entity
+    await this.updateProductDiscountPrice(dto.productId, dto.discount);
+
     return await promo.save();
   }
 
@@ -40,7 +43,18 @@ export class PromosService {
     return this.promoModel.find().populate('product').exec();
   }
 
-  async removePromo(id: string): Promise<void> {
-    await this.promoModel.findByIdAndRemove(id).exec();
+  async removePromo(id: string) {
+    const promo = await this.promoModel.findByIdAndRemove(id).exec();
+    if (promo) {
+      // Update the discountPrice in the Product entity
+      await this.updateProductDiscountPrice(promo.productId, 0); // zero means no discount
+    }
+  }
+
+  private async updateProductDiscountPrice(
+    productId: string,
+    discount: number,
+  ) {
+    await this.productService.updateProductDiscountPrice(productId, discount);
   }
 }

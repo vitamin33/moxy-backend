@@ -95,6 +95,20 @@ export class ProductsController {
     return this.productService.getSellingProducts();
   }
 
+  @ApiOperation({ summary: 'Get recommended products' })
+  @ApiResponse({ status: 200, type: [Product] })
+  @Get('recommend')
+  async getRecommendedProducts() {
+    return this.productService.getRecommendedProducts();
+  }
+
+  @ApiOperation({ summary: 'Get resale products' })
+  @ApiResponse({ status: 200, type: [Product] })
+  @Get('resale')
+  async getResaleProducts() {
+    return this.productService.getResaleProducts();
+  }
+
   @ApiOperation({ summary: 'Delete product (Admin Only)' })
   @ApiResponse({ status: 200, description: 'Product deleted successfully' })
   @Delete(':id')

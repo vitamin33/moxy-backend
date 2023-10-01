@@ -12,6 +12,8 @@ import { FindByDto } from './dto/find-by.dto';
 import { ProductsService } from 'src/modules/products/service/products.service';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { OrderNotFoundException } from 'src/common/exception/order-not-found.exception';
+import { Dimension } from 'src/common/entity/dimension.entity';
+import { compareDimensionWithDto, compareDimensions } from 'src/common/utility';
 
 @Injectable()
 export class OrdersService {
@@ -115,10 +117,15 @@ export class OrdersService {
         if (!product) {
           return null;
         }
+        const dimension = orderedItem.dimensions[0]; // Assuming there's only one dimension
+        if (!dimension) {
+          return null;
+        }
+
         const imageUrl =
-          product.images.length > 0
-            ? product.images[0] // Use the first value in the images array
-            : undefined; // Set a default value when images array is empty
+          dimension.images.length > 0
+            ? dimension.images[0] // Use the first value in the images array of the dimension
+            : undefined; // Set a default value when the dimension's images array is empty
 
         return {
           product: orderedItem.product.toString(),
@@ -153,9 +160,41 @@ export class OrdersService {
     }
     const orderedItems = [];
     for (const product of orderDto.products) {
+      const existProduct = await this.productsService.getProductById(
+        product._id,
+      );
+      const dimensionsToSave = [];
+
+      for (const dimen of product.dimensions) {
+        const existingDimen = existProduct.dimensions.find((dim) =>
+          compareDimensionWithDto(dim, dimen),
+        );
+
+        if (existingDimen) {
+          const dimensionWithImages = {
+            color: existingDimen.color,
+            size: existingDimen.size,
+            material: existingDimen.material,
+            quantity: dimen.quantity,
+            images: existingDimen.images, // Add images from existing dimension
+          };
+
+          dimensionsToSave.push(dimensionWithImages);
+        } else {
+          const dimensionWithoutImages = {
+            color: dimen.color,
+            size: dimen.size,
+            material: dimen.material,
+            quantity: dimen.quantity,
+            images: [], // No images provided
+          };
+
+          dimensionsToSave.push(dimensionWithoutImages);
+        }
+      }
       orderedItems.push({
         product: product._id,
-        dimensions: product.dimensions,
+        dimensions: dimensionsToSave,
       });
     }
     const createdOrder = new this.orderModel({

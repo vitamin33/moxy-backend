@@ -1,14 +1,8 @@
 import { IsEnum, IsNotEmpty, ValidateNested } from 'class-validator';
-import { Color } from '../product.entity';
-import { Type } from 'class-transformer';
-
-export class DimensionDto {
-  @IsEnum(Color)
-  @IsNotEmpty()
-  color: string;
-  @IsNotEmpty()
-  quantity: number;
-}
+import { Exclude, Type } from 'class-transformer';
+import { DimensionDto } from 'src/common/dto/dimension.dto';
+import { ProductAttributesDto } from './attributes.dto';
+import { ProductCategory } from '../product.entity';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -20,10 +14,20 @@ export class CreateProductDto {
   @IsNotEmpty()
   costPriceInUsd: number;
   @IsNotEmpty()
-  weightInGrams: number;
-  @IsNotEmpty()
   salePrice: number;
+
   @Type(() => DimensionDto)
   @ValidateNested()
   dimensions: DimensionDto[];
+
+  @Exclude()
+  numberOfImagesForDimensions: number[];
+
+  @Type(() => ProductAttributesDto)
+  @ValidateNested()
+  attributes: ProductAttributesDto;
+
+  @IsNotEmpty()
+  @IsEnum(ProductCategory)
+  category: string;
 }

@@ -1,27 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import mongoose, { ObjectId } from 'mongoose';
-import { Color } from 'src/modules/products/product.entity';
+import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
 import { User } from 'src/modules/users/user.entity';
+import { Product } from '../products/product.entity';
 
 export type BasketDocument = Basket & Document;
 export type BasketItemDocument = BasketItem & Document;
 
 @Schema()
-export class Dimension {
-  @Prop({ type: String, enum: Color })
-  color: Color;
-
-  @Prop({ type: Number, required: true, default: 0 })
-  quantity: number;
-}
-
-export const DimensionSchema = SchemaFactory.createForClass(Dimension);
-
-@Schema()
 export class BasketItem {
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Product.name })
   product: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: [DimensionSchema] })
