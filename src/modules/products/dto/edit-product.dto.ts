@@ -1,7 +1,7 @@
-import { IsNotEmpty, ValidateNested } from 'class-validator';
+import { IsEnum, IsNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
-import { MatchArrayLength } from 'src/common/validator/match-array-length.validator';
+import { ProductAttributesDto } from './attributes.dto';
 
 export class EditProductDto {
   @IsNotEmpty()
@@ -12,8 +12,7 @@ export class EditProductDto {
   description: string;
   @IsNotEmpty()
   costPriceInUsd: number;
-  @IsNotEmpty()
-  weightInGrams: number;
+
   @IsNotEmpty()
   salePrice: number;
   @Type(() => DimensionDto)
@@ -21,4 +20,11 @@ export class EditProductDto {
   dimensions: DimensionDto[];
 
   numberOfImagesForDimensions: number[];
+
+  @Type(() => ProductAttributesDto)
+  @ValidateNested()
+  attributes: ProductAttributesDto;
+
+  @IsNotEmpty()
+  category: string;
 }

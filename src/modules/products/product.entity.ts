@@ -4,6 +4,40 @@ import { Transform } from 'class-transformer';
 import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
 import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
 
+export enum ProductCategory {
+  Bags = 'Bags',
+  Accessories = 'Accessories',
+  Backpacks = 'Backpacks',
+}
+class ProductAttributes {
+  @ApiProperty({ example: 0, description: 'Weight in grams' })
+  weightInGrams: number;
+
+  @ApiProperty({ example: 'Season', description: 'Season' })
+  season: string;
+
+  @ApiProperty({ example: 'Furniture', description: 'Furniture' })
+  furniture: string;
+
+  @ApiProperty({ example: 'Strap', description: 'Strap' })
+  strap: string;
+
+  @ApiProperty({ example: 0, description: 'Height in cm' })
+  heightInCm: number;
+
+  @ApiProperty({ example: 0, description: 'Width in cm' })
+  widthInCm: number;
+
+  @ApiProperty({ example: 0, description: 'Length in cm' })
+  lengthInCm: number;
+
+  @ApiProperty({ example: 0, description: 'Depth in cm' })
+  depthInCm: number;
+
+  @ApiProperty({ example: 'Producer', description: 'Producer' })
+  producer: string;
+}
+
 type FullProductDocument = Product & Document;
 export type ProductDocument = HydratedDocument<FullProductDocument>;
 
@@ -61,6 +95,21 @@ export class Product {
   @ApiProperty({ description: 'Array of Dimension objects for this product.' })
   @Prop({ type: [DimensionSchema], default: [] }) // Use the DimensionSchema here
   dimensions: Dimension[];
+
+  @ApiProperty({
+    description: 'Attributes of the product',
+    type: ProductAttributes,
+  })
+  @Prop({ type: ProductAttributes })
+  attributes: ProductAttributes;
+
+  @ApiProperty({
+    enum: ProductCategory,
+    description: 'Product category',
+    default: ProductCategory.Bags,
+  })
+  @Prop({ enum: ProductCategory, default: ProductCategory.Bags })
+  category: ProductCategory;
 
   id: string;
 

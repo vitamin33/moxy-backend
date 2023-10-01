@@ -95,10 +95,11 @@ export class ProductsService {
             name: dto.name,
             idName: dto.idName,
             description: dto.description,
-            weightInGrams: dto.weightInGrams,
             costPriceInUsd: dto.costPriceInUsd,
             salePrice: dto.salePrice,
             dimensions: dimensions,
+            attributes: dto.attributes,
+            category: dto.category,
           },
         },
         { new: true },
@@ -215,6 +216,16 @@ export class ProductsService {
   }
 
   async getSellingProducts() {
+    return await this.productModel.find({ forSale: true }).lean();
+  }
+
+  async getRecommendedProducts() {
+    // TODO change implementation to return random product for now
+    return await this.productModel.find({ forSale: true }).lean();
+  }
+
+  async getResaleProducts() {
+    // TODO change implementation to return products from Accessories category for now
     return await this.productModel.find({ forSale: true }).lean();
   }
 
