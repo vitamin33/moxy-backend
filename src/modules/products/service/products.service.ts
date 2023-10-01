@@ -218,7 +218,13 @@ export class ProductsService {
   async updateProductDiscountPrice(productId: string, discount: number) {
     const product = await this.productModel.findById(productId).exec();
     if (product) {
-      product.discountPrice = discount;
+      if (discount === 0) {
+        // If the discount is 0, set the discountPrice to the 0 means no discount
+        product.discountPrice = 0;
+      } else {
+        // Calculate the discountPrice based on salePrice and discount percentage
+        product.discountPrice = (product.salePrice * (100 - discount)) / 100;
+      }
       await product.save();
     }
   }
@@ -239,7 +245,7 @@ export class ProductsService {
 
   calculateCostPrice(product: Product): number {
     const shippingPriceInUsd =
-      (product.weightInGrams / 1000) *
+      (product.attributes.weightInGrams / 1000) *
       this.settingsService.getRateForShipping();
     const costPriceInUah =
       (shippingPriceInUsd + product.costPriceInUsd) *

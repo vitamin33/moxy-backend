@@ -82,10 +82,6 @@ export class Product {
   @Prop()
   costPriceInUsd: number;
 
-  @ApiProperty({ example: 300, description: 'Weight in grams' })
-  @Prop()
-  weightInGrams: number;
-
   @ApiProperty({ example: 2.3, description: 'Sale price in UAH' })
   @Prop()
   salePrice: number;
