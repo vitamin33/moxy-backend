@@ -148,6 +148,6 @@ export class AttributesService {
       await attributes.save();
     }
 
-    return attributes;
+    return attributes.toObject();
   }
 }

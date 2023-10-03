@@ -14,5 +14,6 @@ import { Attributes, AttributesSchema } from './attribute.entity';
   ],
   providers: [AttributesService],
   controllers: [AttributesController],
+  exports: [AttributesService],
 })
 export class AttributesModule {}

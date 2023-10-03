@@ -11,6 +11,7 @@ export enum ProductCategory {
 }
 class ProductAttributes {
   @ApiProperty({ example: 0, description: 'Weight in grams' })
+  @Transform(({ value }) => parseInt(value))
   weightInGrams: number;
 
   @ApiProperty({ example: 'Season', description: 'Season' })
@@ -23,15 +24,19 @@ class ProductAttributes {
   strap: string;
 
   @ApiProperty({ example: 0, description: 'Height in cm' })
+  @Transform(({ value }) => parseInt(value))
   heightInCm: number;
 
   @ApiProperty({ example: 0, description: 'Width in cm' })
+  @Transform(({ value }) => parseInt(value))
   widthInCm: number;
 
   @ApiProperty({ example: 0, description: 'Length in cm' })
+  @Transform(({ value }) => parseInt(value))
   lengthInCm: number;
 
   @ApiProperty({ example: 0, description: 'Depth in cm' })
+  @Transform(({ value }) => parseInt(value))
   depthInCm: number;
 
   @ApiProperty({ example: 'Producer', description: 'Producer' })

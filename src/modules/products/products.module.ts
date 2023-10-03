@@ -9,6 +9,14 @@ import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { SettingsModule } from '../settings/settings.module';
 import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
+import {
+  Color,
+  ColorSchema,
+  Material,
+  MaterialSchema,
+  Size,
+  SizeSchema,
+} from '../attributes/attribute.entity';
 import { AttributesModule } from '../attributes/attributes.module';
 
 @Module({
@@ -16,10 +24,14 @@ import { AttributesModule } from '../attributes/attributes.module';
     AuthModule,
     MongooseModule.forFeature([
       { name: Dimension.name, schema: DimensionSchema },
+      { name: Color.name, schema: ColorSchema },
+      { name: Size.name, schema: SizeSchema },
+      { name: Material.name, schema: MaterialSchema },
     ]),
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
     StorageModule,
     SettingsModule,
+    AttributesModule,
   ],
   controllers: [ProductsController],
   providers: [ProductsService, ImportProductsService],
