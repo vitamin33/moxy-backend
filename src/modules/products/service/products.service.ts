@@ -11,15 +11,25 @@ import { SettingsService } from 'src/modules/settings/settings.service';
 import { Dimension } from 'src/common/entity/dimension.entity';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { PromosService } from 'src/modules/promos/promos.service';
+import { AttributesService } from 'src/modules/attributes/attributes.service';
+import { Attributes } from 'src/modules/attributes/attribute.entity';
 
 @Injectable()
 export class ProductsService {
+  private attributes: Attributes;
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private storageService: StorageService,
     private importProductsService: ImportProductsService,
     private settingsService: SettingsService,
-  ) {}
+    private attributesService: AttributesService,
+  ) {
+    this.initializeAttributes();
+  }
+
+  private async initializeAttributes() {
+    this.attributes = await this.attributesService.getAttributes();
+  }
   async createProduct(
     dto: CreateProductDto,
     images: [any],
@@ -31,9 +41,25 @@ export class ProductsService {
         images,
       );
     }
+    const numericAttributesFields = [
+      'weightInGrams',
+      'depthInCm',
+      'heightInCm',
+      'widthInCm',
+      'lengthInCm',
+    ];
+    this.parseNumericFieldsInAttributes(dto, numericAttributesFields);
     const dimensions = this.mapDimensionDtosToDimens(dto.dimensions);
     const product = new this.productModel({ ...dto, dimensions });
     return await product.save();
+  }
+
+  parseNumericFieldsInAttributes(dto: any, numericFields: string[]): void {
+    numericFields.forEach((fieldName) => {
+      if (typeof dto[fieldName] === 'string') {
+        dto[fieldName] = parseFloat(dto[fieldName]);
+      }
+    });
   }
 
   mapDimensionDtosToDimens(dimensions: DimensionDto[]): Dimension[] {
@@ -143,21 +169,61 @@ export class ProductsService {
       const productObj = product.toObject();
       const costPrice = this.calculateCostPrice(productObj);
       const marginValue = product.salePrice - costPrice;
-
-      return { ...productObj, marginValue, costPrice };
+      const dimensWithAttributes = this.fillAttributes(productObj.dimensions);
+      return {
+        ...productObj,
+        marginValue,
+        costPrice,
+        dimensions: dimensWithAttributes,
+      };
     });
     return mappedProducts;
   }
+  fillAttributes(dimensions: Dimension[]) {
+    return dimensions.map((dimension) => {
+      const color = this.attributes.colors.find((e) => {
+        return e._id.toString() === dimension.color.toString();
+      });
+
+      // Check if 'size' and 'material' are defined before including them
+      const size = dimension.size
+        ? this.attributes.sizes.find((e) => {
+            return e._id.toString() === dimension.size.toString();
+          })
+        : undefined;
+
+      const material = dimension.material
+        ? this.attributes.materials.find((e) => {
+            return e._id.toString() === dimension.material.toString();
+          })
+        : undefined;
+
+      // Create the object with only defined values
+      const dimensionWithAttributes: any = { ...dimension, color };
+
+      // Include 'size' and 'material' if they are defined
+      if (size !== undefined) {
+        dimensionWithAttributes.size = size;
+      }
+      if (material !== undefined) {
+        dimensionWithAttributes.material = material;
+      }
+
+      return dimensionWithAttributes;
+    });
+  }
 
   async getProductById(id: string): Promise<any> {
-    const product = await this.productModel.findById(id).lean();
+    const product = await await this.productModel.findById(id);
 
     if (product) {
       // Calculate costPrice and add it to the product object
       const costPrice = this.calculateCostPrice(product);
+      const dimensWithAttributes = this.fillAttributes(product.dimensions);
       return {
         ...product,
         costPrice,
+        dimensions: dimensWithAttributes,
       };
     }
 
@@ -230,17 +296,30 @@ export class ProductsService {
   }
 
   async getSellingProducts() {
-    return await this.productModel.find({ forSale: true }).lean();
+    const products = await this.productModel.find({ forSale: true }).lean();
+    return this.fillAttributesForProducts(products);
   }
 
   async getRecommendedProducts() {
     // TODO change implementation to return random product for now
-    return await this.productModel.find({ forSale: true }).lean();
+    const products = await this.productModel.find({ forSale: true }).lean();
+    return this.fillAttributesForProducts(products);
   }
 
   async getResaleProducts() {
     // TODO change implementation to return products from Accessories category for now
-    return await this.productModel.find({ forSale: true }).lean();
+    const products = await this.productModel.find({ forSale: true }).lean();
+    return this.fillAttributesForProducts(products);
+  }
+
+  private fillAttributesForProducts(products: Product[]) {
+    return products.map((product) => {
+      const productObj = { ...product };
+      if (product.dimensions) {
+        productObj.dimensions = this.fillAttributes(product.dimensions);
+      }
+      return productObj;
+    });
   }
 
   calculateCostPrice(product: Product): number {
