@@ -11,7 +11,9 @@ export enum ProductCategory {
 }
 class ProductAttributes {
   @ApiProperty({ example: 0, description: 'Weight in grams' })
-  @Transform(({ value }) => parseInt(value))
+  @Transform(({ value }) => {
+    return parseInt(value);
+  })
   weightInGrams: number;
 
   @ApiProperty({ example: 'Season', description: 'Season' })

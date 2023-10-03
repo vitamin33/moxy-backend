@@ -3,24 +3,22 @@ import { IsNotEmpty } from 'class-validator';
 
 export class ProductAttributesDto {
   @IsNotEmpty()
-  @Transform(({ value }) => parseInt(value))
-  weightInGrams: number;
+  @Transform(({ value }) => {
+    return parseInt(value);
+  })
+  weightInGrams: string;
   season: string;
   furniture: string;
   strap: string;
 
   @IsNotEmpty()
-  @Transform(({ value }) => parseInt(value))
-  heightInCm: number;
+  heightInCm: string;
 
   @IsNotEmpty()
-  @Transform(({ value }) => parseInt(value))
-  widthInCm: number;
+  widthInCm: string;
 
   @IsNotEmpty()
-  @Transform(({ value }) => parseInt(value))
-  lengthInCm: number;
-  @Transform(({ value }) => parseInt(value))
-  depthInCm: number;
+  lengthInCm: string;
+  depthInCm: string;
   producer: string;
 }

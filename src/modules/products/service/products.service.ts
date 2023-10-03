@@ -13,6 +13,7 @@ import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { PromosService } from 'src/modules/promos/promos.service';
 import { AttributesService } from 'src/modules/attributes/attributes.service';
 import { Attributes } from 'src/modules/attributes/attribute.entity';
+import { ProductAttributesDto } from '../dto/attributes.dto';
 
 @Injectable()
 export class ProductsService {
@@ -41,25 +42,28 @@ export class ProductsService {
         images,
       );
     }
-    const numericAttributesFields = [
-      'weightInGrams',
-      'depthInCm',
-      'heightInCm',
-      'widthInCm',
-      'lengthInCm',
-    ];
-    this.parseNumericFieldsInAttributes(dto, numericAttributesFields);
-    const dimensions = this.mapDimensionDtosToDimens(dto.dimensions);
-    const product = new this.productModel({ ...dto, dimensions });
-    return await product.save();
-  }
 
-  parseNumericFieldsInAttributes(dto: any, numericFields: string[]): void {
-    numericFields.forEach((fieldName) => {
-      if (typeof dto[fieldName] === 'string') {
-        dto[fieldName] = parseFloat(dto[fieldName]);
-      }
+    const dimensions = this.mapDimensionDtosToDimens(dto.dimensions);
+
+    // Create an attributes object with parsed values only if they are present in the DTO
+    const parsedAttributes = {
+      ...dto.attributes,
+      weightInGrams: parseInt(dto.attributes.weightInGrams),
+      heightInCm: parseInt(dto.attributes.heightInCm),
+      lengthInCm: parseInt(dto.attributes.lengthInCm),
+      widthInCm: parseInt(dto.attributes.widthInCm),
+      depthInCm: dto.attributes.depthInCm
+        ? parseInt(dto.attributes.depthInCm)
+        : undefined,
+    };
+
+    const product = new this.productModel({
+      ...dto,
+      dimensions,
+      attributes: parsedAttributes,
     });
+
+    return await product.save();
   }
 
   mapDimensionDtosToDimens(dimensions: DimensionDto[]): Dimension[] {
