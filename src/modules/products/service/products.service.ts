@@ -12,12 +12,15 @@ import { Dimension } from 'src/common/entity/dimension.entity';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { PromosService } from 'src/modules/promos/promos.service';
 import { AttributesService } from 'src/modules/attributes/attributes.service';
-import { Attributes } from 'src/modules/attributes/attribute.entity';
+import {
+  Attributes,
+  AttributesWithCategories,
+} from 'src/modules/attributes/attribute.entity';
 import { ProductAttributesDto } from '../dto/attributes.dto';
 
 @Injectable()
 export class ProductsService {
-  private attributes: Attributes;
+  private attributes: AttributesWithCategories;
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private storageService: StorageService,

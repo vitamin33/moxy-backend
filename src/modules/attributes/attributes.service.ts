@@ -1,10 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Attributes, Color, Material, Size } from './attribute.entity';
+import {
+  Attributes,
+  AttributesWithCategories,
+  Color,
+  Material,
+  Size,
+} from './attribute.entity';
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { AddColorDto } from './dto/add-color.dto';
 import { AddMaterialDto } from './dto/add-material.dto';
 import { AddSizeDto } from './dto/add-size.dto';
+import { ProductCategory } from '../products/product.entity';
+import { type } from 'os';
 
 @Injectable()
 export class AttributesService {
@@ -111,8 +119,17 @@ export class AttributesService {
     return size || null;
   }
 
-  async getAttributes() {
-    return await this.getOrCreateAttributes();
+  async getAttributes(): Promise<AttributesWithCategories> {
+    const attributes = await this.getOrCreateAttributes();
+    const productCategories = Object.values(ProductCategory);
+
+    // Create an object that includes attributes and productCategories
+    const result: any = {
+      ...attributes, // Include all properties from attributes
+      productCategories,
+    };
+
+    return result;
   }
 
   async removeColor(colorId: string): Promise<void> {
