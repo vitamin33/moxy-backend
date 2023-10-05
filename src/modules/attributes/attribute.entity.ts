@@ -36,6 +36,11 @@ export class Material {
 }
 export const MaterialSchema = SchemaFactory.createForClass(Material);
 
+export type AttributesWithCategories = Attributes & {
+  _id: mongoose.Types.ObjectId;
+  productCategories: string[];
+};
+
 @Schema()
 export class Attributes extends Document {
   @ApiProperty({ type: [Color] })
