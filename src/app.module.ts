@@ -16,6 +16,7 @@ import { BasketModule } from './modules/basket/basket.module';
 import { PromosModule } from './modules/promos/promos.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { AttributesModule } from './modules/attributes/attributes.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -24,6 +25,12 @@ import { AttributesModule } from './modules/attributes/attributes.module';
     }),
     MongooseModule.forRoot(process.env.MONGODB_CONFIG, {
       dbName: process.env.DB_NAME,
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    MailerModule.forRoot({
+      transport: 'smtps://user@domain.com:pass@smtp.domain.com',
     }),
     UsersModule,
     RolesModule,
