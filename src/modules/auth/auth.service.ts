@@ -12,12 +12,20 @@ import { User } from 'src/modules/users/user.entity';
 import { ResendConfirmationDto } from './dto/resend-confirmation.dto';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { VerifyConfirmationDto } from './dto/verify-confirmation.dto';
+import { ConfigService } from '@nestjs/config';
+import { MailerService } from '@nestjs-modules/mailer';
+import { google } from 'googleapis';
+import { Options } from 'nodemailer/lib/smtp-transport';
+import * as handlebars from 'handlebars';
+import * as fs from 'fs';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async login(userDto: CreateUserDto) {
@@ -54,11 +62,14 @@ export class AuthService {
     const candidate = await this.userService.getUserByMobileNumber(
       userDto.mobileNumber,
     );
+    const emailCandidate = await this.userService.getUserByEmail(
+      userDto.email,
+    );
 
-    if (candidate) {
+    if (candidate || emailCandidate) {
       if (candidate.role.name !== 'GUEST') {
         throw new HttpException(
-          'User with such mobile number is already registered',
+          'User with such mobile number or email is already registered',
           HttpStatus.CONFLICT,
         );
       } else {
@@ -89,6 +100,7 @@ export class AuthService {
         password: hashPassword,
         confirmationCode,
       });
+      this.sendConfirmationMail(user.email, confirmationCode);
 
       const accessToken = this.generateAccessToken(user);
       const refreshToken = this.generateRefreshToken(user.id);
@@ -169,12 +181,12 @@ export class AuthService {
   }
 
   async resendConfirmationCode(resendDto: ResendConfirmationDto) {
-    const user = await this.userService.getUserByMobileNumber(
-      resendDto.mobileNumber,
+    const user = await this.userService.getUserByEmail(
+      resendDto.email,
     );
     if (!user) {
       throw new UserNotFoundException(
-        `Phone number: ${resendDto.mobileNumber}`,
+        `Phone number: ${resendDto.email}`,
       );
     }
 
@@ -188,15 +200,17 @@ export class AuthService {
     const confirmationCode = this.generateConfirmationCode();
     user.confirmationCode = confirmationCode; // Update the code
     await user.save();
+
+    this.sendConfirmationMail(resendDto.email, confirmationCode);
   }
 
   async verifyConfirmationCode(verifyDto: VerifyConfirmationDto) {
-    const user = await this.userService.getUserByMobileNumber(
-      verifyDto.mobileNumber,
+    const user = await this.userService.getUserByEmail(
+      verifyDto.email,
     );
     if (!user) {
       throw new UserNotFoundException(
-        `Phone number: ${verifyDto.mobileNumber}`,
+        `Email: ${verifyDto.email}`,
       );
     }
 
@@ -220,10 +234,77 @@ export class AuthService {
     await user.save();
   }
 
+  async sendConfirmationMail(receiverMail: string, verificationCode: string) {
+    await this.setTransport();
+    const mainEmail = this.configService.get<string>('MAIN_EMAIL');
+    const rootDir = process.cwd();
+    const templatePath = `${rootDir}/templates/verification.html`;
+    const templateHtml = fs.readFileSync(templatePath, 'utf8');
+    const template = handlebars.compile(templateHtml);
+
+    // Replace placeholders with data
+    const html = template({ code: verificationCode });
+    this.mailerService
+      .sendMail({
+        transporterName: 'gmail',
+        to: receiverMail, 
+        from: mainEmail, // sender address
+        subject: 'MOXY Verficiaction Code',
+        html: html,
+        context: {
+          code: verificationCode,
+        },
+      })
+      .then((success) => {
+        console.log(success);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
   generateConfirmationCode(): string {
     const min = 1000; // Minimum 4-digit number
     const max = 9999; // Maximum 4-digit number
     const code = Math.floor(Math.random() * (max - min + 1)) + min;
     return code.toString(); // Convert to string
+  }
+
+  private async setTransport() {
+    const clientId = this.configService.get<string>('GOOGLE_SMTP_CLIENT_ID');
+    const clientSecret = this.configService.get<string>('GOOGLE_SMTP_CLIENT_SECRET');
+    const refreshToken = this.configService.get<string>('GOOGLE_SMTP_REFRESH_TOKEN');
+    const mainEmail = this.configService.get<string>('MAIN_EMAIL');
+    const OAuth2 = google.auth.OAuth2;
+    const oauth2Client = new OAuth2(
+      clientId,
+      clientSecret,
+      'https://developers.google.com/oauthplayground',
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: refreshToken,
+    });
+
+    const accessToken: string = await new Promise((resolve, reject) => {
+      oauth2Client.getAccessToken((err, token) => {
+        if (err) {
+          reject('Failed to create access token');
+        }
+        resolve(token);
+      });
+    });
+
+    const config: Options = {
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: mainEmail,
+        clientId: clientId,
+        clientSecret: clientSecret,
+        accessToken,
+      },
+    };
+    this.mailerService.addTransporter('gmail', config);
   }
 }
