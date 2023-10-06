@@ -15,11 +15,18 @@ import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ResendConfirmationDto } from './dto/resend-confirmation.dto';
+import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
+import { UsersService } from '../users/users.service';
+import { VerifyConfirmationDto } from './dto/verify-confirmation.dto';
 
 @ApiTags('Authorization')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private usersService: UsersService,
+  ) {}
 
   @Post('/login')
   login(@Body() userDto: CreateUserDto) {
@@ -60,5 +67,19 @@ export class AuthController {
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
+  }
+
+  @Post('/resend-confirmation')
+  async resendConfirmationCode(@Body() resendDto: ResendConfirmationDto) {
+    await this.authService.resendConfirmationCode(resendDto);
+
+    return { message: 'Confirmation code resent successfully' };
+  }
+
+  @Post('/verify-confirmation')
+  async verifyConfirmationCode(@Body() verifyDto: VerifyConfirmationDto) {
+    await this.authService.verifyConfirmationCode(verifyDto);
+
+    return { message: 'User registration confirmed successfully' };
   }
 }

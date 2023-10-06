@@ -108,6 +108,12 @@ export class User {
 
   @ApiProperty({ description: 'User id. This is the same as _id in db.' })
   id: string;
+
+  @Prop()
+  confirmationCode?: string;
+
+  @Prop({ default: false })
+  isConfirmed: boolean;
 }
 
 const UserSchema = SchemaFactory.createForClass(User);

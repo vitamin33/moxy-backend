@@ -33,4 +33,6 @@ export class CreateUserDto {
   @ApiProperty({ example: 'Som', description: 'Second name.' })
   @IsString({ message: 'Should be string' })
   readonly secondName: string;
+
+  confirmationCode?: string;
 }

@@ -9,6 +9,9 @@ import { CreateUserDto } from 'src/modules/users/dto/create-user.dto';
 import { UsersService } from 'src/modules/users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { User } from 'src/modules/users/user.entity';
+import { ResendConfirmationDto } from './dto/resend-confirmation.dto';
+import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
+import { VerifyConfirmationDto } from './dto/verify-confirmation.dto';
 
 @Injectable()
 export class AuthService {
@@ -79,10 +82,12 @@ export class AuthService {
       }
     } else {
       // Create a new user
+      const confirmationCode = this.generateConfirmationCode();
       const hashPassword = await bcrypt.hash(userDto.password, 5);
       const user = await this.userService.createUser({
         ...userDto,
         password: hashPassword,
+        confirmationCode,
       });
 
       const accessToken = this.generateAccessToken(user);
@@ -161,5 +166,64 @@ export class AuthService {
 
     // Update the user's password in the database
     await this.userService.changePassword(userId, hashedPassword);
+  }
+
+  async resendConfirmationCode(resendDto: ResendConfirmationDto) {
+    const user = await this.userService.getUserByMobileNumber(
+      resendDto.mobileNumber,
+    );
+    if (!user) {
+      throw new UserNotFoundException(
+        `Phone number: ${resendDto.mobileNumber}`,
+      );
+    }
+
+    if (user.isConfirmed) {
+      throw new HttpException(
+        'User is already confirmed',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const confirmationCode = this.generateConfirmationCode();
+    user.confirmationCode = confirmationCode; // Update the code
+    await user.save();
+  }
+
+  async verifyConfirmationCode(verifyDto: VerifyConfirmationDto) {
+    const user = await this.userService.getUserByMobileNumber(
+      verifyDto.mobileNumber,
+    );
+    if (!user) {
+      throw new UserNotFoundException(
+        `Phone number: ${verifyDto.mobileNumber}`,
+      );
+    }
+
+    if (user.isConfirmed) {
+      throw new HttpException(
+        'User is already confirmed',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (user.confirmationCode !== verifyDto.confirmationCode) {
+      throw new HttpException(
+        'Invalid confirmation code',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Mark the user as confirmed
+    user.isConfirmed = true;
+    user.confirmationCode = undefined; // Clear the confirmation code
+    await user.save();
+  }
+
+  generateConfirmationCode(): string {
+    const min = 1000; // Minimum 4-digit number
+    const max = 9999; // Maximum 4-digit number
+    const code = Math.floor(Math.random() * (max - min + 1)) + min;
+    return code.toString(); // Convert to string
   }
 }
