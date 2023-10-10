@@ -12,7 +12,8 @@ export class StorageService {
       const { buffer } = file;
       const bucket = process.env.STORAGE_MEDIA_BUCKET;
       const fileId: string = uuid();
-      const blob = storage.bucket(bucket).file(fileId);
+      const fileName: string = `${fileId}.jpeg`;
+      const blob = storage.bucket(bucket).file(fileName);
       await blob.save(buffer);
 
       //   const [metadata] = await storage
