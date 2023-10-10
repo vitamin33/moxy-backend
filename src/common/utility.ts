@@ -1,6 +1,7 @@
 import { Attributes } from 'src/modules/attributes/attribute.entity';
 import { DimensionDto } from './dto/dimension.dto';
 import { Dimension } from './entity/dimension.entity';
+import mongoose from 'mongoose';
 
 export function compareDimensions(dim1: Dimension, dim2: Dimension): boolean {
   // Check if color, size, and material are defined before comparing
@@ -71,4 +72,21 @@ export function fillAttributes(
 
     return dimensionWithAttributes;
   });
+}
+
+export function convertToDimension(dto: DimensionDto): Dimension {
+  const dimension = new Dimension();
+  if (dto.color) {
+    dimension.color = new mongoose.Types.ObjectId(dto.color._id);
+  }
+  if (dto.size) {
+    dimension.size = new mongoose.Types.ObjectId(dto.size._id);
+  }
+  if (dto.material) {
+    dimension.material = new mongoose.Types.ObjectId(dto.material._id);
+  }
+  dimension.quantity = dto.quantity;
+  dimension.images = dto.images;
+
+  return dimension;
 }

@@ -11,6 +11,7 @@ import { SaleCalculationService } from './service/sale-calculation.service';
 import { CostCalculationService } from './service/cost-calculation.service';
 import { OrderCountService } from './service/order-count.service';
 import { TimeFrameService } from './service/time-frame.service';
+import { ProfitCalculationService } from './service/profit.service';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TimeFrameService } from './service/time-frame.service';
     CostCalculationService,
     OrderCountService,
     TimeFrameService,
+    ProfitCalculationService,
   ],
 })
 export class DashboardModule {}

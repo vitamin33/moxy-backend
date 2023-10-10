@@ -13,7 +13,7 @@ import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { AttributesService } from 'src/modules/attributes/attributes.service';
 import { AttributesWithCategories } from 'src/modules/attributes/attribute.entity';
 import { ProductAttributesDto } from '../dto/attributes.dto';
-import { fillAttributes } from 'src/common/utility';
+import { convertToDimension, fillAttributes } from 'src/common/utility';
 
 @Injectable()
 export class ProductsService {
@@ -251,7 +251,7 @@ export class ProductsService {
         product.idName = dto.idName;
         const dimentsionDto = new DimensionDto();
         dimentsionDto.quantity = dto.dimensions[0].quantity;
-        product.dimensions.push(this.convertToDimension(dimentsionDto));
+        product.dimensions.push(convertToDimension(dimentsionDto));
         await product.save();
       } else {
         await this.createProduct(dto, null);
@@ -329,26 +329,8 @@ export class ProductsService {
     if (!costPriceInUah) {
       return 0;
     }
-    // Round to 1 decimal place
-    const roundedCostPrice = parseFloat(costPriceInUah.toFixed(1));
+    const roundedCostPrice = Math.round(costPriceInUah);
 
     return roundedCostPrice;
-  }
-
-  convertToDimension(dto: DimensionDto): Dimension {
-    const dimension = new Dimension();
-    if (dto.color) {
-      dimension.color = new mongoose.Types.ObjectId(dto.color._id);
-    }
-    if (dto.size) {
-      dimension.size = new mongoose.Types.ObjectId(dto.size._id);
-    }
-    if (dto.material) {
-      dimension.material = new mongoose.Types.ObjectId(dto.material._id);
-    }
-    dimension.quantity = dto.quantity;
-    dimension.images = dto.images;
-
-    return dimension;
   }
 }

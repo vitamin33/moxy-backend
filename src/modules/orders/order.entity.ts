@@ -4,6 +4,7 @@ import { Transform, Type } from 'class-transformer';
 import mongoose, { ObjectId } from 'mongoose';
 import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
 import { User } from 'src/modules/users/user.entity';
+import { Product } from '../products/product.entity';
 
 export type OrderDocument = Order & Document;
 export type OrderedItemDocument = OrderedItem & Document;
@@ -59,7 +60,7 @@ export const CitySchema = SchemaFactory.createForClass(City);
 @Schema({ _id: false })
 export class OrderedItem {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
-  product: mongoose.Schema.Types.ObjectId;
+  product: mongoose.Schema.Types.ObjectId | Product;
 
   @Prop({ type: [DimensionSchema] })
   dimensions: Dimension[];
@@ -133,6 +134,9 @@ export class Order {
 
   @Prop({ type: [OrderedItemSchema], required: true, default: [] })
   orderedItems: OrderedItem[];
+
+  @Prop({ type: Date, default: Date.now })
+  createdAt: Date;
 
   id: string;
 }

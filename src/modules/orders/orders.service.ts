@@ -13,7 +13,7 @@ import { ProductsService } from 'src/modules/products/service/products.service';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { OrderNotFoundException } from 'src/common/exception/order-not-found.exception';
 import { Dimension } from 'src/common/entity/dimension.entity';
-import { fillAttributes } from 'src/common/utility';
+import { convertToDimension, fillAttributes } from 'src/common/utility';
 import { AttributesWithCategories } from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
@@ -159,7 +159,7 @@ export class OrdersService {
     const orderedItems = [];
     for (const product of orderDto.products) {
       const dimensionsToSave = product.dimensions.map((e) =>
-        this.convertToDimension(e),
+        convertToDimension(e),
       );
       orderedItems.push({
         product: product._id,
@@ -238,22 +238,5 @@ export class OrdersService {
       ...order,
       orderedItems: orderedItems,
     };
-  }
-
-  convertToDimension(dto: DimensionDto): Dimension {
-    const dimension = new Dimension();
-    if (dto.color) {
-      dimension.color = new mongoose.Types.ObjectId(dto.color._id);
-    }
-    if (dto.size) {
-      dimension.size = new mongoose.Types.ObjectId(dto.size._id);
-    }
-    if (dto.material) {
-      dimension.material = new mongoose.Types.ObjectId(dto.material._id);
-    }
-    dimension.quantity = dto.quantity;
-    dimension.images = dto.images;
-
-    return dimension;
   }
 }
