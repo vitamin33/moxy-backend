@@ -40,7 +40,15 @@ export class PromosService {
   }
 
   async getPromos(): Promise<Promo[]> {
-    return this.promoModel.find().populate('product').exec();
+    const result = await this.promoModel
+      .find()
+      .populate({
+        path: 'product',
+        select: '-dimensions', // Exclude fields
+      })
+      .lean()
+      .exec();
+    return result;
   }
 
   async removePromo(id: string) {
