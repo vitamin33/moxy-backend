@@ -62,11 +62,11 @@ export class AuthService {
     const candidate = await this.userService.getUserByMobileNumber(
       userDto.mobileNumber,
     );
-    const emailCandidate = await this.userService.getUserByEmail(
-      userDto.email,
-    );
+    const emailCandidate = await this.userService.getUserByEmail(userDto.email);
 
     if (candidate || emailCandidate) {
+      const role = candidate.role;
+
       if (candidate.role.name !== 'GUEST') {
         throw new HttpException(
           'User with such mobile number or email is already registered',
@@ -80,6 +80,7 @@ export class AuthService {
           'USER',
         );
 
+        const confirmationCode = this.generateConfirmationCode();
         const accessToken = this.generateAccessToken(updatedUser);
         const refreshToken = this.generateRefreshToken(updatedUser.id);
 
@@ -181,13 +182,9 @@ export class AuthService {
   }
 
   async resendConfirmationCode(resendDto: ResendConfirmationDto) {
-    const user = await this.userService.getUserByEmail(
-      resendDto.email,
-    );
+    const user = await this.userService.getUserByEmail(resendDto.email);
     if (!user) {
-      throw new UserNotFoundException(
-        `Phone number: ${resendDto.email}`,
-      );
+      throw new UserNotFoundException(`Phone number: ${resendDto.email}`);
     }
 
     if (user.isConfirmed) {
@@ -205,13 +202,9 @@ export class AuthService {
   }
 
   async verifyConfirmationCode(verifyDto: VerifyConfirmationDto) {
-    const user = await this.userService.getUserByEmail(
-      verifyDto.email,
-    );
+    const user = await this.userService.getUserByEmail(verifyDto.email);
     if (!user) {
-      throw new UserNotFoundException(
-        `Email: ${verifyDto.email}`,
-      );
+      throw new UserNotFoundException(`Email: ${verifyDto.email}`);
     }
 
     if (user.isConfirmed) {
@@ -247,7 +240,7 @@ export class AuthService {
     this.mailerService
       .sendMail({
         transporterName: 'gmail',
-        to: receiverMail, 
+        to: receiverMail,
         from: mainEmail, // sender address
         subject: 'MOXY Verficiaction Code',
         html: html,
@@ -272,8 +265,12 @@ export class AuthService {
 
   private async setTransport() {
     const clientId = this.configService.get<string>('GOOGLE_SMTP_CLIENT_ID');
-    const clientSecret = this.configService.get<string>('GOOGLE_SMTP_CLIENT_SECRET');
-    const refreshToken = this.configService.get<string>('GOOGLE_SMTP_REFRESH_TOKEN');
+    const clientSecret = this.configService.get<string>(
+      'GOOGLE_SMTP_CLIENT_SECRET',
+    );
+    const refreshToken = this.configService.get<string>(
+      'GOOGLE_SMTP_REFRESH_TOKEN',
+    );
     const mainEmail = this.configService.get<string>('MAIN_EMAIL');
     const OAuth2 = google.auth.OAuth2;
     const oauth2Client = new OAuth2(

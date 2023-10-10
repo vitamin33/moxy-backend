@@ -51,13 +51,15 @@ export class BasketService {
     let images: string[] | undefined;
 
     if (dimensionDto.color) {
-      dimensionColor = new mongoose.Types.ObjectId(dimensionDto.color);
+      dimensionColor = new mongoose.Types.ObjectId(dimensionDto.color._id);
     }
     if (dimensionDto.size) {
-      dimensionSize = new mongoose.Types.ObjectId(dimensionDto.size);
+      dimensionSize = new mongoose.Types.ObjectId(dimensionDto.size._id);
     }
     if (dimensionDto.material) {
-      dimensionMaterial = new mongoose.Types.ObjectId(dimensionDto.material);
+      dimensionMaterial = new mongoose.Types.ObjectId(
+        dimensionDto.material._id,
+      );
     }
 
     const dimensionProps: any = {};

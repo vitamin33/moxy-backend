@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Order } from './order.entity';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GuestUserDto as UserDto } from 'src/modules/users/dto/guest-user.dto';
 import { UsersService } from 'src/modules/users/users.service';
@@ -13,15 +13,26 @@ import { ProductsService } from 'src/modules/products/service/products.service';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { OrderNotFoundException } from 'src/common/exception/order-not-found.exception';
 import { Dimension } from 'src/common/entity/dimension.entity';
-import { compareDimensionWithDto, compareDimensions } from 'src/common/utility';
+import { fillAttributes } from 'src/common/utility';
+import { AttributesWithCategories } from '../attributes/attribute.entity';
+import { AttributesService } from '../attributes/attributes.service';
+import { DimensionDto } from 'src/common/dto/dimension.dto';
 
 @Injectable()
 export class OrdersService {
+  private attributes: AttributesWithCategories;
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     private usersService: UsersService,
     private productsService: ProductsService,
-  ) {}
+    private attributesService: AttributesService,
+  ) {
+    this.initializeAttributes();
+  }
+
+  private async initializeAttributes() {
+    this.attributes = await this.attributesService.getAttributes();
+  }
 
   async getPaginatedAllOrders(skip: number, limit: number) {
     // Fetch a subset of orders using the skip and limit options
@@ -34,24 +45,23 @@ export class OrdersService {
           '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
       })
       .select('-city -novaPost')
+      .lean()
       .skip(skip)
       .limit(limit)
       .exec();
 
-    const ordersWithImageUrls = await Promise.all(
+    const ordersObjects = await Promise.all(
       orders.map(async (order) => {
-        const orderedItemsWithImageUrls = await this.getOrderedItemsWithImages(
-          order,
-        );
+        const orderedItems = await this.getOrderedItems(order);
 
         return {
-          ...order.toObject(),
-          orderedItems: orderedItemsWithImageUrls,
+          ...order,
+          orderedItems: orderedItems,
         };
       }),
     );
 
-    return ordersWithImageUrls;
+    return ordersObjects;
   }
 
   async getPaginatedOrdersBy(dto: FindByDto, skip: number, limit: number) {
@@ -88,19 +98,18 @@ export class OrdersService {
           '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
       })
       .select('-city -novaPost')
+      .lean()
       .skip(skip)
       .limit(limit)
       .exec();
 
     const paginatedOrdersWithImages = await Promise.all(
       paginatedOrders.map(async (order) => {
-        const orderedItemsWithImageUrls = await this.getOrderedItemsWithImages(
-          order,
-        );
+        const orderedItems = await this.getOrderedItems(order);
 
         return {
-          ...order.toObject(),
-          orderedItems: orderedItemsWithImageUrls,
+          ...order,
+          orderedItems: orderedItems,
         };
       }),
     );
@@ -108,31 +117,20 @@ export class OrdersService {
     return paginatedOrdersWithImages;
   }
 
-  getOrderedItemsWithImages(order: Order): any {
+  getOrderedItems(order: Order): any {
     return Promise.all(
-      order.orderedItems.map(async (orderedItem) => {
+      order.orderedItems.map(async (item) => {
+        const orderedItem = item;
         const product = await this.productsService.getProductById(
           orderedItem.product.toString(),
         );
-        if (!product) {
-          return null;
-        }
-        const dimension = orderedItem.dimensions[0]; // Assuming there's only one dimension
-        if (!dimension) {
-          return null;
-        }
 
-        const imageUrl =
-          dimension.images.length > 0
-            ? dimension.images[0] // Use the first value in the images array of the dimension
-            : undefined; // Set a default value when the dimension's images array is empty
-
+        const dimens = fillAttributes(orderedItem.dimensions, this.attributes);
         return {
           product: orderedItem.product.toString(),
           productName: product.name,
           productPrice: product.salePrice,
-          dimensions: orderedItem.dimensions,
-          imageUrl,
+          dimensions: dimens,
         };
       }),
     );
@@ -160,41 +158,12 @@ export class OrdersService {
     }
     const orderedItems = [];
     for (const product of orderDto.products) {
-      const existProduct = await this.productsService.getProductById(
-        product._id,
+      const dimensionsToSave = product.dimensions.map((e) =>
+        this.convertToDimension(e),
       );
-      const dimensionsToSave = [];
-
-      for (const dimen of product.dimensions) {
-        const existingDimen = existProduct.dimensions.find((dim) =>
-          compareDimensionWithDto(dim, dimen),
-        );
-
-        if (existingDimen) {
-          const dimensionWithImages = {
-            color: existingDimen.color,
-            size: existingDimen.size,
-            material: existingDimen.material,
-            quantity: dimen.quantity,
-            images: existingDimen.images, // Add images from existing dimension
-          };
-
-          dimensionsToSave.push(dimensionWithImages);
-        } else {
-          const dimensionWithoutImages = {
-            color: dimen.color,
-            size: dimen.size,
-            material: dimen.material,
-            quantity: dimen.quantity,
-            images: [], // No images provided
-          };
-
-          dimensionsToSave.push(dimensionWithoutImages);
-        }
-      }
       orderedItems.push({
         product: product._id,
-        dimensions: dimensionsToSave,
+        dimensions: fillAttributes(dimensionsToSave, this.attributes),
       });
     }
     const createdOrder = new this.orderModel({
@@ -243,7 +212,7 @@ export class OrdersService {
     await this.orderModel.findByIdAndDelete(orderId).exec();
   }
 
-  async getOrderById(orderId: string): Promise<OrderDocument> {
+  async getOrderById(orderId: string) {
     // Specify the fields you want to include in the 'client' population
     const clientFieldsToInclude =
       'firstName secondName middleName instagram mobileNumber email';
@@ -256,19 +225,35 @@ export class OrdersService {
         path: 'client', // Populate the 'client' field
         select: clientFieldsToInclude,
       })
+      .lean()
       .exec();
 
     if (!order) {
       throw new OrderNotFoundException(orderId);
     }
 
-    const orderedItemsWithImageUrls = await this.getOrderedItemsWithImages(
-      order,
-    );
+    const orderedItems = await this.getOrderedItems(order);
 
     return {
-      ...order.toObject(),
-      orderedItems: orderedItemsWithImageUrls,
+      ...order,
+      orderedItems: orderedItems,
     };
+  }
+
+  convertToDimension(dto: DimensionDto): Dimension {
+    const dimension = new Dimension();
+    if (dto.color) {
+      dimension.color = new mongoose.Types.ObjectId(dto.color._id);
+    }
+    if (dto.size) {
+      dimension.size = new mongoose.Types.ObjectId(dto.size._id);
+    }
+    if (dto.material) {
+      dimension.material = new mongoose.Types.ObjectId(dto.material._id);
+    }
+    dimension.quantity = dto.quantity;
+    dimension.images = dto.images;
+
+    return dimension;
   }
 }

@@ -6,73 +6,37 @@ import {
   getPreviousPeriodDates,
   transformToTimeFrameCoordinates,
 } from '../utils';
+import { ProductsService } from 'src/modules/products/service/products.service';
 
 @Injectable()
 export class CostCalculationService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
+    private productsService: ProductsService,
   ) {}
 
   async calculateTotalCostValue(fromDate: Date, toDate: Date): Promise<number> {
-    const result = await this.orderModel.aggregate([
-      {
-        $match: {
-          createdAt: {
-            $gte: fromDate,
-            $lte: toDate,
-          },
+    const orders = await this.orderModel
+      .find({
+        createdAt: {
+          $gte: fromDate,
+          $lte: toDate,
         },
-      },
-      {
-        $unwind: '$orderedItems',
-      },
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'orderedItems.product',
-          foreignField: '_id',
-          as: 'productInfo',
-        },
-      },
-      {
-        $unwind: '$productInfo',
-      },
-      {
-        $group: {
-          _id: null,
-          totalCostValue: {
-            $sum: {
-              $reduce: {
-                input: {
-                  $map: {
-                    input: '$orderedItems.dimensions',
-                    as: 'dimension',
-                    in: {
-                      $multiply: [
-                        '$$dimension.quantity',
-                        '$productInfo.costPrice',
-                      ],
-                    },
-                  },
-                },
-                initialValue: 0,
-                in: { $add: ['$$value', '$$this'] },
-              },
-            },
-          },
-          totalOrders: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          totalCostValue: 1,
-          totalOrders: 1,
-        },
-      },
-    ]);
+      })
+      .populate('orderedItems.product'); // Populate the product field in orderedItems
 
-    return result.length > 0 ? result[0].totalCostValue : 0;
+    let totalCostValue = 0;
+
+    for (const order of orders) {
+      for (const orderedItem of order.orderedItems) {
+        const product = orderedItem.product;
+        if (product) {
+          //totalCostValue += this.productsService.calculateCostPrice(product);
+        }
+      }
+    }
+
+    return totalCostValue;
   }
 
   // Function to get the previous total cost value for the same time frame as the current period
