@@ -10,13 +10,10 @@ import { ProductNotAvailableException } from 'src/common/exception/product-not-a
 import { SettingsService } from 'src/modules/settings/settings.service';
 import { Dimension } from 'src/common/entity/dimension.entity';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
-import { PromosService } from 'src/modules/promos/promos.service';
 import { AttributesService } from 'src/modules/attributes/attributes.service';
-import {
-  Attributes,
-  AttributesWithCategories,
-} from 'src/modules/attributes/attribute.entity';
+import { AttributesWithCategories } from 'src/modules/attributes/attribute.entity';
 import { ProductAttributesDto } from '../dto/attributes.dto';
+import { convertToDimension, fillAttributes } from 'src/common/utility';
 
 @Injectable()
 export class ProductsService {
@@ -43,22 +40,12 @@ export class ProductsService {
         dto.dimensions,
         dto.numberOfImagesForDimensions,
         images,
+        true,
       );
     }
 
     const dimensions = this.mapDimensionDtosToDimens(dto.dimensions);
-
-    // Create an attributes object with parsed values only if they are present in the DTO
-    const parsedAttributes = {
-      ...dto.attributes,
-      weightInGrams: parseInt(dto.attributes.weightInGrams),
-      heightInCm: parseInt(dto.attributes.heightInCm),
-      lengthInCm: parseInt(dto.attributes.lengthInCm),
-      widthInCm: parseInt(dto.attributes.widthInCm),
-      depthInCm: dto.attributes.depthInCm
-        ? parseInt(dto.attributes.depthInCm)
-        : undefined,
-    };
+    const parsedAttributes = this.createAttributes(dto.attributes);
 
     const product = new this.productModel({
       ...dto,
@@ -68,6 +55,18 @@ export class ProductsService {
 
     return await product.save();
   }
+  createAttributes(attributes: ProductAttributesDto) {
+    return {
+      ...attributes,
+      weightInGrams: parseInt(attributes.weightInGrams),
+      heightInCm: parseInt(attributes.heightInCm),
+      lengthInCm: parseInt(attributes.lengthInCm),
+      widthInCm: parseInt(attributes.widthInCm),
+      depthInCm: attributes.depthInCm
+        ? parseInt(attributes.depthInCm)
+        : undefined,
+    };
+  }
 
   mapDimensionDtosToDimens(dimensions: DimensionDto[]): Dimension[] {
     return dimensions.map((dimDto) => {
@@ -76,13 +75,13 @@ export class ProductsService {
         images: dimDto.images,
       };
       if (dimDto.color) {
-        dimension.color = new mongoose.Types.ObjectId(dimDto.color);
+        dimension.color = new mongoose.Types.ObjectId(dimDto.color._id);
       }
       if (dimDto.size) {
-        dimension.size = new mongoose.Types.ObjectId(dimDto.size);
+        dimension.size = new mongoose.Types.ObjectId(dimDto.size._id);
       }
       if (dimDto.material) {
-        dimension.material = new mongoose.Types.ObjectId(dimDto.material);
+        dimension.material = new mongoose.Types.ObjectId(dimDto.material._id);
       }
       return dimension;
     });
@@ -92,12 +91,18 @@ export class ProductsService {
     dimensions: DimensionDto[],
     numberOfImagesForDimensions: number[],
     images: [any],
+    isCreating: boolean,
   ) {
     const initImageIndex = 0;
     for (let i = 0; i < dimensions.length; i++) {
       const dimen = dimensions[i];
       const numberOfImages = +numberOfImagesForDimensions[i];
-      const imagesArr = dimen.images ? dimen.images : [];
+      let imagesArr: string[];
+      if (isCreating) {
+        imagesArr = [];
+      } else {
+        imagesArr = Array.isArray(dimen.images) ? dimen.images : [dimen.images];
+      }
       const lastIndex = initImageIndex + numberOfImages;
       for (let j = initImageIndex; j < lastIndex; j++) {
         const image = images[j];
@@ -118,10 +123,12 @@ export class ProductsService {
           dto.dimensions,
           dto.numberOfImagesForDimensions,
           newImages,
+          false,
         );
       }
       const dimensions = this.mapDimensionDtosToDimens(dto.dimensions);
-      return await this.productModel.findByIdAndUpdate(
+      const parsedAttributes = this.createAttributes(dto.attributes);
+      const updatedProduct = await this.productModel.findByIdAndUpdate(
         id,
         {
           $set: {
@@ -131,12 +138,18 @@ export class ProductsService {
             costPriceInUsd: dto.costPriceInUsd,
             salePrice: dto.salePrice,
             dimensions: dimensions,
-            attributes: dto.attributes,
+            attributes: parsedAttributes,
             category: dto.category,
           },
         },
         { new: true },
       );
+      const dimensWithAttributes = fillAttributes(
+        updatedProduct.dimensions,
+        this.attributes,
+      );
+      updatedProduct.dimensions = dimensWithAttributes;
+      return updatedProduct.toObject();
     } else {
       throw new HttpException(
         'Unable to find such Product',
@@ -176,7 +189,10 @@ export class ProductsService {
       const productObj = product.toObject();
       const costPrice = this.calculateCostPrice(productObj);
       const marginValue = product.salePrice - costPrice;
-      const dimensWithAttributes = this.fillAttributes(productObj.dimensions);
+      const dimensWithAttributes = fillAttributes(
+        productObj.dimensions,
+        this.attributes,
+      );
       return {
         ...productObj,
         marginValue,
@@ -186,39 +202,6 @@ export class ProductsService {
     });
     return mappedProducts;
   }
-  fillAttributes(dimensions: Dimension[]) {
-    return dimensions.map((dimension) => {
-      const color = this.attributes.colors.find((e) => {
-        return e._id.toString() === dimension.color.toString();
-      });
-
-      // Check if 'size' and 'material' are defined before including them
-      const size = dimension.size
-        ? this.attributes.sizes.find((e) => {
-            return e._id.toString() === dimension.size.toString();
-          })
-        : undefined;
-
-      const material = dimension.material
-        ? this.attributes.materials.find((e) => {
-            return e._id.toString() === dimension.material.toString();
-          })
-        : undefined;
-
-      // Create the object with only defined values
-      const dimensionWithAttributes: any = { ...dimension, color };
-
-      // Include 'size' and 'material' if they are defined
-      if (size !== undefined) {
-        dimensionWithAttributes.size = size;
-      }
-      if (material !== undefined) {
-        dimensionWithAttributes.material = material;
-      }
-
-      return dimensionWithAttributes;
-    });
-  }
 
   async getProductById(id: string): Promise<any> {
     const product = await await this.productModel.findById(id);
@@ -226,9 +209,13 @@ export class ProductsService {
     if (product) {
       // Calculate costPrice and add it to the product object
       const costPrice = this.calculateCostPrice(product);
-      const dimensWithAttributes = this.fillAttributes(product.dimensions);
+      const productObj = product.toObject();
+      const dimensWithAttributes = fillAttributes(
+        productObj.dimensions,
+        this.attributes,
+      );
       return {
-        ...product,
+        ...productObj,
         costPrice,
         dimensions: dimensWithAttributes,
       };
@@ -242,9 +229,8 @@ export class ProductsService {
   }
 
   async importProducts(products: [any]) {
-    const parsedProducts = await this.importProductsService.parseExelFile(
-      products,
-    );
+    const parsedProducts =
+      await this.importProductsService.parseExelFile(products);
 
     const productDtos = parsedProducts.map((product) => {
       const dto = new CreateProductDto();
@@ -265,7 +251,7 @@ export class ProductsService {
         product.idName = dto.idName;
         const dimentsionDto = new DimensionDto();
         dimentsionDto.quantity = dto.dimensions[0].quantity;
-        product.dimensions.push(this.convertToDimension(dimentsionDto));
+        product.dimensions.push(convertToDimension(dimentsionDto));
         await product.save();
       } else {
         await this.createProduct(dto, null);
@@ -323,7 +309,10 @@ export class ProductsService {
     return products.map((product) => {
       const productObj = { ...product };
       if (product.dimensions) {
-        productObj.dimensions = this.fillAttributes(product.dimensions);
+        productObj.dimensions = fillAttributes(
+          product.dimensions,
+          this.attributes,
+        );
       }
       return productObj;
     });
@@ -340,18 +329,8 @@ export class ProductsService {
     if (!costPriceInUah) {
       return 0;
     }
-    // Round to 1 decimal place
-    const roundedCostPrice = parseFloat(costPriceInUah.toFixed(1));
+    const roundedCostPrice = Math.round(costPriceInUah);
 
     return roundedCostPrice;
-  }
-
-  convertToDimension(dto: DimensionDto): Dimension {
-    const dimension = new Dimension();
-    dimension.color = new mongoose.Types.ObjectId(dto.color);
-    dimension.size = new mongoose.Types.ObjectId(dto.size);
-    dimension.material = new mongoose.Types.ObjectId(dto.material);
-    dimension.quantity = dto.quantity;
-    return dimension;
   }
 }

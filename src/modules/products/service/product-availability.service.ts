@@ -30,15 +30,15 @@ export class ProductAvailabilityService {
       let materialMatches = true;
 
       if (dimension.color) {
-        colorMatches = dim.color.equals(dimension.color);
+        colorMatches = dim.color.equals(dimension.color._id);
       }
 
       if (dimension.size) {
-        sizeMatches = dim.size.equals(dimension.size);
+        sizeMatches = dim.size.equals(dimension.size._id);
       }
 
       if (dimension.material) {
-        materialMatches = dim.material.equals(dimension.material);
+        materialMatches = dim.material.equals(dimension.material._id);
       }
 
       return colorMatches && sizeMatches && materialMatches;

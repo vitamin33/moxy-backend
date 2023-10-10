@@ -4,6 +4,7 @@ import { SaleCalculationService } from './service/sale-calculation.service';
 import { CostCalculationService } from './service/cost-calculation.service';
 import { OrderCountService } from './service/order-count.service';
 import { TimeFrameService } from './service/time-frame.service';
+import { ProfitCalculationService } from './service/profit.service';
 
 @Injectable()
 export class DashboardService {
@@ -11,6 +12,7 @@ export class DashboardService {
     private saleValueService: SaleCalculationService,
     private costValueService: CostCalculationService,
     private ordersCountService: OrderCountService,
+    private profitService: ProfitCalculationService,
     private timeFrameService: TimeFrameService,
   ) {}
   async getOrdersDashboard(request: DashboardDto) {
@@ -93,6 +95,30 @@ export class DashboardService {
         timeFrame,
       );
 
+    const totalProfitValue = await this.profitService.calculateTotalProfitValue(
+      fromDate,
+      toDate,
+    );
+
+    const previousTotalProfitValue =
+      await this.profitService.getPreviousTotalProfitValue(fromDate, toDate);
+
+    // Calculate the percentage change for totalProfitValue
+    const profitValuePercentageChange =
+      previousTotalProfitValue !== 0
+        ? ((totalProfitValue - previousTotalProfitValue) /
+            previousTotalProfitValue) *
+          100
+        : 0;
+
+    // Get the total profit value by time frame for graph
+    const totalProfitValueByTimeFrame =
+      await this.profitService.calculateTotalProfitValueByTimeFrame(
+        fromDate,
+        toDate,
+        timeFrame,
+      );
+
     return {
       totalSaleValue,
       totalCostValue,
@@ -106,6 +132,10 @@ export class DashboardService {
       ordersCountByTimeFrame,
       totalSaleValueByTimeFrame,
       totalCostValueByTimeFrame,
+      totalProfitValue,
+      previousTotalProfitValue,
+      profitValuePercentageChange,
+      totalProfitValueByTimeFrame,
     };
   }
 }

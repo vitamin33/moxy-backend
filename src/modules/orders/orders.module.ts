@@ -13,6 +13,7 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 import { ProductsModule } from 'src/modules/products/products.module';
+import { AttributesModule } from '../attributes/attributes.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ProductsModule } from 'src/modules/products/products.module';
     ]),
     UsersModule,
     ProductsModule,
+    AttributesModule,
     forwardRef(() => AuthModule),
   ],
   controllers: [OrdersController],
