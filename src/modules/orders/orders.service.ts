@@ -136,7 +136,7 @@ export class OrdersService {
     );
   }
 
-  async createOrder(orderDto: CreateOrderDto): Promise<OrderDocument> {
+  async createOrder(orderDto: CreateOrderDto) {
     let client: User;
     if (orderDto.userId) {
       client = await this.usersService.getUserById(orderDto.userId);
@@ -173,9 +173,9 @@ export class OrdersService {
       novaPost: orderDto.novaPost,
       orderedItems,
     });
-    const resultOrder = await createdOrder.save();
+    const savedOrder = await createdOrder.save();
     await this.usersService.addOrder(client._id.toString(), createdOrder);
-    return resultOrder;
+    return this.fillOrderDimensions(savedOrder.toObject());
   }
 
   async editOrder(orderDto: ChangeOrderDto): Promise<OrderDocument> {
@@ -238,5 +238,22 @@ export class OrdersService {
       ...order,
       orderedItems: orderedItems,
     };
+  }
+
+  async getOrderDocumentById(orderId: string) {
+    const order = await this.orderModel.findById(orderId).exec();
+
+    if (!order) {
+      throw new OrderNotFoundException(orderId);
+    }
+
+    return order;
+  }
+
+  fillOrderDimensions(order: Order): Order {
+    order.orderedItems.forEach((item) => {
+      item.dimensions = fillAttributes(item.dimensions, this.attributes);
+    });
+    return order;
   }
 }

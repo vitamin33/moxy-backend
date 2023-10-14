@@ -6,12 +6,10 @@ import mongoose, { Model, Types } from 'mongoose';
 import { UsersService } from 'src/modules/users/users.service';
 import { ProductsService } from 'src/modules/products/service/products.service';
 import { RemoveProductDto } from './dto/remove-product.dto';
-import { Product } from 'src/modules/products/product.entity';
 import { ProductAvailabilityService } from 'src/modules/products/service/product-availability.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
 import { compareDimensions } from 'src/common/utility';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
-import { Color, Material, Size } from '../attributes/attribute.entity';
 
 @Injectable()
 export class BasketService {
@@ -155,7 +153,16 @@ export class BasketService {
 
     const basket = await this.basketModel
       .findOne({ client: user })
-      .populate('basketItems.product')
+      .populate({
+        path: 'client',
+        model: 'User', // Adjust this to match the model name for User
+        select: 'firstName secondName mobileNumber city novaPost',
+      })
+      .populate({
+        path: 'basketItems.product',
+        model: 'Product', // Adjust this to match the model name for Product
+      })
+      .lean()
       .exec();
     return basket;
   }

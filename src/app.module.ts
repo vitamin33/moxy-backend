@@ -17,6 +17,7 @@ import { PromosModule } from './modules/promos/promos.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { AttributesModule } from './modules/attributes/attributes.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     PromosModule,
     SettingsModule,
     AttributesModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

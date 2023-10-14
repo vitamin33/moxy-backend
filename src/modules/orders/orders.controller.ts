@@ -30,7 +30,7 @@ export class OrdersController {
   @ApiResponse({ status: 200, type: Order })
   @UsePipes(ValidationPipe)
   @Post('create')
-  async create(@Body() orderDto: CreateOrderDto): Promise<OrderDocument> {
+  async create(@Body() orderDto: CreateOrderDto) {
     return this.ordersService.createOrder(orderDto);
   }
 
