@@ -39,8 +39,8 @@ import { AttributesModule } from '../attributes/attributes.module';
 })
 export class ProductsModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+    // consumer
+    //   .apply(LoggerMiddleware)
+    //   .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

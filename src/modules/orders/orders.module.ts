@@ -28,11 +28,12 @@ import { AttributesModule } from '../attributes/attributes.module';
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
+  exports: [OrdersService],
 })
 export class OrdersModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+    // consumer
+    //   .apply(LoggerMiddleware)
+    //   .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

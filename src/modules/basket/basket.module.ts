@@ -26,5 +26,6 @@ import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
   ],
   controllers: [BasketController],
   providers: [BasketService, ProductAvailabilityService],
+  exports: [BasketService],
 })
 export class BasketModule {}

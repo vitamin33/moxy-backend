@@ -37,8 +37,8 @@ import { FavoritesController } from './favorites.controller';
 })
 export class UsersModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+    // consumer
+    //   .apply(LoggerMiddleware)
+    //   .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

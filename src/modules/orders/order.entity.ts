@@ -21,6 +21,7 @@ export enum Status {
   Sent = 'Sent',
   Sale = 'Sale',
   Canceled = 'Canceled',
+  PaymentFailed = 'PaymentFailed',
   Returned = 'Returned',
 }
 

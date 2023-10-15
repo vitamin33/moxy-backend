@@ -17,6 +17,8 @@ import { PromosModule } from './modules/promos/promos.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { AttributesModule } from './modules/attributes/attributes.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { PaymentModule } from './modules/payment/payment.module';
+import { MonopayModule } from './modules/monopay/monopay.module';
 
 @Module({
   imports: [
@@ -37,21 +39,17 @@ import { MailerModule } from '@nestjs-modules/mailer';
     AuthModule,
     ProductsModule,
     OrdersModule,
-    NovaPoshtaModule,
     DashboardModule,
     ProfileModule,
     BasketModule,
     PromosModule,
     SettingsModule,
     AttributesModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
-  }
+  configure(consumer: MiddlewareConsumer) {}
 }

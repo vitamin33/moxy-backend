@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Order } from './order.entity';
+import { Order, Status } from './order.entity';
 import mongoose, { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GuestUserDto as UserDto } from 'src/modules/users/dto/guest-user.dto';
@@ -136,7 +136,7 @@ export class OrdersService {
     );
   }
 
-  async createOrder(orderDto: CreateOrderDto): Promise<OrderDocument> {
+  async createOrder(orderDto: CreateOrderDto) {
     let client: User;
     if (orderDto.userId) {
       client = await this.usersService.getUserById(orderDto.userId);
@@ -173,9 +173,9 @@ export class OrdersService {
       novaPost: orderDto.novaPost,
       orderedItems,
     });
-    const resultOrder = await createdOrder.save();
+    const savedOrder = await createdOrder.save();
     await this.usersService.addOrder(client._id.toString(), createdOrder);
-    return resultOrder;
+    return this.fillOrderDimensions(savedOrder.toObject());
   }
 
   async editOrder(orderDto: ChangeOrderDto): Promise<OrderDocument> {
@@ -205,6 +205,20 @@ export class OrdersService {
       throw new OrderNotFoundException(orderDto.orderId);
     }
 
+    return updatedOrder;
+  }
+
+  async changeOrderStatus(
+    orderId: string,
+    newStatus: Status,
+  ): Promise<OrderDocument> {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) {
+      throw new OrderNotFoundException(orderId);
+    }
+
+    order.status = newStatus;
+    const updatedOrder = await order.save();
     return updatedOrder;
   }
 
@@ -238,5 +252,22 @@ export class OrdersService {
       ...order,
       orderedItems: orderedItems,
     };
+  }
+
+  async getOrderDocumentById(orderId: string) {
+    const order = await this.orderModel.findById(orderId).exec();
+
+    if (!order) {
+      throw new OrderNotFoundException(orderId);
+    }
+
+    return order;
+  }
+
+  fillOrderDimensions(order: Order): Order {
+    order.orderedItems.forEach((item) => {
+      item.dimensions = fillAttributes(item.dimensions, this.attributes);
+    });
+    return order;
   }
 }
