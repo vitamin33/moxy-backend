@@ -18,6 +18,7 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { AttributesModule } from './modules/attributes/attributes.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PaymentModule } from './modules/payment/payment.module';
+import { MonopayModule } from './modules/monopay/monopay.module';
 
 @Module({
   imports: [
@@ -38,7 +39,6 @@ import { PaymentModule } from './modules/payment/payment.module';
     AuthModule,
     ProductsModule,
     OrdersModule,
-    NovaPoshtaModule,
     DashboardModule,
     ProfileModule,
     BasketModule,
@@ -51,9 +51,5 @@ import { PaymentModule } from './modules/payment/payment.module';
   providers: [AppService],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
-  }
+  configure(consumer: MiddlewareConsumer) {}
 }

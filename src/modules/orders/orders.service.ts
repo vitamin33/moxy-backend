@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Order } from './order.entity';
+import { Order, Status } from './order.entity';
 import mongoose, { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GuestUserDto as UserDto } from 'src/modules/users/dto/guest-user.dto';
@@ -205,6 +205,20 @@ export class OrdersService {
       throw new OrderNotFoundException(orderDto.orderId);
     }
 
+    return updatedOrder;
+  }
+
+  async changeOrderStatus(
+    orderId: string,
+    newStatus: Status,
+  ): Promise<OrderDocument> {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) {
+      throw new OrderNotFoundException(orderId);
+    }
+
+    order.status = newStatus;
+    const updatedOrder = await order.save();
     return updatedOrder;
   }
 

@@ -11,7 +11,7 @@ export type BasketItemDocument = BasketItem & Document;
 @Schema()
 export class BasketItem {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Product.name })
-  product: mongoose.Schema.Types.ObjectId;
+  product: mongoose.Schema.Types.ObjectId | Product;
 
   @Prop({ type: [DimensionSchema] })
   dimensions: Dimension[];

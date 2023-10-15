@@ -1,9 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform, Type } from 'class-transformer';
-import mongoose, { ObjectId } from 'mongoose';
-import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
-import { User } from 'src/modules/users/user.entity';
-import { Product } from '../products/product.entity';
+import { ObjectId } from 'mongoose';
 
 export type InvoiceDocument = Invoice & Document;
 

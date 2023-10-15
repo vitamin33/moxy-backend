@@ -6,19 +6,35 @@ import mongoose, { Model, Types } from 'mongoose';
 import { UsersService } from 'src/modules/users/users.service';
 import { ProductsService } from 'src/modules/products/service/products.service';
 import { RemoveProductDto } from './dto/remove-product.dto';
+import { Product } from 'src/modules/products/product.entity';
 import { ProductAvailabilityService } from 'src/modules/products/service/product-availability.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { compareDimensions } from 'src/common/utility';
+import { compareDimensions, fillAttributes } from 'src/common/utility';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
+import {
+  AttributesWithCategories,
+  Color,
+  Material,
+  Size,
+} from '../attributes/attribute.entity';
+import { AttributesService } from '../attributes/attributes.service';
 
 @Injectable()
 export class BasketService {
+  private attributes: AttributesWithCategories;
   constructor(
     @InjectModel(Basket.name) private basketModel: Model<BasketDocument>,
     private usersService: UsersService,
     private productsService: ProductsService,
     private productAvailabilityService: ProductAvailabilityService,
-  ) {}
+    private attributesService: AttributesService,
+  ) {
+    this.initializeAttributes();
+  }
+
+  private async initializeAttributes() {
+    this.attributes = await this.attributesService.getAttributes();
+  }
   async addOrChangeProduct(
     userId: string,
     addDto: AddOrChangeProductDto,
@@ -46,7 +62,6 @@ export class BasketService {
     let dimensionColor: mongoose.Types.ObjectId | undefined;
     let dimensionSize: mongoose.Types.ObjectId | undefined;
     let dimensionMaterial: mongoose.Types.ObjectId | undefined;
-    let images: string[] | undefined;
 
     if (dimensionDto.color) {
       dimensionColor = new mongoose.Types.ObjectId(dimensionDto.color._id);
@@ -164,7 +179,20 @@ export class BasketService {
       })
       .lean()
       .exec();
+
+    if (!basket) {
+      throw new NotFoundException('Basket not found');
+    }
+
+    this.fillBasket(basket);
     return basket;
+  }
+  fillBasket(basket: Basket) {
+    basket.basketItems.forEach((item) => {
+      item.dimensions = fillAttributes(item.dimensions, this.attributes);
+      const product = item.product as Product;
+      product.dimensions = fillAttributes(product.dimensions, this.attributes);
+    });
   }
 
   async clearBasket(userId: string): Promise<void> {
