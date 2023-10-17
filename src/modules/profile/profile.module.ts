@@ -5,12 +5,14 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/modules/users/user.entity';
 import { AuthModule } from 'src/modules/auth/auth.module';
+import { OrdersModule } from '../orders/orders.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     AuthModule,
     UsersModule,
+    OrdersModule,
   ],
   controllers: [ProfileController],
   providers: [ProfileService],

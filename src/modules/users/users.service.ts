@@ -194,18 +194,20 @@ export class UsersService {
   }
 
   async getUserByIdWithOrders(id: string) {
-    return this.userModel
+    const user = this.userModel
       .findOne({ _id: id })
       .populate({
         path: 'orders',
         populate: {
-          path: 'orderedItems.product', // Populate the 'product' field in 'orderedItems'
+          path: 'orderedItems.product',
           model: 'Product',
-          select: '-dimensions', // Exclude the 'dimensions' field from 'Product'
+          select: '-dimensions',
         },
       })
-      .populate('role')
+      .lean()
       .exec();
+
+    return user;
   }
 
   async storeRefreshToken(userId: string, refreshToken: string) {

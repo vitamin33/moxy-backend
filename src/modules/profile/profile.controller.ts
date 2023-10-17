@@ -1,4 +1,4 @@
-import { Controller, Get, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
 import { User } from 'src/modules/users/user.entity';
 import { ProfileService } from './profile.service';
 import { JwtAuthGuard } from 'src/modules/auth/jwt-auth.guard';
@@ -16,8 +16,17 @@ export class ProfileController {
   }
 
   @Get('orders')
-  async getProfileOrders(@Request() req: any) {
+  async getProfileOrders(
+    @Request() req: any,
+    @Query('skip') skip: number = 0,
+    @Query('limit') limit: number = 50,
+  ) {
     const userId = req.user.id;
-    return this.profileService.getProfileOrders(userId);
+    const result = await this.profileService.getProfileOrders(
+      userId,
+      skip,
+      limit,
+    );
+    return result;
   }
 }

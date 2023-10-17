@@ -264,6 +264,33 @@ export class OrdersService {
     return order;
   }
 
+  async getOrdersByUserId(
+    userId: string,
+    skip: number,
+    limit: number,
+  ): Promise<Order[]> {
+    const orders = await this.orderModel
+      .find({ client: userId })
+      .sort({ createdAt: -1 })
+      .lean()
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    const ordersObjects = await Promise.all(
+      orders.map(async (order) => {
+        const orderedItems = await this.getOrderedItems(order);
+
+        return {
+          ...order,
+          orderedItems: orderedItems,
+        };
+      }),
+    );
+
+    return ordersObjects;
+  }
+
   fillOrderDimensions(order: Order): Order {
     order.orderedItems.forEach((item) => {
       item.dimensions = fillAttributes(item.dimensions, this.attributes);
