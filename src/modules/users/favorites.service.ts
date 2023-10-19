@@ -5,7 +5,6 @@ import { User, UserDocument } from './user.entity';
 import { Product, ProductDocument } from 'src/modules/products/product.entity';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { fillAttributes } from 'src/common/utility';
 import { AttributesWithCategories } from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
 
@@ -99,12 +98,7 @@ export class FavoritesService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    const result = [];
-    for (const p of user.favoriteProducts) {
-      fillAttributes(p.dimensions, this.attributes);
-      result.push(p);
-    }
 
-    return result;
+    return user.favoriteProducts;
   }
 }

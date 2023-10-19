@@ -13,7 +13,7 @@ import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { AttributesService } from 'src/modules/attributes/attributes.service';
 import { AttributesWithCategories } from 'src/modules/attributes/attribute.entity';
 import { ProductAttributesDto } from '../dto/attributes.dto';
-import { convertToDimension, fillAttributes } from 'src/common/utility';
+import { convertToDimension } from 'src/common/utility';
 
 @Injectable()
 export class ProductsService {
@@ -144,11 +144,6 @@ export class ProductsService {
         },
         { new: true },
       );
-      const dimensWithAttributes = fillAttributes(
-        updatedProduct.dimensions,
-        this.attributes,
-      );
-      updatedProduct.dimensions = dimensWithAttributes;
       return updatedProduct.toObject();
     } else {
       throw new HttpException(
