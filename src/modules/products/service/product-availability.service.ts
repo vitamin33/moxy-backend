@@ -2,9 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product, ProductDocument } from '../product.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { AttributesService } from 'src/modules/attributes/attributes.service';
 import { Dimension } from 'src/common/entity/dimension.entity';
-import { Attributes } from 'src/modules/attributes/attribute.entity';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 
 @Injectable()
