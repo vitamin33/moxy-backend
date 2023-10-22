@@ -18,6 +18,7 @@ import { FavoritesService } from './favorites.service';
 import { ProductsModule } from 'src/modules/products/products.module';
 import { Product, ProductSchema } from 'src/modules/products/product.entity';
 import { FavoritesController } from './favorites.controller';
+import { AttributesModule } from '../attributes/attributes.module';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -30,6 +31,7 @@ import { FavoritesController } from './favorites.controller';
     forwardRef(() => AuthModule),
     NovaPoshtaModule,
     ProductsModule,
+    AttributesModule,
   ],
   controllers: [UsersController, FavoritesController],
   providers: [UsersService, FavoritesService],

@@ -37,42 +37,42 @@ export function compareDimensionWithDto(
   return colorMatch && sizeMatch && materialMatch;
 }
 
-export function fillAttributes(
-  dimensions: Dimension[],
-  fullAttributes: Attributes,
-) {
-  return dimensions.map((dimension) => {
-    const color = fullAttributes.colors.find((e) => {
-      return e._id.toString() === dimension.color?._id?.toString();
-    });
+// export function fillAttributes(
+//   dimensions: Dimension[],
+//   fullAttributes: Attributes,
+// ) {
+//   return dimensions.map((dimension) => {
+//     const color = fullAttributes.colors.find((e) => {
+//       return e._id.toString() === dimension.color?._id?.toString();
+//     });
 
-    // Check if 'size' and 'material' are defined before including them
-    const size = dimension.size
-      ? fullAttributes.sizes.find((e) => {
-          return e._id.toString() === dimension.size?._id?.toString();
-        })
-      : undefined;
+//     // Check if 'size' and 'material' are defined before including them
+//     const size = dimension.size
+//       ? fullAttributes.sizes.find((e) => {
+//           return e._id.toString() === dimension.size?._id?.toString();
+//         })
+//       : undefined;
 
-    const material = dimension.material
-      ? fullAttributes.materials.find((e) => {
-          return e._id.toString() === dimension.material?._id?.toString();
-        })
-      : undefined;
+//     const material = dimension.material
+//       ? fullAttributes.materials.find((e) => {
+//           return e._id.toString() === dimension.material?._id?.toString();
+//         })
+//       : undefined;
 
-    // Create the object with only defined values
-    const dimensionWithAttributes: any = { ...dimension, color };
+//     // Create the object with only defined values
+//     const dimensionWithAttributes: any = { ...dimension, color };
 
-    // Include 'size' and 'material' if they are defined
-    if (size !== undefined) {
-      dimensionWithAttributes.size = size;
-    }
-    if (material !== undefined) {
-      dimensionWithAttributes.material = material;
-    }
+//     // Include 'size' and 'material' if they are defined
+//     if (size !== undefined) {
+//       dimensionWithAttributes.size = size;
+//     }
+//     if (material !== undefined) {
+//       dimensionWithAttributes.material = material;
+//     }
 
-    return dimensionWithAttributes;
-  });
-}
+//     return dimensionWithAttributes;
+//   });
+// }
 
 export function convertToDimension(dto: DimensionDto): Dimension {
   const dimension = new Dimension();

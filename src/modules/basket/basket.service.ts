@@ -6,10 +6,9 @@ import mongoose, { Model, Types } from 'mongoose';
 import { UsersService } from 'src/modules/users/users.service';
 import { ProductsService } from 'src/modules/products/service/products.service';
 import { RemoveProductDto } from './dto/remove-product.dto';
-import { Product } from 'src/modules/products/product.entity';
 import { ProductAvailabilityService } from 'src/modules/products/service/product-availability.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { compareDimensions, fillAttributes } from 'src/common/utility';
+import { compareDimensions } from 'src/common/utility';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import {
   AttributesWithCategories,
@@ -18,6 +17,7 @@ import {
   Size,
 } from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
+import { User } from '../users/user.entity';
 
 @Injectable()
 export class BasketService {
@@ -128,8 +128,13 @@ export class BasketService {
       });
     }
 
-    await basket.save();
-    return basket;
+    const result = await basket.save();
+    await result.populate('basketItems.dimensions.color');
+    await result.populate('client', 'mobileNumber');
+    await result.populate('basketItems.product');
+    await result.populate('basketItems.product.dimensions.color');
+
+    return result;
   }
   async removeProduct(
     userId: string,
@@ -156,7 +161,11 @@ export class BasketService {
 
     basket.basketItems.splice(itemIndex, 1);
 
-    await basket.save();
+    const result = await basket.save();
+    await result.populate('basketItems.dimensions.color');
+    await result.populate('client', 'mobileNumber');
+    await result.populate('basketItems.product');
+    await result.populate('basketItems.product.dimensions.color');
     return basket;
   }
 
@@ -166,7 +175,16 @@ export class BasketService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    const basket = await this.basketModel
+    const basket = this.loadBasketByUserId(user);
+
+    if (!basket) {
+      throw new NotFoundException('Basket not found');
+    }
+
+    return basket;
+  }
+  async loadBasketByUserId(user: User) {
+    return await this.basketModel
       .findOne({ client: user })
       .populate({
         path: 'client',
@@ -176,23 +194,17 @@ export class BasketService {
       .populate({
         path: 'basketItems.product',
         model: 'Product', // Adjust this to match the model name for Product
+        populate: {
+          path: 'dimensions.color', // Populate the color field within dimensions
+          model: 'Color', // Adjust this to match the model name for Color
+        },
+      })
+      .populate({
+        path: 'basketItems.dimensions.color', // Populate the color field within dimensions
+        model: 'Color', // Adjust this to match the model name for Color
       })
       .lean()
       .exec();
-
-    if (!basket) {
-      throw new NotFoundException('Basket not found');
-    }
-
-    this.fillBasket(basket);
-    return basket;
-  }
-  fillBasket(basket: Basket) {
-    basket.basketItems.forEach((item) => {
-      item.dimensions = fillAttributes(item.dimensions, this.attributes);
-      const product = item.product as Product;
-      product.dimensions = fillAttributes(product.dimensions, this.attributes);
-    });
   }
 
   async clearBasket(userId: string): Promise<void> {

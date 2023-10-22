@@ -13,7 +13,7 @@ import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { AttributesService } from 'src/modules/attributes/attributes.service';
 import { AttributesWithCategories } from 'src/modules/attributes/attribute.entity';
 import { ProductAttributesDto } from '../dto/attributes.dto';
-import { convertToDimension, fillAttributes } from 'src/common/utility';
+import { convertToDimension } from 'src/common/utility';
 
 @Injectable()
 export class ProductsService {
@@ -93,7 +93,7 @@ export class ProductsService {
     images: [any],
     isCreating: boolean,
   ) {
-    const initImageIndex = 0;
+    let initImageIndex = 0;
     for (let i = 0; i < dimensions.length; i++) {
       const dimen = dimensions[i];
       const numberOfImages = +numberOfImagesForDimensions[i];
@@ -111,6 +111,7 @@ export class ProductsService {
         console.log('Saved image url: ', imageUrl);
         imagesArr.push(imageUrl);
       }
+      initImageIndex = lastIndex;
       dimen.images = imagesArr;
     }
   }
@@ -144,11 +145,6 @@ export class ProductsService {
         },
         { new: true },
       );
-      const dimensWithAttributes = fillAttributes(
-        updatedProduct.dimensions,
-        this.attributes,
-      );
-      updatedProduct.dimensions = dimensWithAttributes;
       return updatedProduct.toObject();
     } else {
       throw new HttpException(
@@ -184,40 +180,43 @@ export class ProductsService {
   }
 
   async getAllProducts(): Promise<any[]> {
-    const products = await this.productModel.find();
+    const products = await this.productModel
+      .find()
+      .populate('dimensions.color', 'name hexCode')
+      .populate('dimensions.size', 'name')
+      .populate('dimensions.material', 'name')
+      .lean()
+      .exec();
     const mappedProducts = products.map((product) => {
-      const productObj = product.toObject();
+      const productObj = product;
       const costPrice = this.calculateCostPrice(productObj);
       const marginValue = product.salePrice - costPrice;
-      const dimensWithAttributes = fillAttributes(
-        productObj.dimensions,
-        this.attributes,
-      );
       return {
         ...productObj,
         marginValue,
         costPrice,
-        dimensions: dimensWithAttributes,
+        dimensions: productObj.dimensions,
       };
     });
     return mappedProducts;
   }
 
   async getProductById(id: string): Promise<any> {
-    const product = await await this.productModel.findById(id);
+    const product = await await this.productModel
+      .findById(id)
+      .populate('dimensions.color', 'name hexCode')
+      .populate('dimensions.size', 'name')
+      .populate('dimensions.material', 'name')
+      .lean()
+      .exec();
 
     if (product) {
       // Calculate costPrice and add it to the product object
       const costPrice = this.calculateCostPrice(product);
-      const productObj = product.toObject();
-      const dimensWithAttributes = fillAttributes(
-        productObj.dimensions,
-        this.attributes,
-      );
+      const productObj = product;
       return {
         ...productObj,
         costPrice,
-        dimensions: dimensWithAttributes,
       };
     }
 
@@ -289,33 +288,38 @@ export class ProductsService {
   }
 
   async getSellingProducts() {
-    const products = await this.productModel.find({ forSale: true }).lean();
-    return this.fillAttributesForProducts(products);
+    const products = await this.productModel
+      .find({ forSale: true })
+      .populate('dimensions.color', 'name hexCode')
+      .populate('dimensions.size', 'name')
+      .populate('dimensions.material', 'name')
+      .lean()
+      .exec();
+    return products;
   }
 
   async getRecommendedProducts() {
     // TODO change implementation to return random product for now
-    const products = await this.productModel.find({ forSale: true }).lean();
-    return this.fillAttributesForProducts(products);
+    const products = await this.productModel
+      .find({ forSale: true })
+      .populate('dimensions.color', 'name hexCode')
+      .populate('dimensions.size', 'name')
+      .populate('dimensions.material', 'name')
+      .lean()
+      .exec();
+    return products;
   }
 
   async getResaleProducts() {
     // TODO change implementation to return products from Accessories category for now
-    const products = await this.productModel.find({ forSale: true }).lean();
-    return this.fillAttributesForProducts(products);
-  }
-
-  private fillAttributesForProducts(products: Product[]) {
-    return products.map((product) => {
-      const productObj = { ...product };
-      if (product.dimensions) {
-        productObj.dimensions = fillAttributes(
-          product.dimensions,
-          this.attributes,
-        );
-      }
-      return productObj;
-    });
+    const products = await this.productModel
+      .find({ forSale: true })
+      .populate('dimensions.color', 'name hexCode')
+      .populate('dimensions.size', 'name')
+      .populate('dimensions.material', 'name')
+      .lean()
+      .exec();
+    return products;
   }
 
   calculateCostPrice(product: Product): number {

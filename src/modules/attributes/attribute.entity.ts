@@ -15,8 +15,6 @@ export const SizeSchema = SchemaFactory.createForClass(Size);
 
 @Schema()
 export class Color {
-  @Prop({ default: mongoose.Types.ObjectId })
-  _id: mongoose.Types.ObjectId;
   @ApiProperty({ description: 'Color name.' })
   @Prop({ required: true })
   name: string;
@@ -42,17 +40,11 @@ export type AttributesWithCategories = Attributes & {
 };
 
 @Schema()
-export class Attributes extends Document {
-  @ApiProperty({ type: [Color] })
-  @Prop([{ type: ColorSchema }])
+export class Attributes {
   colors: Color[];
 
-  @ApiProperty({ type: [Size] })
-  @Prop([{ type: SizeSchema }])
   sizes: Size[];
 
-  @ApiProperty({ type: [Material] })
-  @Prop([{ type: MaterialSchema }])
   materials: Material[];
 }
 

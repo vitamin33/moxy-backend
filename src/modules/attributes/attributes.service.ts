@@ -12,34 +12,32 @@ import { AddColorDto } from './dto/add-color.dto';
 import { AddMaterialDto } from './dto/add-material.dto';
 import { AddSizeDto } from './dto/add-size.dto';
 import { ProductCategory } from '../products/product.entity';
-import { type } from 'os';
 
 @Injectable()
 export class AttributesService {
   constructor(
-    @InjectModel(Attributes.name) private attributesModel: Model<Attributes>,
+    @InjectModel(Color.name) private colorModel: Model<Color>,
+    @InjectModel(Size.name) private sizeModel: Model<Size>,
+    @InjectModel(Material.name) private materialModel: Model<Material>,
   ) {}
 
   async addColor(colorDto: AddColorDto) {
-    const attributes = await this.getOrCreateAttributes();
+    const existingColor = await this.colorModel
+      .findOne({ name: colorDto.name })
+      .exec();
 
-    // Check if a color with the same name already exists
-    const existingColor = attributes.colors.find(
-      (c) => c.name === colorDto.name,
-    );
     if (existingColor) {
       throw new NotFoundException(
         `Color with name '${colorDto.name}' already exists.`,
       );
     }
 
-    const newColor: Color = {
-      _id: new mongoose.Types.ObjectId(),
+    const newColor = new this.colorModel({
       name: colorDto.name,
       hexCode: colorDto.hexCode,
-    };
-    attributes.colors.push(newColor);
-    return await attributes.save();
+    });
+
+    return await newColor.save();
   }
 
   async getColors() {
@@ -47,32 +45,40 @@ export class AttributesService {
     return attributes.colors; // Return the 'colors' array
   }
 
-  async getColorById(colorId: string) {
-    const attributes = await this.getOrCreateAttributes();
-    const color = attributes.colors.find((c) => c._id.toString() === colorId);
-    return color || null;
-  }
-
   async addMaterial(dto: AddMaterialDto) {
-    const attributes = await this.getOrCreateAttributes();
+    const existingMaterial = await this.materialModel
+      .findOne({ name: dto.name })
+      .exec();
 
-    // Check if a material with the same name already exists
-    const existingMaterial = attributes.materials.find(
-      (m) => m.name === dto.name,
-    );
     if (existingMaterial) {
       throw new NotFoundException(
         `Material with name '${dto.name}' already exists.`,
       );
     }
 
-    const newMaterial: Material = {
-      _id: new mongoose.Types.ObjectId(), // Generate a new ObjectId
+    const newMaterial = new this.materialModel({
       name: dto.name,
-    };
+    });
 
-    attributes.materials.push(newMaterial);
-    return await attributes.save();
+    return await newMaterial.save();
+  }
+
+  async addSize(sizeDto: AddSizeDto) {
+    const existingSize = await this.sizeModel
+      .findOne({ name: sizeDto.name })
+      .exec();
+
+    if (existingSize) {
+      throw new NotFoundException(
+        `Size with name '${sizeDto.name}' already exists.`,
+      );
+    }
+
+    const newSize = new this.sizeModel({
+      name: sizeDto.name,
+    });
+
+    return await newSize.save();
   }
 
   async getMaterials() {
@@ -80,42 +86,23 @@ export class AttributesService {
     return attributes.materials; // Return the 'materials' array
   }
 
-  async getMaterialById(materialId: string) {
-    const attributes = await this.getOrCreateAttributes();
-    const material = attributes.materials.find(
-      (m) => m._id.toString() === materialId,
-    );
-    return material || null;
-  }
-
-  async addSize(sizeDto: AddSizeDto) {
-    const attributes = await this.getOrCreateAttributes();
-
-    // Check if a size with the same name already exists
-    const existingSize = attributes.sizes.find((s) => s.name === sizeDto.name);
-    if (existingSize) {
-      throw new NotFoundException(
-        `Size with name '${sizeDto.name}' already exists.`,
-      );
-    }
-
-    const newSize: Size = {
-      _id: new mongoose.Types.ObjectId(), // Generate a new ObjectId
-      name: sizeDto.name,
-    };
-
-    attributes.sizes.push(newSize);
-    return await attributes.save();
-  }
-
   async getSizes() {
     const attributes = await this.getOrCreateAttributes();
     return attributes.sizes; // Return the 'sizes' array
   }
 
+  async getColorById(colorId: string) {
+    const color = await this.colorModel.findById(colorId).exec();
+    return color || null;
+  }
+
+  async getMaterialById(materialId: string) {
+    const material = await this.materialModel.findById(materialId).exec();
+    return material || null;
+  }
+
   async getSizeById(sizeId: string) {
-    const attributes = await this.getOrCreateAttributes();
-    const size = attributes.sizes.find((s) => s._id.toString() === sizeId);
+    const size = await this.sizeModel.findById(sizeId).exec();
     return size || null;
   }
 
@@ -133,38 +120,29 @@ export class AttributesService {
   }
 
   async removeColor(colorId: string): Promise<void> {
-    const attributes = await this.getOrCreateAttributes();
-    attributes.colors = attributes.colors.filter(
-      (c) => c._id.toString() !== colorId,
-    );
-    await attributes.save();
+    await this.colorModel.deleteOne({ _id: colorId }).exec();
   }
 
   async removeMaterial(materialId: string): Promise<void> {
-    const attributes = await this.getOrCreateAttributes();
-    attributes.materials = attributes.materials.filter(
-      (m) => m._id.toString() !== materialId,
-    );
-    await attributes.save();
+    await this.materialModel.deleteOne({ _id: materialId }).exec();
   }
 
   async removeSize(sizeId: string): Promise<void> {
-    const attributes = await this.getOrCreateAttributes();
-    attributes.sizes = attributes.sizes.filter(
-      (s) => s._id.toString() !== sizeId,
-    );
-    await attributes.save();
+    await this.sizeModel.deleteOne({ _id: sizeId }).exec();
   }
 
   private async getOrCreateAttributes() {
-    let attributes = await this.attributesModel.findOne().exec();
+    const attributes: Attributes = {
+      colors: [],
+      materials: [],
+      sizes: [],
+    };
 
-    // If no attributes exist, create a new one
-    if (!attributes) {
-      attributes = new this.attributesModel({});
-      await attributes.save();
-    }
+    // Populate colors, materials, and sizes
+    attributes.colors = await this.colorModel.find().exec();
+    attributes.materials = await this.materialModel.find().exec();
+    attributes.sizes = await this.sizeModel.find().exec();
 
-    return attributes.toObject();
+    return attributes;
   }
 }

@@ -20,18 +20,9 @@ export class BasketItem {
 export const BasketItemSchema = SchemaFactory.createForClass(BasketItem);
 
 @Schema({
-  toJSON: {
-    virtuals: true,
-    transform: function (doc: any, ret: any) {
-      delete ret._id;
-      delete ret.__v;
-      return ret;
-    },
-  },
   timestamps: true,
 })
 export class Basket {
-  @Transform(({ value }) => value.toString())
   _id: ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
@@ -43,12 +34,6 @@ export class Basket {
 
   @Prop({ type: Number, required: true, default: 2000 })
   freeShippingThreshold: number;
-
-  id: string;
 }
 
 export const BasketSchema = SchemaFactory.createForClass(Basket);
-
-BasketSchema.virtual('id').get(function (this: Basket) {
-  return this._id;
-});

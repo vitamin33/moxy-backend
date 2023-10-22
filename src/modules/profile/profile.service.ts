@@ -10,7 +10,6 @@ import { OrdersService } from '../orders/orders.service';
 export class ProfileService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    private usersService: UsersService,
     private ordersService: OrdersService,
   ) {}
 

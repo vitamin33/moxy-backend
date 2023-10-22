@@ -13,7 +13,7 @@ import { ProductsService } from 'src/modules/products/service/products.service';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { OrderNotFoundException } from 'src/common/exception/order-not-found.exception';
 import { Dimension } from 'src/common/entity/dimension.entity';
-import { convertToDimension, fillAttributes } from 'src/common/utility';
+import { convertToDimension } from 'src/common/utility';
 import { AttributesWithCategories } from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
@@ -44,6 +44,8 @@ export class OrdersService {
         select:
           '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
       })
+      .populate('orderedItems.dimensions.color')
+      .populate('orderedItems.product.dimensions.color')
       .select('-city -novaPost')
       .lean()
       .skip(skip)
@@ -97,6 +99,8 @@ export class OrdersService {
         select:
           '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
       })
+      .populate('orderedItems.dimensions.color')
+      .populate('orderedItems.product.dimensions.color')
       .select('-city -novaPost')
       .lean()
       .skip(skip)
@@ -124,13 +128,11 @@ export class OrdersService {
         const product = await this.productsService.getProductById(
           orderedItem.product.toString(),
         );
-
-        const dimens = fillAttributes(orderedItem.dimensions, this.attributes);
         return {
           product: orderedItem.product.toString(),
           productName: product.name,
           productPrice: product.salePrice,
-          dimensions: dimens,
+          dimensions: orderedItem.dimensions,
         };
       }),
     );
@@ -163,7 +165,7 @@ export class OrdersService {
       );
       orderedItems.push({
         product: product._id,
-        dimensions: fillAttributes(dimensionsToSave, this.attributes),
+        dimensions: dimensionsToSave,
       });
     }
     const createdOrder = new this.orderModel({
@@ -174,8 +176,14 @@ export class OrdersService {
       orderedItems,
     });
     const savedOrder = await createdOrder.save();
+    await this.orderModel.populate(savedOrder, {
+      path: 'orderedItems.product.dimensions.color',
+    });
+    await this.orderModel.populate(savedOrder, {
+      path: 'orderedItems.dimensions.color',
+    });
     await this.usersService.addOrder(client._id.toString(), createdOrder);
-    return this.fillOrderDimensions(savedOrder.toObject());
+    return savedOrder.toObject();
   }
 
   async editOrder(orderDto: ChangeOrderDto): Promise<OrderDocument> {
@@ -239,6 +247,8 @@ export class OrdersService {
         path: 'client', // Populate the 'client' field
         select: clientFieldsToInclude,
       })
+      .populate('orderedItems.dimensions.color')
+      .populate('orderedItems.product.dimensions.color')
       .lean()
       .exec();
 
@@ -291,10 +301,10 @@ export class OrdersService {
     return ordersObjects;
   }
 
-  fillOrderDimensions(order: Order): Order {
-    order.orderedItems.forEach((item) => {
-      item.dimensions = fillAttributes(item.dimensions, this.attributes);
-    });
-    return order;
-  }
+  // fillOrderDimensions(order: Order): Order {
+  //   order.orderedItems.forEach((item) => {
+  //     item.dimensions = fillAttributes(item.dimensions, this.attributes);
+  //   });
+  //   return order;
+  // }
 }
