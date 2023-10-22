@@ -44,6 +44,8 @@ export class OrdersService {
         select:
           '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
       })
+      .populate('orderedItems.dimensions.color')
+      .populate('orderedItems.product.dimensions.color')
       .select('-city -novaPost')
       .lean()
       .skip(skip)
@@ -97,6 +99,8 @@ export class OrdersService {
         select:
           '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
       })
+      .populate('orderedItems.dimensions.color')
+      .populate('orderedItems.product.dimensions.color')
       .select('-city -novaPost')
       .lean()
       .skip(skip)
@@ -172,6 +176,12 @@ export class OrdersService {
       orderedItems,
     });
     const savedOrder = await createdOrder.save();
+    await this.orderModel.populate(savedOrder, {
+      path: 'orderedItems.product.dimensions.color',
+    });
+    await this.orderModel.populate(savedOrder, {
+      path: 'orderedItems.dimensions.color',
+    });
     await this.usersService.addOrder(client._id.toString(), createdOrder);
     return savedOrder.toObject();
   }
@@ -237,6 +247,8 @@ export class OrdersService {
         path: 'client', // Populate the 'client' field
         select: clientFieldsToInclude,
       })
+      .populate('orderedItems.dimensions.color')
+      .populate('orderedItems.product.dimensions.color')
       .lean()
       .exec();
 
