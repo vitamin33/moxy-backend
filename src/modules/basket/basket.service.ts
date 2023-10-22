@@ -9,7 +9,7 @@ import { RemoveProductDto } from './dto/remove-product.dto';
 import { Product } from 'src/modules/products/product.entity';
 import { ProductAvailabilityService } from 'src/modules/products/service/product-availability.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { compareDimensions, fillAttributes } from 'src/common/utility';
+import { compareDimensions } from 'src/common/utility';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import {
   AttributesWithCategories,
@@ -184,16 +184,15 @@ export class BasketService {
       throw new NotFoundException('Basket not found');
     }
 
-    this.fillBasket(basket);
     return basket;
   }
-  fillBasket(basket: Basket) {
-    basket.basketItems.forEach((item) => {
-      item.dimensions = fillAttributes(item.dimensions, this.attributes);
-      const product = item.product as Product;
-      product.dimensions = fillAttributes(product.dimensions, this.attributes);
-    });
-  }
+  // fillBasket(basket: Basket) {
+  //   basket.basketItems.forEach((item) => {
+  //     item.dimensions = fillAttributes(item.dimensions, this.attributes);
+  //     const product = item.product as Product;
+  //     product.dimensions = fillAttributes(product.dimensions, this.attributes);
+  //   });
+  // }
 
   async clearBasket(userId: string): Promise<void> {
     const user = await this.usersService.getUserById(userId);
