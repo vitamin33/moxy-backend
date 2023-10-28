@@ -14,10 +14,14 @@ export class ProfileService {
   ) {}
 
   async getProfile(userId: string): Promise<User> {
-    const user = await (
-      await this.userModel.findById(userId)
-    ).populate('orders');
-
+    const user = await this.userModel.findById(userId).populate({
+      path: 'favoriteProducts',
+      model: 'Product',
+      populate: {
+        path: 'dimensions.color',
+        model: 'Color',
+      },
+    });
     if (!user) {
       throw new UserNotFoundException(userId);
     }
