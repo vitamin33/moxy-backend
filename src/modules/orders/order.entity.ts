@@ -15,7 +15,7 @@ export enum DeliveryType {
 }
 
 export enum Status {
-  New = 'New',
+  Reserved = 'Reserved',
   Paid = 'Paid',
   Packed = 'Packed',
   Sent = 'Sent',
@@ -88,9 +88,12 @@ export class Order {
   @Prop()
   deliveryCity: string;
 
-  @ApiProperty({ example: 12, description: 'Ukr Post number for delivering' })
+  @ApiProperty({
+    example: 'Lviv, post number 12',
+    description: 'Ukr Post Info for delivering',
+  })
   @Prop()
-  ukrPostNumber: number;
+  ukrPostInfo: string;
 
   @ApiProperty({ example: 150, description: 'Cash advance payment value' })
   @Prop()
@@ -99,13 +102,13 @@ export class Order {
   @ApiProperty({
     description: 'Nova Post object data for delivering with Nova Poshta.',
   })
-  @Prop({ type: NovaPostSchema })
+  @Prop({ type: NovaPostSchema, required: false })
   novaPost: NovaPost;
 
   @ApiProperty({
     description: 'City object data for delivering with Nova Poshta.',
   })
-  @Prop({ type: CitySchema })
+  @Prop({ type: CitySchema, required: false })
   city: City;
 
   @ApiProperty({
@@ -119,7 +122,7 @@ export class Order {
     example: 'New',
     description: 'Order status. Only values from Status enum',
   })
-  @Prop({ type: String, enum: Status, default: Status.New })
+  @Prop({ type: String, enum: Status, default: Status.Reserved })
   status: Status;
 
   @ApiProperty({
