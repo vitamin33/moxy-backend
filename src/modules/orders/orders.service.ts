@@ -13,10 +13,11 @@ import { ProductsService } from 'src/modules/products/service/products.service';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { OrderNotFoundException } from 'src/common/exception/order-not-found.exception';
 import { Dimension } from 'src/common/entity/dimension.entity';
-import { convertToDimension } from 'src/common/utility';
+import { compareDimensions, convertToDimension } from 'src/common/utility';
 import { AttributesWithCategories } from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
+import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
 
 @Injectable()
 export class OrdersService {
@@ -158,16 +159,60 @@ export class OrdersService {
         client = await this.usersService.createGuestUser(dto);
       }
     }
+
     const orderedItems = [];
     for (const product of orderDto.products) {
       const dimensionsToSave = product.dimensions.map((e) =>
         convertToDimension(e),
       );
+
+      // For each ordered item, reduce the quantity of available product dimensions
+      for (const dimension of dimensionsToSave) {
+        const productToUpdate =
+          await this.productsService.getProductDocumentById(product._id);
+
+        if (productToUpdate) {
+          // Find the matching dimension in the product catalog
+          const matchingDimension = productToUpdate.dimensions.find((dim) =>
+            compareDimensions(dim, dimension),
+          );
+
+          if (matchingDimension) {
+            // Reduce the available quantity based on the ordered quantity
+            if (matchingDimension.quantity >= dimension.quantity) {
+              matchingDimension.quantity -= dimension.quantity;
+            } else {
+              throw new ProductNotAvailableException(
+                productToUpdate._id.toString(),
+                matchingDimension.color,
+                matchingDimension.size,
+                matchingDimension.material,
+                dimension.quantity,
+              );
+            }
+          } else {
+            throw new ProductNotAvailableException(
+              productToUpdate._id.toString(),
+              dimension.color,
+              dimension.size,
+              dimension.material,
+              dimension.quantity,
+            );
+          }
+
+          // Save the updated product dimension
+          await productToUpdate.save();
+        } else {
+          throw new ProductNotAvailableException(product._id);
+        }
+      }
+
       orderedItems.push({
         product: product._id,
         dimensions: dimensionsToSave,
       });
     }
+
     const createdOrder = new this.orderModel({
       ...orderDto,
       client,
@@ -301,10 +346,105 @@ export class OrdersService {
     return ordersObjects;
   }
 
-  // fillOrderDimensions(order: Order): Order {
-  //   order.orderedItems.forEach((item) => {
-  //     item.dimensions = fillAttributes(item.dimensions, this.attributes);
-  //   });
-  //   return order;
-  // }
+  private async getClient(orderDto: CreateOrderDto): Promise<User> {
+    let client: User;
+
+    if (orderDto.userId) {
+      client = await this.usersService.getUserById(orderDto.userId);
+    } else {
+      client = await this.usersService.getUserByMobileNumber(
+        orderDto.client.mobileNumber,
+      );
+
+      if (!client) {
+        const dto = new UserDto();
+        dto.firstName = orderDto.client.firstName;
+        dto.secondName = orderDto.client.secondName;
+        dto.mobileNumber = orderDto.client.mobileNumber;
+        dto.city = orderDto.city;
+        client = await this.usersService.createGuestUser(dto);
+      }
+    }
+
+    if (!client) {
+      throw new UserNotFoundException(
+        orderDto.userId || orderDto.client.mobileNumber,
+      );
+    }
+
+    return client;
+  }
+
+  private async createOrderedItems(products: any[]): Promise<any[]> {
+    const orderedItems = [];
+
+    for (const product of products) {
+      const dimensionsToSave = product.dimensions.map((e) =>
+        convertToDimension(e),
+      );
+
+      for (const dimension of dimensionsToSave) {
+        await this.reduceProductQuantity(product._id, dimension);
+      }
+
+      orderedItems.push({
+        product: product._id,
+        dimensions: dimensionsToSave,
+      });
+    }
+
+    return orderedItems;
+  }
+
+  private async reduceProductQuantity(productId: string, dimension: any) {
+    const productToUpdate =
+      await this.productsService.getProductById(productId);
+
+    if (!productToUpdate) {
+      throw new ProductNotAvailableException(productId);
+    }
+
+    const matchingDimension = productToUpdate.dimensions.find((dim) =>
+      compareDimensions(dim, dimension),
+    );
+
+    if (!matchingDimension || matchingDimension.quantity < dimension.quantity) {
+      throw new ProductNotAvailableException(
+        productId,
+        dimension.color,
+        dimension.size,
+        dimension.material,
+        dimension.quantity,
+      );
+    }
+
+    matchingDimension.quantity -= dimension.quantity;
+    await productToUpdate.save();
+  }
+
+  private async saveOrder(
+    orderDto: CreateOrderDto,
+    client: User,
+    orderedItems: any[],
+  ) {
+    const createdOrder = new this.orderModel({
+      ...orderDto,
+      client,
+      city: orderDto.city,
+      novaPost: orderDto.novaPost,
+      orderedItems,
+    });
+
+    return await createdOrder.save();
+  }
+
+  private async populateOrderedItems(order: OrderDocument) {
+    await this.orderModel.populate(order, {
+      path: 'orderedItems.product.dimensions.color',
+    });
+
+    await this.orderModel.populate(order, {
+      path: 'orderedItems.dimensions.color',
+    });
+  }
 }

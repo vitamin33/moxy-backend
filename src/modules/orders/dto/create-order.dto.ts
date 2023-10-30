@@ -10,6 +10,7 @@ import {
 import { City, DeliveryType, PaymentType, Status } from '../order.entity';
 import { Transform } from 'class-transformer';
 import { ProductDto } from './product.dto';
+import { CashAdvanceValue } from 'src/common/validator/cash-advance.validator';
 
 export class CreateOrderDto {
   readonly userId: string;
@@ -21,13 +22,15 @@ export class CreateOrderDto {
   @IsEnum(PaymentType)
   @IsNotEmpty({ message: 'paymentType should be present' })
   readonly paymentType: string;
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @CashAdvanceValue()
   @ValidateIf((object, _) => object.paymentType === PaymentType.CashAdvance)
   @IsNotEmpty({ message: 'cashAdvanceValue should be present' })
   @Min(1, { message: 'cashAdvanceValue should be greater than 0' })
   readonly cashAdvanceValue: number;
   readonly novaPost: NovaPostDto;
-  readonly ukrPostNumber: number;
+  readonly ukrPostInfo: string;
   readonly city: CityDto;
   @ArrayNotEmpty({ message: 'Order should have at least one product.' })
   readonly products: ProductDto[];

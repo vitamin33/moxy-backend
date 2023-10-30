@@ -201,14 +201,11 @@ export class ProductsService {
     return mappedProducts;
   }
 
-  async getProductById(id: string): Promise<any> {
-    const product = await await this.productModel
-      .findById(id)
-      .populate('dimensions.color', 'name hexCode')
-      .populate('dimensions.size', 'name')
-      .populate('dimensions.material', 'name')
-      .lean()
-      .exec();
+  async getProductById(
+    id: string,
+    populateDimensions: boolean = true,
+  ): Promise<any> {
+    const product = await this.findProductById(id, populateDimensions);
 
     if (product) {
       // Calculate costPrice and add it to the product object
@@ -223,8 +220,29 @@ export class ProductsService {
     return product;
   }
 
+  private async findProductById(
+    id: string,
+    populateDimensions: boolean,
+  ): Promise<any> {
+    let query = this.productModel.findById(id);
+
+    if (populateDimensions) {
+      query = query
+        .populate('dimensions.color', 'name hexCode')
+        .populate('dimensions.size', 'name')
+        .populate('dimensions.material', 'name');
+    }
+
+    const product = await query.lean().exec();
+    return product;
+  }
+
   async getProductbyIdName(idName: string): Promise<ProductDocument> {
     return await this.productModel.findOne({ idName: idName }).exec();
+  }
+
+  async getProductDocumentById(id: string): Promise<ProductDocument> {
+    return await this.productModel.findById(id);
   }
 
   async importProducts(products: [any]) {
