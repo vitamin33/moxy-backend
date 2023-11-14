@@ -1,27 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './user.entity';
-import { Product, ProductDocument } from 'src/modules/products/product.entity';
+import { User, UserDocument } from '../users/user.entity';
+import {
+  FavoriteProduct,
+  Product,
+  ProductDocument,
+} from 'src/modules/products/product.entity';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { AttributesWithCategories } from '../attributes/attribute.entity';
-import { AttributesService } from '../attributes/attributes.service';
 
 @Injectable()
 export class FavoritesService {
-  private attributes: AttributesWithCategories;
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
-    private attributesService: AttributesService,
-  ) {
-    this.initializeAttributes();
-  }
-
-  private async initializeAttributes() {
-    this.attributes = await this.attributesService.getAttributes();
-  }
+  ) {}
 
   async addFavoriteProduct(userId: string, productId: string): Promise<User> {
     const user = await this.userModel.findById(userId);
@@ -93,12 +87,25 @@ export class FavoritesService {
   async getFavoriteProducts(userId: string): Promise<Product[]> {
     const user = await this.userModel
       .findById(userId)
-      .populate('favoriteProducts')
+      .populate({
+        path: 'favoriteProducts',
+        populate: {
+          path: 'dimensions.color',
+          select: 'name hexCode',
+        },
+      })
       .lean();
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return user.favoriteProducts;
+    const favoriteProducts: FavoriteProduct[] = user.favoriteProducts.map(
+      (product) => ({
+        ...product,
+        isFavorite: true,
+      }),
+    );
+
+    return favoriteProducts;
   }
 }

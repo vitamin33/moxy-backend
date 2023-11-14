@@ -18,6 +18,7 @@ import {
   SizeSchema,
 } from '../attributes/attribute.entity';
 import { AttributesModule } from '../attributes/attributes.module';
+import { FavoritesModule } from '../favorites/favorites.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AttributesModule } from '../attributes/attributes.module';
     StorageModule,
     SettingsModule,
     AttributesModule,
+    FavoritesModule,
   ],
   controllers: [ProductsController],
   providers: [ProductsService, ImportProductsService],

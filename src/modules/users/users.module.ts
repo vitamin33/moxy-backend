@@ -14,10 +14,10 @@ import { AuthModule } from 'src/modules/auth/auth.module';
 import { Order, OrderSchema } from 'src/modules/orders/order.entity';
 import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 import { NovaPoshtaModule } from 'src/modules/nova-poshta/nova-poshta.module';
-import { FavoritesService } from './favorites.service';
+import { FavoritesService } from '../favorites/favorites.service';
 import { ProductsModule } from 'src/modules/products/products.module';
 import { Product, ProductSchema } from 'src/modules/products/product.entity';
-import { FavoritesController } from './favorites.controller';
+import { FavoritesController } from '../favorites/favorites.controller';
 import { AttributesModule } from '../attributes/attributes.module';
 @Module({
   imports: [
@@ -33,8 +33,8 @@ import { AttributesModule } from '../attributes/attributes.module';
     ProductsModule,
     AttributesModule,
   ],
-  controllers: [UsersController, FavoritesController],
-  providers: [UsersService, FavoritesService],
+  controllers: [UsersController],
+  providers: [UsersService],
   exports: [UsersService],
 })
 export class UsersModule {

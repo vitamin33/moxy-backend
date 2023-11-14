@@ -327,6 +327,7 @@ export class OrdersService {
     const orders = await this.orderModel
       .find({ client: userId })
       .sort({ createdAt: -1 })
+      .populate('orderedItems.dimensions.color')
       .lean()
       .skip(skip)
       .limit(limit)

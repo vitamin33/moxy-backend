@@ -18,6 +18,8 @@ import { google } from 'googleapis';
 import { Options } from 'nodemailer/lib/smtp-transport';
 import * as handlebars from 'handlebars';
 import * as fs from 'fs';
+import { v4 as uuid } from 'uuid';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -179,6 +181,45 @@ export class AuthService {
 
     // Update the user's password in the database
     await this.userService.changePassword(userId, hashedPassword);
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.userService.getUserByEmail(email);
+    if (!user) {
+      throw new UserNotFoundException(`Email: ${email}`);
+    }
+    // Generate a reset token (a random string)
+    const resetToken = uuid();
+
+    // Store the reset token in the user's record in the database
+    user.resetPasswordToken = resetToken;
+    await user.save();
+
+    // Send an email to the user with a link to reset their password
+    this.sendPasswordResetEmail(user.email, resetToken);
+  }
+  async sendPasswordResetEmail(email: string, resetToken: string) {
+    // impl send reset password email
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
+    const { email, newPassword, resetToken } = resetPasswordDto;
+    const user = await this.userService.getUserByEmail(email);
+
+    if (!user) {
+      throw new UserNotFoundException(`Email: ${email}`);
+    }
+
+    // Verify that the reset token matches the one stored in the user's record
+    if (user.resetPasswordToken !== resetToken) {
+      throw new HttpException('Invalid reset token', HttpStatus.BAD_REQUEST);
+    }
+
+    // Reset the user's password to the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 5);
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined; // Clear the reset token
+    await user.save();
   }
 
   async resendConfirmationCode(resendDto: ResendConfirmationDto) {

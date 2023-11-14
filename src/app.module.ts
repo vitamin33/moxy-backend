@@ -19,6 +19,7 @@ import { AttributesModule } from './modules/attributes/attributes.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PaymentModule } from './modules/payment/payment.module';
 import { MonopayModule } from './modules/monopay/monopay.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { MonopayModule } from './modules/monopay/monopay.module';
     SettingsModule,
     AttributesModule,
     PaymentModule,
+    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -16,7 +16,7 @@ import { GuestUserDto } from './dto/guest-user.dto';
 import { NovaPoshtaService } from 'src/modules/nova-poshta/nova-poshta.service';
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
-import { FavoritesService } from './favorites.service';
+import { FavoritesService } from '../favorites/favorites.service';
 import { Product } from 'src/modules/products/product.entity';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 

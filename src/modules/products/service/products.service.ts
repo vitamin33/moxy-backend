@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateProductDto } from '../dto/create-product.dto';
-import { Product, ProductDocument } from '../product.entity';
+import { FavoriteProduct, Product, ProductDocument } from '../product.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { StorageService } from 'src/modules/storage/storage.service';
@@ -14,23 +14,19 @@ import { AttributesService } from 'src/modules/attributes/attributes.service';
 import { AttributesWithCategories } from 'src/modules/attributes/attribute.entity';
 import { ProductAttributesDto } from '../dto/attributes.dto';
 import { convertToDimension } from 'src/common/utility';
+import { FavoritesService } from 'src/modules/favorites/favorites.service';
 
 @Injectable()
 export class ProductsService {
-  private attributes: AttributesWithCategories;
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private storageService: StorageService,
     private importProductsService: ImportProductsService,
     private settingsService: SettingsService,
     private attributesService: AttributesService,
-  ) {
-    this.initializeAttributes();
-  }
+    private favoritesService: FavoritesService,
+  ) {}
 
-  private async initializeAttributes() {
-    this.attributes = await this.attributesService.getAttributes();
-  }
   async createProduct(
     dto: CreateProductDto,
     images: [any],
@@ -305,7 +301,7 @@ export class ProductsService {
     }
   }
 
-  async getSellingProducts() {
+  async getSellingProducts(userId: string) {
     const products = await this.productModel
       .find({ forSale: true })
       .populate('dimensions.color', 'name hexCode')
@@ -313,10 +309,10 @@ export class ProductsService {
       .populate('dimensions.material', 'name')
       .lean()
       .exec();
-    return products;
+    return this.addIsFavoriteToProducts(userId, products);
   }
 
-  async getRecommendedProducts() {
+  async getRecommendedProducts(userId: string) {
     // TODO change implementation to return random product for now
     const products = await this.productModel
       .find({ forSale: true })
@@ -325,10 +321,10 @@ export class ProductsService {
       .populate('dimensions.material', 'name')
       .lean()
       .exec();
-    return products;
+    return this.addIsFavoriteToProducts(userId, products);
   }
 
-  async getResaleProducts() {
+  async getResaleProducts(userId: string) {
     // TODO change implementation to return products from Accessories category for now
     const products = await this.productModel
       .find({ forSale: true })
@@ -337,7 +333,7 @@ export class ProductsService {
       .populate('dimensions.material', 'name')
       .lean()
       .exec();
-    return products;
+    return this.addIsFavoriteToProducts(userId, products);
   }
 
   calculateCostPrice(product: Product): number {
@@ -354,5 +350,19 @@ export class ProductsService {
     const roundedCostPrice = Math.round(costPriceInUah);
 
     return roundedCostPrice;
+  }
+
+  async addIsFavoriteToProducts(
+    userId: string,
+    products: Product[],
+  ): Promise<FavoriteProduct[]> {
+    const favoriteProducts =
+      await this.favoritesService.getFavoriteProducts(userId);
+    return products.map((product) => {
+      const isFavorite = favoriteProducts.some(
+        (favProduct) => favProduct._id.toString() === product._id.toString(),
+      );
+      return { ...product, isFavorite };
+    });
   }
 }
