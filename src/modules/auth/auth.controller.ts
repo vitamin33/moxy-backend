@@ -19,6 +19,7 @@ import { ResendConfirmationDto } from './dto/resend-confirmation.dto';
 import { UserNotFoundException } from 'src/common/exception/user-not-found.exception';
 import { UsersService } from '../users/users.service';
 import { VerifyConfirmationDto } from './dto/verify-confirmation.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('Authorization')
 @Controller('auth')
@@ -81,5 +82,11 @@ export class AuthController {
     await this.authService.verifyConfirmationCode(verifyDto);
 
     return { message: 'User registration confirmed successfully' };
+  }
+
+  @Post('/reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.authService.requestPasswordReset(resetPasswordDto.email);
+    return { message: 'Password reset email sent successfully' };
   }
 }

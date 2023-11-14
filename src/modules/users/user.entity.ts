@@ -114,6 +114,9 @@ export class User {
 
   @Prop({ default: false })
   isConfirmed: boolean;
+
+  @Prop()
+  resetPasswordToken?: string;
 }
 
 const UserSchema = SchemaFactory.createForClass(User);

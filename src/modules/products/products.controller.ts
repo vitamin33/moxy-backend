@@ -9,6 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
   UsePipes,
+  Request,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductsService } from './service/products.service';
@@ -91,22 +92,25 @@ export class ProductsController {
   @ApiOperation({ summary: 'Get selling products' })
   @ApiResponse({ status: 200, type: [Product] })
   @Get('selling-products')
-  async getSellingProducts() {
-    return this.productService.getSellingProducts();
+  async getSellingProducts(@Request() req: any) {
+    const userId = req.user.id;
+    return this.productService.getSellingProducts(userId);
   }
 
   @ApiOperation({ summary: 'Get recommended products' })
   @ApiResponse({ status: 200, type: [Product] })
   @Get('recommend')
-  async getRecommendedProducts() {
-    return this.productService.getRecommendedProducts();
+  async getRecommendedProducts(@Request() req: any) {
+    const userId = req.user.id;
+    return this.productService.getRecommendedProducts(userId);
   }
 
   @ApiOperation({ summary: 'Get resale products' })
   @ApiResponse({ status: 200, type: [Product] })
   @Get('resale')
-  async getResaleProducts() {
-    return this.productService.getResaleProducts();
+  async getResaleProducts(@Request() req: any) {
+    const userId = req.user.id;
+    return this.productService.getResaleProducts(userId);
   }
 
   @ApiOperation({ summary: 'Delete product (Admin Only)' })

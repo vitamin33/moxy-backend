@@ -142,3 +142,7 @@ ProductSchema.virtual('warehouseQuantity').get(function (this: Product) {
 ProductSchema.virtual('id').get(function (this: Product) {
   return this._id;
 });
+
+export interface FavoriteProduct extends Product {
+  isFavorite: boolean;
+}

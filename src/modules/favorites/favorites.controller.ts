@@ -10,7 +10,7 @@ import {
 import { FavoritesService } from './favorites.service';
 import { JwtAuthGuard } from 'src/modules/auth/jwt-auth.guard';
 import { Product } from 'src/modules/products/product.entity';
-import { User } from './user.entity';
+import { User } from '../users/user.entity';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Favorites')
