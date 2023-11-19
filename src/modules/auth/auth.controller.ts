@@ -20,6 +20,7 @@ import { UserNotFoundException } from 'src/common/exception/user-not-found.excep
 import { UsersService } from '../users/users.service';
 import { VerifyConfirmationDto } from './dto/verify-confirmation.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SetNewPasswordDto } from './dto/set-new-password.dto';
 
 @ApiTags('Authorization')
 @Controller('auth')
@@ -88,5 +89,13 @@ export class AuthController {
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.authService.requestPasswordReset(resetPasswordDto.email);
     return { message: 'Password reset email sent successfully' };
+  }
+
+  @Post('/new-password')
+  @UsePipes(ValidationPipe)
+  async setNewPassword(@Body() dto: SetNewPasswordDto) {
+    const { email, newPassword, resetToken } = dto;
+    await this.authService.setNewPassword(email, newPassword, resetToken);
+    return { message: 'Password changed successfully' };
   }
 }

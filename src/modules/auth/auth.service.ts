@@ -183,6 +183,31 @@ export class AuthService {
     await this.userService.changePassword(userId, hashedPassword);
   }
 
+  async setNewPassword(email: string, newPassword: string, resetToken: string) {
+    try {
+      const user = await this.userService.getUserByEmail(email);
+
+      if (!user) {
+        throw new UserNotFoundException(email);
+      }
+      if (user.resetPasswordToken !== resetToken) {
+        throw new HttpException('Invalid reset token', HttpStatus.BAD_REQUEST);
+      }
+
+      // Reset the user's password to the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 5);
+      user.password = hashedPassword;
+
+      // Clear the reset token field
+      user.resetPasswordToken = undefined;
+      await user.save();
+
+      return { message: 'Password reset successfully' };
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
+    }
+  }
+
   async requestPasswordReset(email: string): Promise<void> {
     const user = await this.userService.getUserByEmail(email);
     if (!user) {
@@ -196,10 +221,39 @@ export class AuthService {
     await user.save();
 
     // Send an email to the user with a link to reset their password
-    this.sendPasswordResetEmail(user.email, resetToken);
+    await this.sendPasswordResetEmail(user.email, resetToken);
   }
-  async sendPasswordResetEmail(email: string, resetToken: string) {
-    // impl send reset password email
+  async sendPasswordResetEmail(receiverMail: string, resetToken: string) {
+    await this.setTransport();
+    const mainEmail = this.configService.get<string>('MAIN_EMAIL');
+    const newPasswordUrl = this.configService.get<string>(
+      'FRONTEND_NEW_PASSWORD_URL',
+    );
+    const rootDir = process.cwd();
+    const templatePath = `${rootDir}/templates/reset-password.html`;
+    const templateHtml = fs.readFileSync(templatePath, 'utf8');
+    const template = handlebars.compile(templateHtml);
+    const resetLink = `${newPasswordUrl}?email=${receiverMail}&token=${resetToken}`;
+
+    // Replace placeholders with data
+    const html = template({ resetLink: resetLink });
+    this.mailerService
+      .sendMail({
+        transporterName: 'gmail',
+        to: receiverMail,
+        from: mainEmail, // sender address
+        subject: 'MOXY Reset Password',
+        html: html,
+        context: {
+          resetLink: resetLink,
+        },
+      })
+      .then((success) => {
+        console.log(success);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
@@ -327,6 +381,7 @@ export class AuthService {
     const accessToken: string = await new Promise((resolve, reject) => {
       oauth2Client.getAccessToken((err, token) => {
         if (err) {
+          console.error('Error getting access token:', err.message);
           reject('Failed to create access token');
         }
         resolve(token);
