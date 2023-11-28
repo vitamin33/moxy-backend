@@ -39,8 +39,10 @@ export class ProductAdvatagesController {
   }
 
   @Get()
-  async getProductAdvatages(): Promise<ProductAdvatages[]> {
-    return this.productAdvatagesService.getProductAdvatages();
+  async getProductAdvatages(
+    @Param('id') productId: string,
+  ): Promise<ProductAdvatages[]> {
+    return this.productAdvatagesService.getProductAdvatages(productId);
   }
 
   @Roles('ADMIN')

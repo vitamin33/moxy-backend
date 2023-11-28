@@ -75,9 +75,14 @@ export class ProductsController {
     return this.productService.getAllProducts();
   }
 
-  @Get('details/:id')
+  @Get(':id')
   async getProductById(@Param('id') id: string) {
     return await this.productService.getProductById(id);
+  }
+
+  @Get('details/:id')
+  async getProductDetails(@Param('id') id: string) {
+    return await this.productService.getProductDetails(id);
   }
 
   @ApiOperation({ summary: 'Set product for sale (Admin Only)' })

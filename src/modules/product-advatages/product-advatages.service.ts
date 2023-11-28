@@ -40,9 +40,9 @@ export class ProductAdvatagesService {
     return await productAdvatage.save();
   }
 
-  async getProductAdvatages(): Promise<ProductAdvatages[]> {
+  async getProductAdvatages(productId:string): Promise<ProductAdvatages[]> {
     const result = await this.productAdvatagesModule
-      .find()
+      .find({ productId })
       .populate({
         path: 'product',
         select: '-dimensions', // Exclude fields

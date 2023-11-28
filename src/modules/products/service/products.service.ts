@@ -15,6 +15,7 @@ import { AttributesWithCategories } from 'src/modules/attributes/attribute.entit
 import { ProductAttributesDto } from '../dto/attributes.dto';
 import { convertToDimension } from 'src/common/utility';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
+import { ProductAdvatagesService } from 'src/modules/product-advatages/product-advatages.service';
 
 @Injectable()
 export class ProductsService {
@@ -25,6 +26,7 @@ export class ProductsService {
     private settingsService: SettingsService,
     private attributesService: AttributesService,
     private favoritesService: FavoritesService,
+    private productAdvatagesService: ProductAdvatagesService,
   ) {}
 
   async createProduct(
@@ -210,6 +212,28 @@ export class ProductsService {
       return {
         ...productObj,
         costPrice,
+      };
+    }
+
+    return product;
+  }
+
+  async getProductDetails(
+    id: string,
+    populateDimensions: boolean = true,
+  ): Promise<any> {
+    const product = await this.findProductById(id, populateDimensions);
+
+    if (product) {
+      let productAdvantages = 
+        await this.productAdvatagesService.getProductAdvatages(id);
+      // Calculate costPrice and add it to the product object
+      const costPrice = this.calculateCostPrice(product);
+      const productObj = product;
+      return {
+        ...productObj,
+        costPrice,
+        productAdvantages,
       };
     }
 
