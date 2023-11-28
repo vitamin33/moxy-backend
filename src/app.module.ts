@@ -20,6 +20,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { PaymentModule } from './modules/payment/payment.module';
 import { MonopayModule } from './modules/monopay/monopay.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { ProductAdvatagesModule } from './modules/product-advatages/product-advatages.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
     AttributesModule,
     PaymentModule,
     FavoritesModule,
+    ProductAdvatagesModule
   ],
   controllers: [AppController],
   providers: [AppService],
