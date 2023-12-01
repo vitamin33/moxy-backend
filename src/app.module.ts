@@ -8,8 +8,6 @@ import { RolesModule } from './modules/roles/roles.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
-import { LoggerMiddleware } from './middleware/logger.middleware';
-import { NovaPoshtaModule } from './modules/nova-poshta/nova-poshta.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { BasketModule } from './modules/basket/basket.module';
@@ -18,9 +16,7 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { AttributesModule } from './modules/attributes/attributes.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PaymentModule } from './modules/payment/payment.module';
-import { MonopayModule } from './modules/monopay/monopay.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
-import { ProductAdvatagesModule } from './modules/product-advatages/product-advatages.module';
 
 @Module({
   imports: [
@@ -49,7 +45,6 @@ import { ProductAdvatagesModule } from './modules/product-advatages/product-adva
     AttributesModule,
     PaymentModule,
     FavoritesModule,
-    ProductAdvatagesModule
   ],
   controllers: [AppController],
   providers: [AppService],

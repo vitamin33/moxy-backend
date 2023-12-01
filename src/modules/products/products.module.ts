@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  RequestMethod,
+  forwardRef,
+} from '@nestjs/common';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './service/products.service';
 import { Product, ProductSchema } from './product.entity';
@@ -19,6 +24,12 @@ import {
 } from '../attributes/attribute.entity';
 import { AttributesModule } from '../attributes/attributes.module';
 import { FavoritesModule } from '../favorites/favorites.module';
+import { ProductAdvatagesController } from './product-advatages.controller';
+import { ProductAdvantagesService } from './service/product-advatages.service';
+import {
+  ProductAdvatages,
+  ProductAdvatagesSchema,
+} from './product-advatages.entity';
 
 @Module({
   imports: [
@@ -30,13 +41,16 @@ import { FavoritesModule } from '../favorites/favorites.module';
       { name: Material.name, schema: MaterialSchema },
     ]),
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
+    MongooseModule.forFeature([
+      { name: ProductAdvatages.name, schema: ProductAdvatagesSchema },
+    ]),
     StorageModule,
     SettingsModule,
     AttributesModule,
     FavoritesModule,
   ],
-  controllers: [ProductsController],
-  providers: [ProductsService, ImportProductsService],
+  controllers: [ProductsController, ProductAdvatagesController],
+  providers: [ProductsService, ProductAdvantagesService, ImportProductsService],
   exports: [ProductsService],
 })
 export class ProductsModule {

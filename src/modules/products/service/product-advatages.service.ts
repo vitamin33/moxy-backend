@@ -1,32 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { StorageService } from '../storage/storage.service';
-import { ProductsService } from '../products/service/products.service';
-import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { ProductAdvatages } from './product-advatages.entity';
-import { AddProductAdvatagesDto } from './dto/add-product-advatages.dto';
+import { ProductAdvatages } from '../product-advatages.entity';
+import { StorageService } from 'src/modules/storage/storage.service';
+import { AddProductAdvatagesDto } from '../dto/add-product-advatages.dto';
 
 @Injectable()
-export class ProductAdvatagesService {
+export class ProductAdvantagesService {
   constructor(
     @InjectModel(ProductAdvatages.name)
     private productAdvatagesModule: Model<ProductAdvatages>,
-    private productService: ProductsService,
     private storageService: StorageService,
   ) {}
 
   async addProductAdvatages(dto: AddProductAdvatagesDto, image: any) {
-    // Check if the product exists
-    const product = await this.productService.getProductById(dto.productId);
-    if (!product) {
-      throw new ProductNotAvailableException(dto.productId);
-    }
-
     // Create a new product advatages document
     const productAdvatage = new this.productAdvatagesModule({
       ...dto,
-      product: product._id, // Use the ObjectId of the product
+      product: dto.productId,
     });
 
     if (image) {
@@ -40,7 +31,7 @@ export class ProductAdvatagesService {
     return await productAdvatage.save();
   }
 
-  async getProductAdvatages(productId:string): Promise<ProductAdvatages[]> {
+  async getProductAdvatages(productId: string): Promise<ProductAdvatages[]> {
     const result = await this.productAdvatagesModule
       .find({ productId })
       .populate({
@@ -66,6 +57,6 @@ export class ProductAdvatagesService {
     productId: string,
     discount: number,
   ) {
-    await this.productService.updateProductDiscountPrice(productId, discount);
+    //await this.productService.updateProductDiscountPrice(productId, discount);
   }
 }

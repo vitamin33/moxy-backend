@@ -14,14 +14,17 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/role-auth.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ProductAdvantagesService } from './service/product-advatages.service';
 import { AddProductAdvatagesDto } from './dto/add-product-advatages.dto';
-import { ProductAdvatagesService } from './product-advatages.service';
+import { ProductsService } from './service/products.service';
+import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
 
 @UseGuards(JwtAuthGuard)
 @Controller('product-advatages')
 export class ProductAdvatagesController {
   constructor(
-    private readonly productAdvatagesService: ProductAdvatagesService,
+    private readonly productAdvatagesService: ProductAdvantagesService,
+    private readonly productsService: ProductsService,
   ) {}
 
   @Roles('ADMIN')
@@ -29,13 +32,15 @@ export class ProductAdvatagesController {
   @Post('add')
   @UseInterceptors(FileInterceptor('image'))
   async addProductAvatages(
-    @Body() addProductAdvatagesDto: AddProductAdvatagesDto,
+    @Body() dto: AddProductAdvatagesDto,
     @UploadedFile() image,
   ): Promise<ProductAdvatages> {
-    return this.productAdvatagesService.addProductAdvatages(
-      addProductAdvatagesDto,
-      image,
-    );
+    // Check if the product exists
+    const product = await this.productsService.getProductById(dto.productId);
+    if (!product) {
+      throw new ProductNotAvailableException(dto.productId);
+    }
+    return this.productAdvatagesService.addProductAdvatages(dto, image);
   }
 
   @Get()
