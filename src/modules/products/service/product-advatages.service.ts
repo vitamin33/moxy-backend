@@ -25,19 +25,12 @@ export class ProductAdvantagesService {
       productAdvatage.imageUrl = imageUrl;
     }
 
-    // Update the discountPrice in the Product entity
-    // await this.updateProductDiscountPrice(dto.productId, dto.discount);
-
     return await productAdvatage.save();
   }
 
   async getProductAdvatages(productId: string): Promise<ProductAdvatages[]> {
     const result = await this.productAdvatagesModule
       .find({ productId })
-      .populate({
-        path: 'product',
-        select: '-dimensions', // Exclude fields
-      })
       .lean()
       .exec();
     return result;

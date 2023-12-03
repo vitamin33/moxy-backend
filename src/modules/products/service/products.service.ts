@@ -215,7 +215,7 @@ export class ProductsService {
     return product;
   }
 
-  async getProductDetails(
+  async getProductDetailsWithAdvantages(
     id: string,
     populateDimensions: boolean = true,
   ): Promise<any> {
