@@ -80,6 +80,11 @@ export class ProductsController {
     return await this.productService.getProductById(id);
   }
 
+  @Get('details-with-advantages/:id')
+  async getProductDetailsWithAdvantages(@Param('id') id: string) {
+    return await this.productService.getProductDetailsWithAdvantages(id);
+  }
+
   @ApiOperation({ summary: 'Set product for sale (Admin Only)' })
   @ApiResponse({ status: 200, type: Product })
   @Post('set-for-sale')

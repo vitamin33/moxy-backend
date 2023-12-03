@@ -10,11 +10,10 @@ import { ProductNotAvailableException } from 'src/common/exception/product-not-a
 import { SettingsService } from 'src/modules/settings/settings.service';
 import { Dimension } from 'src/common/entity/dimension.entity';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
-import { AttributesService } from 'src/modules/attributes/attributes.service';
-import { AttributesWithCategories } from 'src/modules/attributes/attribute.entity';
 import { ProductAttributesDto } from '../dto/attributes.dto';
 import { convertToDimension } from 'src/common/utility';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
+import { ProductAdvantagesService } from 'src/modules/products/service/product-advatages.service';
 
 @Injectable()
 export class ProductsService {
@@ -23,8 +22,8 @@ export class ProductsService {
     private storageService: StorageService,
     private importProductsService: ImportProductsService,
     private settingsService: SettingsService,
-    private attributesService: AttributesService,
     private favoritesService: FavoritesService,
+    private productAdvatagesService: ProductAdvantagesService,
   ) {}
 
   async createProduct(
@@ -210,6 +209,28 @@ export class ProductsService {
       return {
         ...productObj,
         costPrice,
+      };
+    }
+
+    return product;
+  }
+
+  async getProductDetailsWithAdvantages(
+    id: string,
+    populateDimensions: boolean = true,
+  ): Promise<any> {
+    const product = await this.findProductById(id, populateDimensions);
+
+    if (product) {
+      let productAdvantages =
+        await this.productAdvatagesService.getProductAdvatages(id);
+      // Calculate costPrice and add it to the product object
+      const costPrice = this.calculateCostPrice(product);
+      const productObj = product;
+      return {
+        ...productObj,
+        costPrice,
+        productAdvantages,
       };
     }
 
