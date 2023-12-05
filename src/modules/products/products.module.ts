@@ -24,12 +24,12 @@ import {
 } from '../attributes/attribute.entity';
 import { AttributesModule } from '../attributes/attributes.module';
 import { FavoritesModule } from '../favorites/favorites.module';
-import { ProductAdvatagesController } from './product-advatages.controller';
-import { ProductAdvantagesService } from './service/product-advatages.service';
+import { ProductAdvantagesController } from './product-advantages.controller';
+import { ProductAdvantagesService } from './service/product-advantages.service';
 import {
-  ProductAdvatages,
-  ProductAdvatagesSchema,
-} from './product-advatages.entity';
+  ProductAdvantages,
+  ProductAdvantagesSchema,
+} from './product-advantages.entity';
 
 @Module({
   imports: [
@@ -42,14 +42,14 @@ import {
     ]),
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
     MongooseModule.forFeature([
-      { name: ProductAdvatages.name, schema: ProductAdvatagesSchema },
+      { name: ProductAdvantages.name, schema: ProductAdvantagesSchema },
     ]),
     StorageModule,
     SettingsModule,
     AttributesModule,
     FavoritesModule,
   ],
-  controllers: [ProductsController, ProductAdvatagesController],
+  controllers: [ProductsController, ProductAdvantagesController],
   providers: [ProductsService, ProductAdvantagesService, ImportProductsService],
   exports: [ProductsService],
 })
