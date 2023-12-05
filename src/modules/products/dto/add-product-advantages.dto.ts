@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsUrl } from 'class-validator';
 
-export class AddProductAdvatagesDto {
+export class AddProductAdvantagesDto {
   @IsNotEmpty()
   header: string;
 

@@ -13,7 +13,7 @@ import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { ProductAttributesDto } from '../dto/attributes.dto';
 import { convertToDimension } from 'src/common/utility';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
-import { ProductAdvantagesService } from 'src/modules/products/service/product-advatages.service';
+import { ProductAdvantagesService } from 'src/modules/products/service/product-advantages.service';
 
 @Injectable()
 export class ProductsService {
@@ -23,7 +23,7 @@ export class ProductsService {
     private importProductsService: ImportProductsService,
     private settingsService: SettingsService,
     private favoritesService: FavoritesService,
-    private productAdvatagesService: ProductAdvantagesService,
+    private productAdvantagesService: ProductAdvantagesService,
   ) {}
 
   async createProduct(
@@ -223,7 +223,7 @@ export class ProductsService {
 
     if (product) {
       let productAdvantages =
-        await this.productAdvatagesService.getProductAdvatages(id);
+        await this.productAdvantagesService.getProductAdvantages(id);
       // Calculate costPrice and add it to the product object
       const costPrice = this.calculateCostPrice(product);
       const productObj = product;
