@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UsePipes,
   Request,
+  Query,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductsService } from './service/products.service';
@@ -22,6 +23,7 @@ import { JwtAuthGuard } from 'src/modules/auth/jwt-auth.guard';
 import { Roles } from 'src/modules/auth/role-auth.decorator';
 import { RolesGuard } from 'src/modules/auth/roles.guard';
 import { SetProductForSaleDto } from './dto/set-product-forsale.dto';
+import { GetSellingProductsQuery } from './dto/category-query.query';
 
 @ApiTags('Products')
 @UseGuards(JwtAuthGuard)
@@ -97,9 +99,12 @@ export class ProductsController {
   @ApiOperation({ summary: 'Get selling products' })
   @ApiResponse({ status: 200, type: [Product] })
   @Get('selling-products')
-  async getSellingProducts(@Request() req: any) {
+  async getSellingProducts(
+    @Request() req: any,
+    @Query() query: GetSellingProductsQuery,
+  ) {
     const userId = req.user.id;
-    return this.productService.getSellingProducts(userId);
+    return this.productService.getSellingProducts(userId, query.category);
   }
 
   @ApiOperation({ summary: 'Get recommended products' })

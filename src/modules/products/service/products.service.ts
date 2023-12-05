@@ -322,14 +322,20 @@ export class ProductsService {
     }
   }
 
-  async getSellingProducts(userId: string) {
-    const products = await this.productModel
-      .find({ forSale: true })
+  async getSellingProducts(userId: string, category?: string) {
+    let query = this.productModel.find({ forSale: true });
+
+    if (category) {
+      query = query.where('category').equals(category);
+    }
+
+    const products = await query
       .populate('dimensions.color', 'name hexCode')
       .populate('dimensions.size', 'name')
       .populate('dimensions.material', 'name')
       .lean()
       .exec();
+
     return this.addIsFavoriteToProducts(userId, products);
   }
 
