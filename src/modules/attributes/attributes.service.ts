@@ -12,6 +12,8 @@ import { AddColorDto } from './dto/add-color.dto';
 import { AddMaterialDto } from './dto/add-material.dto';
 import { AddSizeDto } from './dto/add-size.dto';
 import { ProductCategory } from '../products/product.entity';
+import { ActivateHomeMediaDto } from '../settings/dto/activate-home-media.dto';
+import { SettingsService } from '../settings/settings.service';
 
 @Injectable()
 export class AttributesService {
@@ -19,6 +21,7 @@ export class AttributesService {
     @InjectModel(Color.name) private colorModel: Model<Color>,
     @InjectModel(Size.name) private sizeModel: Model<Size>,
     @InjectModel(Material.name) private materialModel: Model<Material>,
+    private settingsService: SettingsService,
   ) {}
 
   async addColor(colorDto: AddColorDto) {
@@ -109,11 +112,13 @@ export class AttributesService {
   async getAttributes(): Promise<AttributesWithCategories> {
     const attributes = await this.getOrCreateAttributes();
     const productCategories = Object.values(ProductCategory);
+    const homeMedia = this.settingsService.getHomeMedia();
 
     // Create an object that includes attributes and productCategories
     const result: any = {
       ...attributes, // Include all properties from attributes
       productCategories,
+      homeMedia,
     };
 
     return result;

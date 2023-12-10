@@ -13,6 +13,7 @@ import {
   Size,
   SizeSchema,
 } from './attribute.entity';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import {
       { name: Material.name, schema: MaterialSchema },
     ]),
     MongooseModule.forFeature([{ name: Size.name, schema: SizeSchema }]),
+    SettingsModule,
   ],
   providers: [AttributesService],
   controllers: [AttributesController],
