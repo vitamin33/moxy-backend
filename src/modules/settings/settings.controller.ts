@@ -60,14 +60,12 @@ export class SettingsController {
     return this.settingsService.activateHomeMedia(dto);
   }
 
-  @Roles('ADMIN')
   @UseGuards(RolesGuard)
   @Get('media/home')
   async getHomeMedia() {
     return this.settingsService.getHomeMedia();
   }
 
-  @Roles('ADMIN')
   @UseGuards(RolesGuard)
   @Get('media')
   async getAllMedia() {
