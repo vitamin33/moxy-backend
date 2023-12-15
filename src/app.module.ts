@@ -17,6 +17,7 @@ import { AttributesModule } from './modules/attributes/attributes.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PaymentModule } from './modules/payment/payment.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
     ProfileModule,
     BasketModule,
     PromosModule,
+    ReviewsModule,
     SettingsModule,
     AttributesModule,
     PaymentModule,
