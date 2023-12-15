@@ -112,7 +112,7 @@ export class AttributesService {
   async getAttributes(): Promise<AttributesWithCategories> {
     const attributes = await this.getOrCreateAttributes();
     const productCategories = Object.values(ProductCategory);
-    const homeMedia = this.settingsService.getHomeMedia();
+    const homeMedia = await this.settingsService.getHomeMedia();
 
     // Create an object that includes attributes and productCategories
     const result: any = {

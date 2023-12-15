@@ -53,8 +53,14 @@ export class SettingsService {
   }
 
   async removeMedia(id: string) {
-    const media = await this.mediaModel.findByIdAndRemove(id).exec();
-    return media;
+    const removeMedia = await this.mediaModel.findByIdAndRemove(id).exec();
+
+    for (const media of removeMedia.mediaUrls) {
+      if (!media) {
+        this.storageService.deleteFile(media);
+      }
+    }
+    return removeMedia;
   }
 
   async activateHomeMedia(dto: ActivateHomeMediaDto) {
@@ -70,7 +76,10 @@ export class SettingsService {
   }
 
   async getHomeMedia() {
-    const homeMedia = await this.mediaModel.find({ activeHome: true }).exec();
+    const homeMedia = await this.mediaModel
+      .find({ activeHome: true })
+      .lean()
+      .exec();
     return homeMedia;
   }
 
