@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 export enum MediaType {
   Image = 'Image',
@@ -17,6 +17,9 @@ export class Media extends Document {
 
   @Prop({ default: false })
   activeHome: boolean;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Product' })
+  productId: mongoose.Schema.Types.ObjectId;
 }
 
 export const MediaSchema = SchemaFactory.createForClass(Media);
