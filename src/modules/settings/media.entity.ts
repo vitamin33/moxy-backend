@@ -6,6 +6,19 @@ export enum MediaType {
   Video = 'Video',
   ImageSet = 'ImageSet',
 }
+export function parseMediaType(value: string): MediaType | undefined {
+  const enumKeys = Object.keys(MediaType).filter(
+    (k) => typeof MediaType[k as any] === 'string',
+  );
+
+  for (const key of enumKeys) {
+    if (MediaType[key as keyof typeof MediaType] === value) {
+      return MediaType[key as keyof typeof MediaType];
+    }
+  }
+
+  return undefined;
+}
 
 @Schema()
 export class Media extends Document {

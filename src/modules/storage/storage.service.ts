@@ -2,24 +2,39 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Storage } from '@google-cloud/storage';
 import { v4 as uuid } from 'uuid';
 import { format } from 'util';
+import { MediaType } from '../settings/media.entity';
 
 const storage = new Storage({ keyFilename: './google-credentials.json' });
 
 @Injectable()
 export class StorageService {
-  async uploadFile(file): Promise<string> {
+  async uploadFile(file, type: MediaType): Promise<string> {
     try {
       const { buffer } = file;
       const bucket = process.env.STORAGE_MEDIA_BUCKET;
       const fileId: string = uuid();
-      const fileName: string = `${fileId}.jpeg`;
+      let fileExtension: string;
+
+      // Determine the file extension based on the MediaType enum
+      switch (type) {
+        case MediaType.Image:
+        case MediaType.ImageSet:
+          fileExtension = 'jpeg';
+          break;
+        case MediaType.Video:
+          fileExtension = 'mp4';
+          break;
+        default:
+          throw new HttpException(
+            `Unsupported MediaType for storage into GCS: ${type}`,
+            HttpStatus.BAD_REQUEST,
+          );
+      }
+
+      const fileName: string = `${fileId}.${fileExtension}`;
       const blob = storage.bucket(bucket).file(fileName);
       await blob.save(buffer);
 
-      //   const [metadata] = await storage
-      //     .bucket(bucket)
-      //     .file(fileId)
-      //     .getMetadata();
       const publicUrl = format(
         `https://storage.googleapis.com/${bucket}/${blob.name}`,
       );

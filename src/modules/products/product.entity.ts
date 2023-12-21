@@ -56,6 +56,7 @@ export type ProductDocument = HydratedDocument<FullProductDocument>;
       return ret;
     },
   },
+  timestamps: true,
 })
 export class Product {
   @Transform(({ value }) => value.toString())
@@ -132,6 +133,13 @@ export class Product {
   })
   @Prop({ default: true }) // Default value is true (for sale)
   forSale: boolean;
+
+  @ApiProperty({
+    example: '2023-01-01T00:00:00.000Z',
+    description: 'Product creation date',
+  })
+  @Prop()
+  createdAt: Date;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

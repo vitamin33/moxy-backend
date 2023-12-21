@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { ProductAdvantages } from '../product-advantages.entity';
 import { StorageService } from 'src/modules/storage/storage.service';
 import { AddProductAdvantagesDto } from '../dto/add-product-advantages.dto';
+import { MediaType } from 'src/modules/settings/media.entity';
 
 @Injectable()
 export class ProductAdvantagesService {
@@ -21,7 +22,10 @@ export class ProductAdvantagesService {
     });
 
     if (image) {
-      const imageUrl = await this.storageService.uploadFile(image);
+      const imageUrl = await this.storageService.uploadFile(
+        image,
+        MediaType.Image,
+      );
       productAdvantage.imageUrl = imageUrl;
     }
 
