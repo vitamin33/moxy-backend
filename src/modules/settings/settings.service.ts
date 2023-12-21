@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Media } from './media.entity';
+import { Media, parseMediaType } from './media.entity';
 import { Model, set } from 'mongoose';
 import { StorageService } from '../storage/storage.service';
 import { AddMediaDto } from './dto/add-media.dto';
@@ -26,7 +26,10 @@ export class SettingsService {
 
   async addMedia(dto: AddMediaDto, mediaFile: any) {
     const mediaUrls = [];
-    const fileUrl = await this.storageService.uploadFile(mediaFile);
+    const fileUrl = await this.storageService.uploadFile(
+      mediaFile,
+      parseMediaType(dto.type),
+    );
     mediaUrls.push(fileUrl);
 
     const newMedia = new this.mediaModel({
@@ -40,7 +43,10 @@ export class SettingsService {
   async addMediaWithMultipleFiles(dto: AddMediaDto, mediaFiles: any) {
     const mediaUrls = [];
     for (const file of mediaFiles) {
-      const fileUrl = await this.storageService.uploadFile(file);
+      const fileUrl = await this.storageService.uploadFile(
+        file,
+        parseMediaType(dto.type),
+      );
       mediaUrls.push(fileUrl);
     }
 
@@ -53,13 +59,14 @@ export class SettingsService {
   }
 
   async removeMedia(id: string) {
-    const removeMedia = await this.mediaModel.findByIdAndRemove(id).exec();
+    const removeMedia = await this.mediaModel.findById(id).exec();
 
     for (const media of removeMedia.mediaUrls) {
       if (!media) {
         this.storageService.deleteFile(media);
       }
     }
+    this.mediaModel.findByIdAndRemove(id).exec();
     return removeMedia;
   }
 

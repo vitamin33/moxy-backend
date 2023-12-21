@@ -6,6 +6,7 @@ import { Promo } from './promo.entity';
 import { StorageService } from '../storage/storage.service';
 import { ProductsService } from '../products/service/products.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
+import { MediaType } from '../settings/media.entity';
 
 @Injectable()
 export class PromosService {
@@ -29,7 +30,10 @@ export class PromosService {
     });
 
     if (image) {
-      const imageUrl = await this.storageService.uploadFile(image);
+      const imageUrl = await this.storageService.uploadFile(
+        image,
+        MediaType.Image,
+      );
       promo.imageUrl = imageUrl;
     }
 

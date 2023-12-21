@@ -14,6 +14,7 @@ import { ProductAttributesDto } from '../dto/attributes.dto';
 import { convertToDimension } from 'src/common/utility';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
 import { ProductAdvantagesService } from 'src/modules/products/service/product-advantages.service';
+import { MediaType } from 'src/modules/settings/media.entity';
 
 @Injectable()
 export class ProductsService {
@@ -101,7 +102,10 @@ export class ProductsService {
       const lastIndex = initImageIndex + numberOfImages;
       for (let j = initImageIndex; j < lastIndex; j++) {
         const image = images[j];
-        const imageUrl = await this.storageService.uploadFile(image);
+        const imageUrl = await this.storageService.uploadFile(
+          image,
+          MediaType.Image,
+        );
 
         console.log('Saved image url: ', imageUrl);
         imagesArr.push(imageUrl);
