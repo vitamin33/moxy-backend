@@ -4,9 +4,6 @@ import mongoose, { Document } from 'mongoose';
 
 @Schema()
 export class Size {
-  @Prop({ default: mongoose.Types.ObjectId })
-  _id: mongoose.Types.ObjectId;
-
   @ApiProperty({ description: 'Size name (e.g., S, M, XL)' })
   @Prop({ required: true })
   name: string;
@@ -15,8 +12,6 @@ export const SizeSchema = SchemaFactory.createForClass(Size);
 
 @Schema()
 export class Color {
-  @ApiProperty({ description: 'Color name.' })
-  @Prop({ required: true })
   name: string;
   @ApiProperty({ description: 'Color hex code.' })
   @Prop({ required: true })
@@ -26,8 +21,6 @@ export const ColorSchema = SchemaFactory.createForClass(Color);
 
 @Schema()
 export class Material {
-  @Prop({ default: mongoose.Types.ObjectId })
-  _id: mongoose.Types.ObjectId;
   @ApiProperty({ description: 'Material name' })
   @Prop({ required: true })
   name: string;

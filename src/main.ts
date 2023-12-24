@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AuthExceptionFilter } from './modules/auth/auth-exception.filter';
 import { GlobalExceptionFilter } from './common/filter/global-exception.filter';
+import { MoxyLogger } from './middleware/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,7 +11,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Moxy REST API')
     .setDescription('Moxy Brand Shop REST API documentation.')
-    .setVersion('0.1.0')
+    .setVersion('0.2.0')
     .addTag('futuristic_cowboy')
     .build();
   const document = SwaggerModule.createDocument(app, config);
