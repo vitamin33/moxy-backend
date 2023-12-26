@@ -12,6 +12,8 @@ export const SizeSchema = SchemaFactory.createForClass(Size);
 
 @Schema()
 export class Color {
+  @ApiProperty({ description: 'Color name.' })
+  @Prop({ required: true })
   name: string;
   @ApiProperty({ description: 'Color hex code.' })
   @Prop({ required: true })
