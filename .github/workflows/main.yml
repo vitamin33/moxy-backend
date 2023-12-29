@@ -1,0 +1,40 @@
+name: Deploy Backend App
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Docker image
+        run: |
+          docker build -t gcr.io/moxy-384018/moxy-backend:latest -f Dockerfile .
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push gcr.io/moxy-384018/moxy-backend:latest
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f deployment.yaml
+        env:
+          KUBECONFIG: ${{ secrets.KUBE_CONFIG }}

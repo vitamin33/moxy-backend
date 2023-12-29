@@ -31,7 +31,7 @@ spec:
             - name: DB_NAME
               value: 'moxy'
             - name: FRONTEND_NEW_PASSWORD_URL
-              value: 'http://localhost:8000/reset-password/new-password'
+              value: 'http://moxy.com.ua/reset-password/new-password'
             - name: MONGODB_CONFIG
               valueFrom:
                 secretKeyRef:
