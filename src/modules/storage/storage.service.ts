@@ -11,7 +11,7 @@ export class StorageService {
   async uploadFile(file, type: MediaType): Promise<string> {
     try {
       const { buffer } = file;
-      const bucket = process.env.STORAGE_MEDIA_BUCKET;
+      const bucket = process.env.STORAGE_MEDIA_BUCKET || 'moxy-ua';
       const fileId: string = uuid();
       let fileExtension: string;
 
