@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moxy-backend-deployment
+  labels:
+    app: moxy-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moxy-backend
+  template:
+    metadata:
+      labels:
+        app: moxy-backend
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: default-pool
+      containers:
+        - name: moxy-backend
+          image: gcr.io/moxy-384018/moxy-backend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: '3000'
+            - name: PROJECT_ID
+              value: 'moxy-384018'
+            - name: STORAGE_MEDIA_BUCKET
+              value: 'moxy-ua'
+            - name: DB_NAME
+              value: 'moxy'
+            - name: FRONTEND_NEW_PASSWORD_URL
+              value: 'http://localhost:8000/reset-password/new-password'
+            - name: MONGODB_CONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: moxy-secrets
+                  key: MONGODB_CONFIG
+            - name: PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: moxy-secrets
+                  key: PRIVATE_KEY
+            - name: GOOGLE_SMTP_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: moxy-secrets
+                  key: GOOGLE_SMTP_CLIENT_SECRET
+            - name: GOOGLE_SMTP_REFRESH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: moxy-secrets
+                  key: GOOGLE_SMTP_REFRESH_TOKEN
+            - name: MAIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: moxy-secrets
+                  key: MAIN_EMAIL
+            - name: MONOPAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: moxy-secrets
+                  key: MONOPAY_TOKEN

@@ -1,0 +1,4 @@
+ 
+ gcloud container clusters get-credentials moxy-cluster --zone europe-central2-a --project moxy-384018
+ 
+ kubectl apply -f deployment.yaml 
