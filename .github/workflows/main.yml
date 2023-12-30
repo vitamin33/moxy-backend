@@ -38,7 +38,12 @@ jobs:
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
 
+      - name: Create Kubeconfig File
+        run: echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+
       - name: Deploy to Kubernetes
         run: kubectl apply -f deployment.yaml
         env:
-          KUBECONFIG: ${{ secrets.KUBE_CONFIG }}
+          KUBECONFIG: ${{ github.workspace }}/kubeconfig
