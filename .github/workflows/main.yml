@@ -38,6 +38,17 @@ jobs:
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
 
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v0.4.0
+        with:
+          credentials_json: ${{ github.workspace }}/decoded_key.json
+
+      - name: Install gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2.0.1
+
+      - name: Install gke-gcloud-auth-plugin
+        run: gcloud components install gke-gcloud-auth-plugin
+
       - name: Create Kubeconfig File
         run: echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig
         env:
