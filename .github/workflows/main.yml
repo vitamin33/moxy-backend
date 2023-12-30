@@ -29,6 +29,9 @@ jobs:
           echo "${{ secrets.DOCKER_PASSWORD }}" | base64 -d > decoded_key.json
           cat decoded_key.json | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin https://gcr.io
 
+      - name: Debug - Display Decoded File Content
+        run: cat decoded_key.json
+
       - name: Push Docker image to GCR
         run: docker push gcr.io/moxy-384018/moxy-backend:latest
 
