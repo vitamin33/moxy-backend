@@ -42,12 +42,12 @@ jobs:
           sudo mv kubectl /usr/local/bin/
 
       - name: Debug - Display Decoded File Content
-        run: cat ${{ github.workspace }}/decoded_key.json
+        run: cat ${{ secrets.GCP_SA_KEY_JSON }}
 
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v0.4.0
         with:
-          credentials_json: ${{ github.workspace }}/decoded_key.json
+          credentials_json: ${{ secrets.GCP_SA_KEY_JSON }}
 
       - name: Install gcloud CLI
         uses: google-github-actions/setup-gcloud@v2.0.1
