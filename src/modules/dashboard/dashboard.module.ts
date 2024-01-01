@@ -33,4 +33,10 @@ import { ProfitCalculationService } from './service/profit.service';
     ProfitCalculationService,
   ],
 })
-export class DashboardModule {}
+export class DashboardModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}
