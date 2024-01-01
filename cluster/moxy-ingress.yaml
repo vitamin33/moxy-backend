@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: moxy-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+spec:
+  ingressClassName: 'nginx' # This line is added
+  tls:
+    - hosts:
+        - moxy.com.ua
+      secretName: moxy-com-ua-tls
+  rules:
+    - host: moxy.com.ua
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: moxy-backend-service
+                port:
+                  number: 80
