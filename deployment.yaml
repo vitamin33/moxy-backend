@@ -15,7 +15,7 @@ spec:
         app: moxy-backend
     spec:
       nodeSelector:
-        cloud.google.com/gke-nodepool: default-pool
+        cloud.google.com/gke-nodepool: moxy-pool
       containers:
         - name: moxy-backend
           image: gcr.io/moxy-384018/moxy-backend:latest
