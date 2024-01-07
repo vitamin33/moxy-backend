@@ -4,9 +4,14 @@ import { v4 as uuid } from 'uuid';
 import { format } from 'util';
 import { MediaType } from '../settings/media.entity';
 
-const storage = new Storage({
-  credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
-});
+const credentials = process.env.GOOGLE_CREDENTIALS;
+
+if (!credentials) {
+  throw new Error('Google credentials not found in environment variables');
+}
+
+const parsedCredentials = JSON.parse(credentials);
+const storage = new Storage({ credentials: parsedCredentials });
 
 @Injectable()
 export class StorageService {
