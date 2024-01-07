@@ -28,11 +28,6 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            - name: GOOGLE_CREDENTIALS
-              valueFrom:
-                secretKeyRef:
-                  name: google-credentials
-                  key: google-credentials.json
             - name: DB_NAME
               value: 'moxy'
             - name: FRONTEND_NEW_PASSWORD_URL
