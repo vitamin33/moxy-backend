@@ -3,7 +3,6 @@ FROM node:18-alpine AS builder
 WORKDIR /usr/src/app
 
 # Install build tools and dependencies
-# Note that we're not using --only=production here because we may need devDependencies for building
 COPY package*.json ./
 RUN npm install
 
@@ -16,6 +15,11 @@ RUN npm run build
 # Run stage
 FROM node:18-alpine
 WORKDIR /usr/src/app
+
+# Accept GOOGLE_CREDENTIALS as a build argument
+ARG GOOGLE_CREDENTIALS
+# Set GOOGLE_CREDENTIALS as an environment variable
+ENV GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS
 
 # Copy the built application from the builder stage
 COPY --from=builder /usr/src/app/dist ./dist

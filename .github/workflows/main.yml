@@ -24,18 +24,6 @@ jobs:
       - name: Generate unique tag
         run: echo "UNIQUE_TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
-      - name: Decode and Check Google Credentials
-        id: check_credentials
-        run: |
-          echo $GOOGLE_CREDENTIALS_JSON | base64 -d > google-credentials.json
-          cat google-credentials.json
-          if ! jq empty google-credentials.json; then
-            echo "Google credentials JSON is invalid"
-            exit 1
-          fi
-        env:
-          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
-
       - name: Build Docker image
         run: |
           echo $GOOGLE_CREDENTIALS_JSON | base64 -d > google-credentials.json

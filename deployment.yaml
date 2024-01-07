@@ -62,3 +62,8 @@ spec:
                 secretKeyRef:
                   name: moxy-secrets
                   key: MONOPAY_TOKEN
+            - name: GOOGLE_CREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: google-credentials
+                  key: google-credentials.json
