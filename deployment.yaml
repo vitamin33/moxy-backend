@@ -23,9 +23,7 @@ spec:
         cloud.google.com/gke-nodepool: moxy-pool
       containers:
         - name: moxy-backend
-          # TODO: Replace 'latest' with your actual unique image tag.
-          # This tag should be updated every time you build a new image.
-          image: gcr.io/moxy-384018/moxy-backend:latest
+          image: gcr.io/moxy-384018/moxy-backend:latest # Placeholder, will be replaced in CI/CD
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -59,8 +57,3 @@ spec:
                 secretKeyRef:
                   name: moxy-secrets
                   key: MAIN_EMAIL
-            - name: MONOPAY_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: moxy-secrets
-                  key: MONOPAY_TOKEN

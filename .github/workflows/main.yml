@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      unique_tag: ${{ steps.tag.outputs.date }}
 
     steps:
       - name: Checkout code
@@ -21,19 +23,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate unique tag
+        id: tag
+        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M%S')"
+
       - name: Build Docker image
-        run: docker build -t gcr.io/moxy-384018/moxy-backend:latest -f Dockerfile .
+        run: docker build -t gcr.io/moxy-384018/moxy-backend:${{ steps.tag.outputs.date }} -f Dockerfile .
 
       - name: Login to Google Container Registry
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | base64 -d > decoded_key.json
           cat decoded_key.json | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin https://gcr.io
 
-      - name: Debug - Display Decoded File Content
-        run: cat decoded_key.json
-
       - name: Push Docker image to GCR
-        run: docker push gcr.io/moxy-384018/moxy-backend:latest
+        run: docker push gcr.io/moxy-384018/moxy-backend:${{ steps.tag.outputs.date }}
 
       - name: Install kubectl
         run: |
@@ -57,12 +60,11 @@ jobs:
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
 
+      - name: Replace image tag in deployment file
+        run: |
+          sed -i "s|moxy-backend:latest|moxy-backend:${{ steps.tag.outputs.date }}|g" deployment.yaml
+
       - name: Deploy to Kubernetes
         run: kubectl apply -f deployment.yaml
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
-
-      # - name: Force restart of deployment
-      #   run: kubectl rollout restart deployment moxy-backend-deployment
-      #   env:
-      #     KUBECONFIG: ${{ github.workspace }}/kubeconfig
