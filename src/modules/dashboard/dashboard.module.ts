@@ -1,4 +1,9 @@
-import { Module, forwardRef } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  RequestMethod,
+  forwardRef,
+} from '@nestjs/common';
 import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -12,6 +17,7 @@ import { CostCalculationService } from './service/cost-calculation.service';
 import { OrderCountService } from './service/order-count.service';
 import { TimeFrameService } from './service/time-frame.service';
 import { ProfitCalculationService } from './service/profit.service';
+import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 
 @Module({
   imports: [
@@ -33,4 +39,10 @@ import { ProfitCalculationService } from './service/profit.service';
     ProfitCalculationService,
   ],
 })
-export class DashboardModule {}
+export class DashboardModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

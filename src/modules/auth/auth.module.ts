@@ -26,8 +26,8 @@ import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 })
 export class AuthModule {
   configure(consumer: MiddlewareConsumer) {
-    // consumer
-    //   .apply(LoggerMiddleware)
-    //   .forRoutes({ path: '*', method: RequestMethod.ALL });
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
