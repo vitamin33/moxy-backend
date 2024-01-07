@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Storage } from '@google-cloud/storage';
 import { v4 as uuid } from 'uuid';
 import { format } from 'util';
@@ -8,6 +8,8 @@ const storage = new Storage({ keyFilename: './google-credentials.json' });
 
 @Injectable()
 export class StorageService {
+  private readonly logger = new Logger(StorageService.name);
+
   async uploadFile(file, type: MediaType): Promise<string> {
     try {
       const { buffer } = file;
@@ -15,7 +17,7 @@ export class StorageService {
       const fileId: string = uuid();
       let fileExtension: string;
 
-      console.log(`Uploading started, mediaType: ${type}`);
+      this.logger.debug(`Uploading started, mediaType: ${type}`);
 
       // Determine the file extension based on the MediaType enum
       switch (type) {
@@ -40,11 +42,11 @@ export class StorageService {
       const publicUrl = format(
         `https://storage.googleapis.com/${bucket}/${blob.name}`,
       );
-
-      console.log(`Uploaded file: ${publicUrl}`);
+      this.logger.debug(`Uploaded file: ${publicUrl}`);
 
       return publicUrl;
     } catch (error) {
+      this.logger.error(`Error uploading file: ${error.message}`);
       throw new HttpException(
         'Error during uploading to GoogleStorage',
         HttpStatus.INTERNAL_SERVER_ERROR,

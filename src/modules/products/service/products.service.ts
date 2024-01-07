@@ -118,7 +118,7 @@ export class ProductsService {
   async editProduct(id: string, dto: EditProductDto, newImages: [any]) {
     const product = await this.getProductById(id);
     if (product) {
-      if (newImages) {
+      if (newImages && newImages.length > 0) {
         await this.saveImagesAndUpdateDimensions(
           dto.dimensions,
           dto.numberOfImagesForDimensions,
