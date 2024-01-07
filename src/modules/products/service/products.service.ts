@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { FavoriteProduct, Product, ProductDocument } from '../product.entity';
 import { InjectModel } from '@nestjs/mongoose';
@@ -18,6 +18,7 @@ import { MediaType } from 'src/modules/settings/media.entity';
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     private storageService: StorageService,
@@ -31,6 +32,9 @@ export class ProductsService {
     dto: CreateProductDto,
     images: [any],
   ): Promise<ProductDocument> {
+    this.logger.debug(
+      `createProduct, dto: ${dto} images size: ${images.length}`,
+    );
     if (images) {
       await this.saveImagesAndUpdateDimensions(
         dto.dimensions,
@@ -48,6 +52,7 @@ export class ProductsService {
       dimensions,
       attributes: parsedAttributes,
     });
+    this.logger.debug(`Start saving product...`);
 
     return await product.save();
   }
@@ -89,6 +94,9 @@ export class ProductsService {
     images: [any],
     isCreating: boolean,
   ) {
+    this.logger.debug(
+      `saveImagesAndUpdateDimensions, images size: ${images.length}`,
+    );
     let initImageIndex = 0;
     for (let i = 0; i < dimensions.length; i++) {
       const dimen = dimensions[i];
@@ -107,11 +115,12 @@ export class ProductsService {
           MediaType.Image,
         );
 
-        console.log('Saved image url: ', imageUrl);
+        this.logger.debug(`Saved image url: ${imageUrl}`);
         imagesArr.push(imageUrl);
       }
       initImageIndex = lastIndex;
       dimen.images = imagesArr;
+      this.logger.debug(`Saved image array for dimension: ${imagesArr}`);
     }
   }
 
