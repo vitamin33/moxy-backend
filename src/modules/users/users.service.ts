@@ -35,14 +35,17 @@ export class UsersService {
     return await user.save();
   }
 
-  async createGuestUser(dto: GuestUserDto): Promise<User> {
+  async createGuestUser(
+    dto: GuestUserDto,
+    skipErrors: boolean = false,
+  ): Promise<User> {
     const client = await this.getUserByMobileNumber(dto.mobileNumber);
     if (!client) {
       const user = new this.userModel(dto);
       const role = await this.roleService.getRoleByValue('GUEST');
       user.$set('role', role);
       return await user.save();
-    } else {
+    } else if (!skipErrors) {
       throw new HttpException(
         'User with such mobile number already exists.',
         HttpStatus.BAD_REQUEST,
@@ -139,7 +142,7 @@ export class UsersService {
       guestUser.firstName = user.firstName;
       guestUser.secondName = user.secondName;
       guestUser.mobileNumber = user.mobileNumber;
-      this.createGuestUser(guestUser);
+      this.createGuestUser(guestUser, true);
     }
     return users;
   }

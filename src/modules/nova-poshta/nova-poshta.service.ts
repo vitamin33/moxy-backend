@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class NovaPoshtaService {
-  private readonly apiKey = '90603e83773eeb1f59952e4c85a53012';
+  private readonly apiKey = '11b1e08fcb5f09149f5c01041fd1ca97';
   private readonly baseUrl = 'https://api.novaposhta.ua/v2.0/json/';
   private readonly polinaRef = '390dc8bf-cd7e-11ed-a60f-48df37b921db';
   private readonly axiosInstance: AxiosInstance;
@@ -49,7 +49,7 @@ export class NovaPoshtaService {
           users.push(user);
         }
 
-        result = users;
+        result = result.concat(users);
       }
       return result;
     } catch (error) {

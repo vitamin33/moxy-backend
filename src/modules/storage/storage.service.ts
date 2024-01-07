@@ -15,6 +15,8 @@ export class StorageService {
       const fileId: string = uuid();
       let fileExtension: string;
 
+      console.log(`Uploading started, mediaType: ${type}`);
+
       // Determine the file extension based on the MediaType enum
       switch (type) {
         case MediaType.Image:
@@ -38,6 +40,8 @@ export class StorageService {
       const publicUrl = format(
         `https://storage.googleapis.com/${bucket}/${blob.name}`,
       );
+
+      console.log(`Uploaded file: ${publicUrl}`);
 
       return publicUrl;
     } catch (error) {
