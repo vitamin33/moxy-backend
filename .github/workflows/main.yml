@@ -8,8 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      unique_tag: ${{ steps.tag.outputs.date }}
 
     steps:
       - name: Checkout code
@@ -24,11 +22,10 @@ jobs:
         run: npm ci
 
       - name: Generate unique tag
-        id: tag
-        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M%S')"
+        run: echo "UNIQUE_TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
       - name: Build Docker image
-        run: docker build -t gcr.io/moxy-384018/moxy-backend:${{ steps.tag.outputs.date }} -f Dockerfile .
+        run: docker build -t gcr.io/moxy-384018/moxy-backend:${{ env.UNIQUE_TAG }} -f Dockerfile .
 
       - name: Login to Google Container Registry
         run: |
@@ -36,7 +33,7 @@ jobs:
           cat decoded_key.json | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin https://gcr.io
 
       - name: Push Docker image to GCR
-        run: docker push gcr.io/moxy-384018/moxy-backend:${{ steps.tag.outputs.date }}
+        run: docker push gcr.io/moxy-384018/moxy-backend:${{ env.UNIQUE_TAG }}
 
       - name: Install kubectl
         run: |
@@ -60,9 +57,10 @@ jobs:
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
 
+      # The UNIQUE_TAG environment variable is set dynamically in a previous step
       - name: Replace image tag in deployment file
         run: |
-          sed -i "s|moxy-backend:latest|moxy-backend:${{ steps.tag.outputs.date }}|g" deployment.yaml
+          sed -i "s|moxy-backend:latest|moxy-backend:${{ env.UNIQUE_TAG }}|g" deployment.yaml
 
       - name: Deploy to Kubernetes
         run: kubectl apply -f deployment.yaml

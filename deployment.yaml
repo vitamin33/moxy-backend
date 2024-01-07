@@ -23,7 +23,7 @@ spec:
         cloud.google.com/gke-nodepool: moxy-pool
       containers:
         - name: moxy-backend
-          image: gcr.io/moxy-384018/moxy-backend:latest # Placeholder, will be replaced in CI/CD
+          image: gcr.io/moxy-384018/moxy-backend:latest # This will be replaced by the unique tag
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -57,3 +57,8 @@ spec:
                 secretKeyRef:
                   name: moxy-secrets
                   key: MAIN_EMAIL
+            - name: MONOPAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: moxy-secrets
+                  key: MONOPAY_TOKEN
