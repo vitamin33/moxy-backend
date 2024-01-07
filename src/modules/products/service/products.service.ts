@@ -33,7 +33,9 @@ export class ProductsService {
     images: [any],
   ): Promise<ProductDocument> {
     this.logger.debug(
-      `createProduct, dto: ${dto} images size: ${images.length}`,
+      `createProduct, dto: ${JSON.stringify(dto)} images size: ${
+        images.length
+      }`,
     );
     if (images) {
       await this.saveImagesAndUpdateDimensions(

@@ -61,3 +61,8 @@ jobs:
         run: kubectl apply -f deployment.yaml
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
+
+      # - name: Force restart of deployment
+      #   run: kubectl rollout restart deployment moxy-backend-deployment
+      #   env:
+      #     KUBECONFIG: ${{ github.workspace }}/kubeconfig

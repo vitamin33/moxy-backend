@@ -9,6 +9,11 @@ spec:
   selector:
     matchLabels:
       app: moxy-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -18,7 +23,10 @@ spec:
         cloud.google.com/gke-nodepool: moxy-pool
       containers:
         - name: moxy-backend
+          # TODO: Replace 'latest' with your actual unique image tag.
+          # This tag should be updated every time you build a new image.
           image: gcr.io/moxy-384018/moxy-backend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           env:
