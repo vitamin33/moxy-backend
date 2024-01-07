@@ -4,7 +4,9 @@ import { v4 as uuid } from 'uuid';
 import { format } from 'util';
 import { MediaType } from '../settings/media.entity';
 
-const storage = new Storage({ keyFilename: './google-credentials.json' });
+const storage = new Storage({
+  credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
+});
 
 @Injectable()
 export class StorageService {
