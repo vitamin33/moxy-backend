@@ -3,14 +3,30 @@ import { Storage } from '@google-cloud/storage';
 import { v4 as uuid } from 'uuid';
 import { format } from 'util';
 import { MediaType } from '../settings/media.entity';
+import { readFileSync } from 'fs';
+import { join, resolve } from 'path';
+
+let parsedCredentials;
 
 const credentials = process.env.GOOGLE_CREDENTIALS;
 
-if (!credentials) {
-  throw new Error('Google credentials not found in environment variables');
+if (credentials) {
+  parsedCredentials = JSON.parse(credentials);
+} else {
+  try {
+    // Constructing the relative path from the storage service to the root directory
+    const credentialsFilePath = join(
+      __dirname,
+      './../../../../google-credentials.json',
+    );
+    const credentialsFile = readFileSync(credentialsFilePath, 'utf8');
+    parsedCredentials = JSON.parse(credentialsFile);
+  } catch (error) {
+    throw new Error(
+      'Failed to load Google credentials from file: ' + error.message,
+    );
+  }
 }
-
-const parsedCredentials = JSON.parse(credentials);
 const storage = new Storage({ credentials: parsedCredentials });
 
 @Injectable()
