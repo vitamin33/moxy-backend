@@ -103,11 +103,14 @@ export class ProductsService {
     for (let i = 0; i < dimensions.length; i++) {
       const dimen = dimensions[i];
       const numberOfImages = +numberOfImagesForDimensions[i];
-      let imagesArr: string[];
-      if (isCreating) {
-        imagesArr = [];
-      } else {
-        imagesArr = Array.isArray(dimen.images) ? dimen.images : [dimen.images];
+      let imagesArr: string[] = [];
+
+      if (!isCreating) {
+        if (Array.isArray(dimen.images)) {
+          imagesArr = dimen.images;
+        } else if (dimen.images) {
+          imagesArr = [dimen.images];
+        }
       }
       const lastIndex = initImageIndex + numberOfImages;
       for (let j = initImageIndex; j < lastIndex; j++) {
