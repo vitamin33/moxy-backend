@@ -1,6 +1,11 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateProductDto } from '../dto/create-product.dto';
-import { FavoriteProduct, Product, ProductDocument } from '../product.entity';
+import {
+  FavoriteProduct,
+  Product,
+  ProductDocument,
+  ProductWithCostPrice,
+} from '../product.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { StorageService } from 'src/modules/storage/storage.service';
@@ -236,7 +241,7 @@ export class ProductsService {
   async getProductDetailsWithAdvantages(
     id: string,
     populateDimensions: boolean = true,
-  ): Promise<any> {
+  ): Promise<ProductWithCostPrice> {
     const product = await this.findProductById(id, populateDimensions);
 
     if (product) {
@@ -252,13 +257,13 @@ export class ProductsService {
       };
     }
 
-    return product;
+    return { ...product, costPrice: 0, productAdvantages: [] };
   }
 
   private async findProductById(
     id: string,
     populateDimensions: boolean,
-  ): Promise<any> {
+  ): Promise<Product> {
     let query = this.productModel.findById(id);
 
     if (populateDimensions) {

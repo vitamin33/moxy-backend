@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Order, Status } from './order.entity';
+import { Order, OrderedProduct, Status } from './order.entity';
 import mongoose, { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GuestUserDto as UserDto } from 'src/modules/users/dto/guest-user.dto';
@@ -18,6 +18,7 @@ import { AttributesWithCategories } from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
+import { ProductWithCostPrice } from '../products/product.entity';
 
 @Injectable()
 export class OrdersService {
@@ -122,21 +123,43 @@ export class OrdersService {
     return paginatedOrdersWithImages;
   }
 
-  getOrderedItems(order: Order): any {
-    return Promise.all(
-      order.orderedItems.map(async (item) => {
-        const orderedItem = item;
-        const product = await this.productsService.getProductById(
-          orderedItem.product.toString(),
-        );
+  async getOrderedItems(order: Order): Promise<OrderedProduct[]> {
+    // Create a map of productId to promise of getProductById
+    const productPromisesMap: Record<
+      string,
+      Promise<ProductWithCostPrice | null>
+    > = {};
+
+    order.orderedItems.forEach((orderedItem) => {
+      const productId = orderedItem.product.toString();
+      // Only add a promise for products that haven't been added yet
+      if (!productPromisesMap[productId]) {
+        productPromisesMap[productId] =
+          this.productsService.getProductById(productId);
+      }
+    });
+
+    const productResults = await Promise.all(Object.values(productPromisesMap));
+
+    const results = order.orderedItems.map((orderedItem) => {
+      const productId = orderedItem.product.toString();
+      const product = productResults.find(
+        (p) => p && p._id.toString() === productId,
+      );
+
+      // Check if the product is not null
+      if (product) {
         return {
-          product: orderedItem.product.toString(),
+          product: productId,
           productName: product.name,
           productPrice: product.salePrice,
           dimensions: orderedItem.dimensions,
         };
-      }),
-    );
+      }
+      return null; // Return null for products that are null
+    });
+
+    return results.filter((result) => result !== null);
   }
 
   async createOrder(orderDto: CreateOrderDto) {
@@ -319,11 +342,7 @@ export class OrdersService {
     return order;
   }
 
-  async getOrdersByUserId(
-    userId: string,
-    skip: number,
-    limit: number,
-  ): Promise<Order[]> {
+  async getOrdersByUserId(userId: string, skip: number, limit: number) {
     const orders = await this.orderModel
       .find({ client: userId })
       .sort({ createdAt: -1 })

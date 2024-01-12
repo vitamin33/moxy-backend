@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
 import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
+import { ProductAdvantages } from './product-advantages.entity';
 
 export enum ProductCategory {
   Bags = 'Bags',
@@ -153,4 +154,9 @@ ProductSchema.virtual('id').get(function (this: Product) {
 
 export interface FavoriteProduct extends Product {
   isFavorite: boolean;
+}
+
+export interface ProductWithCostPrice extends Product {
+  costPrice: number;
+  productAdvantages: ProductAdvantages[];
 }

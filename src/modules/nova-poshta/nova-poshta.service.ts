@@ -6,6 +6,10 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class NovaPoshtaService {
+  // Tkachenko API key
+  private readonly tkachenkoApiKey = '50f6bc872ee2ef0ab977264d7ac3a9cc';
+
+  // Hrinchenko API key
   private readonly apiKey = '11b1e08fcb5f09149f5c01041fd1ca97';
   private readonly baseUrl = 'https://api.novaposhta.ua/v2.0/json/';
   private readonly polinaRef = '390dc8bf-cd7e-11ed-a60f-48df37b921db';
