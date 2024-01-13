@@ -8,7 +8,7 @@ import { ActivateHomeMediaDto } from './dto/activate-home-media.dto';
 
 @Injectable()
 export class SettingsService {
-  private readonly usdToUahRate = 37.44;
+  private readonly usdToUahRate = 38.56;
   private readonly shippingRateInUSD = 17.0;
 
   constructor(

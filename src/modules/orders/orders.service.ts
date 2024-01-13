@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Order, Status } from './order.entity';
+import { Order, OrderedProduct, Status } from './order.entity';
 import mongoose, { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GuestUserDto as UserDto } from 'src/modules/users/dto/guest-user.dto';
@@ -18,6 +18,7 @@ import { AttributesWithCategories } from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
+import { ProductWithCostPrice } from '../products/product.entity';
 
 @Injectable()
 export class OrdersService {
@@ -34,17 +35,14 @@ export class OrdersService {
   private async initializeAttributes() {
     this.attributes = await this.attributesService.getAttributes();
   }
-
   async getPaginatedAllOrders(skip: number, limit: number) {
-    // Fetch a subset of orders using the skip and limit options
     const orders = await this.orderModel
       .find()
       .sort({ createdAt: -1 })
-      .populate({
-        path: 'client',
-        select:
-          '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
-      })
+      .populate(
+        'client',
+        '-orders -city -favoriteProducts -role -password -refreshToken -novaPost',
+      )
       .populate('orderedItems.dimensions.color')
       .populate('orderedItems.product.dimensions.color')
       .select('-city -novaPost')
@@ -53,18 +51,17 @@ export class OrdersService {
       .limit(limit)
       .exec();
 
-    const ordersObjects = await Promise.all(
+    const ordersWithItems = await Promise.all(
       orders.map(async (order) => {
         const orderedItems = await this.getOrderedItems(order);
-
         return {
           ...order,
-          orderedItems: orderedItems,
+          orderedItems,
         };
       }),
     );
 
-    return ordersObjects;
+    return ordersWithItems;
   }
 
   async getPaginatedOrdersBy(dto: FindByDto, skip: number, limit: number) {
@@ -122,21 +119,43 @@ export class OrdersService {
     return paginatedOrdersWithImages;
   }
 
-  getOrderedItems(order: Order): any {
-    return Promise.all(
-      order.orderedItems.map(async (item) => {
-        const orderedItem = item;
-        const product = await this.productsService.getProductById(
-          orderedItem.product.toString(),
-        );
+  async getOrderedItems(order: Order): Promise<OrderedProduct[]> {
+    // Create a map of productId to promise of getProductById
+    const productPromisesMap: Record<
+      string,
+      Promise<ProductWithCostPrice | null>
+    > = {};
+
+    order.orderedItems.forEach((orderedItem) => {
+      const productId = orderedItem.product.toString();
+      // Only add a promise for products that haven't been added yet
+      if (!productPromisesMap[productId]) {
+        productPromisesMap[productId] =
+          this.productsService.getProductById(productId);
+      }
+    });
+
+    const productResults = await Promise.all(Object.values(productPromisesMap));
+
+    const results = order.orderedItems.map((orderedItem) => {
+      const productId = orderedItem.product.toString();
+      const product = productResults.find(
+        (p) => p && p._id.toString() === productId,
+      );
+
+      // Check if the product is not null
+      if (product) {
         return {
-          product: orderedItem.product.toString(),
+          product: productId,
           productName: product.name,
           productPrice: product.salePrice,
           dimensions: orderedItem.dimensions,
         };
-      }),
-    );
+      }
+      return null; // Return null for products that are null
+    });
+
+    return results.filter((result) => result !== null);
   }
 
   async createOrder(orderDto: CreateOrderDto) {
@@ -160,58 +179,45 @@ export class OrdersService {
       }
     }
 
-    const orderedItems = [];
-    for (const product of orderDto.products) {
-      const dimensionsToSave = product.dimensions.map((e) =>
-        convertToDimension(e),
+    const productUpdatePromises = orderDto.products.map(async (product) => {
+      const dimensionsToSave = product.dimensions.map(convertToDimension);
+
+      const productToUpdate = await this.productsService.getProductDocumentById(
+        product._id,
       );
-
-      // For each ordered item, reduce the quantity of available product dimensions
-      for (const dimension of dimensionsToSave) {
-        const productToUpdate =
-          await this.productsService.getProductDocumentById(product._id);
-
-        if (productToUpdate) {
-          // Find the matching dimension in the product catalog
-          const matchingDimension = productToUpdate.dimensions.find((dim) =>
-            compareDimensions(dim, dimension),
-          );
-
-          if (matchingDimension) {
-            // Reduce the available quantity based on the ordered quantity
-            if (matchingDimension.quantity >= dimension.quantity) {
-              matchingDimension.quantity -= dimension.quantity;
-            } else {
-              throw new ProductNotAvailableException(
-                productToUpdate._id.toString(),
-                matchingDimension.color,
-                matchingDimension.size,
-                matchingDimension.material,
-                dimension.quantity,
-              );
-            }
-          } else {
-            throw new ProductNotAvailableException(
-              productToUpdate._id.toString(),
-              dimension.color,
-              dimension.size,
-              dimension.material,
-              dimension.quantity,
-            );
-          }
-
-          // Save the updated product dimension
-          await productToUpdate.save();
-        } else {
-          throw new ProductNotAvailableException(product._id);
-        }
+      if (!productToUpdate) {
+        throw new ProductNotAvailableException(product._id);
       }
 
-      orderedItems.push({
+      dimensionsToSave.forEach((dimension) => {
+        const matchingDimension = productToUpdate.dimensions.find((dim) =>
+          compareDimensions(dim, dimension),
+        );
+        if (
+          matchingDimension &&
+          matchingDimension.quantity >= dimension.quantity
+        ) {
+          matchingDimension.quantity -= dimension.quantity;
+        } else {
+          throw new ProductNotAvailableException(
+            productToUpdate._id.toString(),
+            dimension.color,
+            dimension.size,
+            dimension.material,
+            dimension.quantity,
+          );
+        }
+      });
+
+      await productToUpdate.save();
+
+      return {
         product: product._id,
         dimensions: dimensionsToSave,
-      });
-    }
+      };
+    });
+
+    const orderedItems = await Promise.all(productUpdatePromises);
 
     const createdOrder = new this.orderModel({
       ...orderDto,
@@ -221,13 +227,17 @@ export class OrdersService {
       orderedItems,
     });
     const savedOrder = await createdOrder.save();
-    await this.orderModel.populate(savedOrder, {
-      path: 'orderedItems.product.dimensions.color',
-    });
-    await this.orderModel.populate(savedOrder, {
-      path: 'orderedItems.dimensions.color',
-    });
-    await this.usersService.addOrder(client._id.toString(), createdOrder);
+
+    await Promise.all([
+      this.orderModel.populate(savedOrder, {
+        path: 'orderedItems.product.dimensions.color',
+      }),
+      this.orderModel.populate(savedOrder, {
+        path: 'orderedItems.dimensions.color',
+      }),
+    ]);
+
+    await this.usersService.addOrder(client._id.toString(), savedOrder);
     return savedOrder.toObject();
   }
 
@@ -319,11 +329,7 @@ export class OrdersService {
     return order;
   }
 
-  async getOrdersByUserId(
-    userId: string,
-    skip: number,
-    limit: number,
-  ): Promise<Order[]> {
+  async getOrdersByUserId(userId: string, skip: number, limit: number) {
     const orders = await this.orderModel
       .find({ client: userId })
       .sort({ createdAt: -1 })

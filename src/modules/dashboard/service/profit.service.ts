@@ -8,7 +8,7 @@ import {
   formatDate,
   getPreviousPeriodDates,
   transformToTimeFrameCoordinates,
-} from '../utils';
+} from '../../../common/utils';
 import { ProductsService } from 'src/modules/products/service/products.service';
 import { Product } from 'src/modules/products/product.entity';
 
@@ -23,6 +23,7 @@ export class ProfitCalculationService {
   async calculateTotalProfitValue(
     fromDate: Date,
     toDate: Date,
+    adsSpend: string,
   ): Promise<number> {
     const orders = await this.orderModel
       .find({
@@ -60,6 +61,9 @@ export class ProfitCalculationService {
         }
       }
     }
+    // Subtract the advertising spend from the total profit
+    totalProfitValue -= parseFloat(adsSpend);
+
     this.logger.debug(
       `Total sale: ${totalSaleValue}, total cost: ${totalCostValue}, total profit: ${totalProfitValue}`,
     );
@@ -70,12 +74,17 @@ export class ProfitCalculationService {
   async getPreviousTotalProfitValue(
     fromDate: Date,
     toDate: Date,
+    adsSpend: string,
   ): Promise<number> {
     const { previousFromDate, previousToDate } = getPreviousPeriodDates(
       fromDate,
       toDate,
     );
-    return this.calculateTotalProfitValue(previousFromDate, previousToDate);
+    return this.calculateTotalProfitValue(
+      previousFromDate,
+      previousToDate,
+      adsSpend,
+    );
   }
 
   async calculateTotalProfitValueByTimeFrame(

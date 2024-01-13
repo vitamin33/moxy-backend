@@ -5,6 +5,7 @@ import { CostCalculationService } from './service/cost-calculation.service';
 import { OrderCountService } from './service/order-count.service';
 import { TimeFrameService } from './service/time-frame.service';
 import { ProfitCalculationService } from './service/profit.service';
+import { FacebookService } from '../facebook/facebook.service';
 
 @Injectable()
 export class DashboardService {
@@ -14,56 +15,94 @@ export class DashboardService {
     private ordersCountService: OrderCountService,
     private profitService: ProfitCalculationService,
     private timeFrameService: TimeFrameService,
+    private facebookService: FacebookService,
   ) {}
+
   async getOrdersDashboard(request: DashboardDto) {
     const fromDate = new Date(request.fromDate);
     const toDate = new Date(request.toDate);
+
+    // Fetch ad spend for current and previous periods
+    const [currentAdsReport, previousAdsReport] = await Promise.all([
+      this.facebookService.getAdsReport(fromDate, toDate),
+      this.facebookService.getPreviousPeriodAdsReport(fromDate, toDate),
+    ]);
+
+    // Start all independent async operations concurrently
+    const [
+      totalSaleValue,
+      totalCostValue,
+      totalOrdersCount,
+      previousTotalSaleValue,
+      previousTotalCostValue,
+      previousTotalOrdersCount,
+      totalProfitValue,
+      previousTotalProfitValue,
+    ] = await Promise.all([
+      this.saleValueService.calculateTotalSaleValue(fromDate, toDate),
+      this.costValueService.calculateTotalCostValue(fromDate, toDate),
+      this.ordersCountService.calculateTotalOrdersCount(fromDate, toDate),
+      this.saleValueService.getPreviousTotalSaleValue(fromDate, toDate),
+      this.costValueService.getPreviousTotalCostValue(fromDate, toDate),
+      this.ordersCountService.getPreviousTotalOrdersCount(fromDate, toDate),
+      this.profitService.calculateTotalProfitValue(
+        fromDate,
+        toDate,
+        currentAdsReport.spendInUah,
+      ),
+      this.profitService.getPreviousTotalProfitValue(
+        fromDate,
+        toDate,
+        previousAdsReport.spendInUah,
+      ),
+    ]);
 
     const timeFrame = this.timeFrameService.calculateTimeFrame(
       fromDate,
       toDate,
     );
 
-    const totalSaleValue = await this.saleValueService.calculateTotalSaleValue(
-      fromDate,
-      toDate,
-    );
-
-    const totalCostValue = await this.costValueService.calculateTotalCostValue(
-      fromDate,
-      toDate,
-    );
-
-    const totalOrdersCount =
-      await this.ordersCountService.calculateTotalOrdersCount(fromDate, toDate);
-
-    const previousTotalSaleValue =
-      await this.saleValueService.getPreviousTotalSaleValue(fromDate, toDate);
-
-    const previousTotalCostValue =
-      await this.costValueService.getPreviousTotalCostValue(fromDate, toDate);
-
-    const previousTotalOrdersCount =
-      await this.ordersCountService.getPreviousTotalOrdersCount(
+    const [
+      ordersCountByTimeFrame,
+      totalSaleValueByTimeFrame,
+      totalCostValueByTimeFrame,
+      totalProfitValueByTimeFrame,
+    ] = await Promise.all([
+      this.ordersCountService.calculateOrdersCountByTimeFrame(
         fromDate,
         toDate,
-      );
+        timeFrame,
+      ),
+      this.saleValueService.calculateTotalSaleValueByTimeFrame(
+        fromDate,
+        toDate,
+        timeFrame,
+      ),
+      this.costValueService.calculateTotalCostValueByTimeFrame(
+        fromDate,
+        toDate,
+        timeFrame,
+      ),
+      this.profitService.calculateTotalProfitValueByTimeFrame(
+        fromDate,
+        toDate,
+        timeFrame,
+      ),
+    ]);
 
-    // Calculate the percentage change for totalSaleValue
+    // Calculate the percentage changes
     const saleValuePercentageChange =
       previousTotalSaleValue !== 0
         ? ((totalSaleValue - previousTotalSaleValue) / previousTotalSaleValue) *
           100
         : 0;
 
-    // Calculate the percentage change for totalCostValue
     const costValuePercentageChange =
       previousTotalCostValue !== 0
         ? ((totalCostValue - previousTotalCostValue) / previousTotalCostValue) *
           100
         : 0;
 
-    // Calculate the percentage change for totalOrdersCount
     const ordersCountPercentageChange =
       previousTotalOrdersCount !== 0
         ? ((totalOrdersCount - previousTotalOrdersCount) /
@@ -71,39 +110,6 @@ export class DashboardService {
           100
         : 0;
 
-    // Get the orders count by time frame (by day, week, or month) for graph
-    const ordersCountByTimeFrame =
-      await this.ordersCountService.calculateOrdersCountByTimeFrame(
-        fromDate,
-        toDate,
-        timeFrame,
-      );
-
-    // Get the total orders sale value by time frame for graph
-    const totalSaleValueByTimeFrame =
-      await this.saleValueService.calculateTotalSaleValueByTimeFrame(
-        fromDate,
-        toDate,
-        timeFrame,
-      );
-
-    // Get the total orders cost value by time frame for graph
-    const totalCostValueByTimeFrame =
-      await this.costValueService.calculateTotalCostValueByTimeFrame(
-        fromDate,
-        toDate,
-        timeFrame,
-      );
-
-    const totalProfitValue = await this.profitService.calculateTotalProfitValue(
-      fromDate,
-      toDate,
-    );
-
-    const previousTotalProfitValue =
-      await this.profitService.getPreviousTotalProfitValue(fromDate, toDate);
-
-    // Calculate the percentage change for totalProfitValue
     const profitValuePercentageChange =
       previousTotalProfitValue !== 0
         ? ((totalProfitValue - previousTotalProfitValue) /
@@ -111,14 +117,7 @@ export class DashboardService {
           100
         : 0;
 
-    // Get the total profit value by time frame for graph
-    const totalProfitValueByTimeFrame =
-      await this.profitService.calculateTotalProfitValueByTimeFrame(
-        fromDate,
-        toDate,
-        timeFrame,
-      );
-
+    // Return the final dashboard data
     return {
       totalSaleValue,
       totalCostValue,
@@ -136,6 +135,8 @@ export class DashboardService {
       previousTotalProfitValue,
       profitValuePercentageChange,
       totalProfitValueByTimeFrame,
+      currentAdsReport,
+      previousAdsReport,
     };
   }
 }

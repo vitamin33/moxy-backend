@@ -159,3 +159,10 @@ OrderSchema.set('toObject', {
 OrderSchema.virtual('id').get(function (this: Order) {
   return this._id;
 });
+
+export interface OrderedProduct {
+  product: string;
+  productName: string;
+  productPrice: number;
+  dimensions: Dimension[];
+}
