@@ -6,7 +6,7 @@ import {
   formatDate,
   getPreviousPeriodDates,
   transformToTimeFrameCoordinates,
-} from '../utils';
+} from '../../../common/utils';
 import { ProductsService } from 'src/modules/products/service/products.service';
 import { Product } from 'src/modules/products/product.entity';
 

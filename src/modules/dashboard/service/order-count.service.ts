@@ -5,7 +5,7 @@ import { Order, OrderDocument } from 'src/modules/orders/order.entity';
 import {
   getPreviousPeriodDates,
   transformToTimeFrameCoordinates,
-} from '../utils';
+} from '../../../common/utils';
 
 @Injectable()
 export class OrderCountService {

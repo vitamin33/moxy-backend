@@ -18,6 +18,7 @@ import { OrderCountService } from './service/order-count.service';
 import { TimeFrameService } from './service/time-frame.service';
 import { ProfitCalculationService } from './service/profit.service';
 import { LoggerMiddleware } from 'src/middleware/logger.middleware';
+import { FacebookModule } from '../facebook/facebook.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { LoggerMiddleware } from 'src/middleware/logger.middleware';
     ]),
     UsersModule,
     ProductsModule,
+    FacebookModule,
     forwardRef(() => AuthModule),
   ],
   controllers: [DashboardController],

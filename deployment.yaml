@@ -67,3 +67,13 @@ spec:
                 secretKeyRef:
                   name: google-credentials
                   key: google-credentials.json
+            - name: FB_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: moxy-secrets
+                  key: FB_APP_SECRET
+            - name: FB_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: moxy-secrets
+                  key: FB_ACCESS_TOKEN

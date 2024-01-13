@@ -35,17 +35,14 @@ export class OrdersService {
   private async initializeAttributes() {
     this.attributes = await this.attributesService.getAttributes();
   }
-
   async getPaginatedAllOrders(skip: number, limit: number) {
-    // Fetch a subset of orders using the skip and limit options
     const orders = await this.orderModel
       .find()
       .sort({ createdAt: -1 })
-      .populate({
-        path: 'client',
-        select:
-          '-orders -city -favoriteProducts -role -password -refreshToken -novaPost', // Exclude fields
-      })
+      .populate(
+        'client',
+        '-orders -city -favoriteProducts -role -password -refreshToken -novaPost',
+      )
       .populate('orderedItems.dimensions.color')
       .populate('orderedItems.product.dimensions.color')
       .select('-city -novaPost')
@@ -54,18 +51,17 @@ export class OrdersService {
       .limit(limit)
       .exec();
 
-    const ordersObjects = await Promise.all(
+    const ordersWithItems = await Promise.all(
       orders.map(async (order) => {
         const orderedItems = await this.getOrderedItems(order);
-
         return {
           ...order,
-          orderedItems: orderedItems,
+          orderedItems,
         };
       }),
     );
 
-    return ordersObjects;
+    return ordersWithItems;
   }
 
   async getPaginatedOrdersBy(dto: FindByDto, skip: number, limit: number) {
@@ -183,58 +179,45 @@ export class OrdersService {
       }
     }
 
-    const orderedItems = [];
-    for (const product of orderDto.products) {
-      const dimensionsToSave = product.dimensions.map((e) =>
-        convertToDimension(e),
+    const productUpdatePromises = orderDto.products.map(async (product) => {
+      const dimensionsToSave = product.dimensions.map(convertToDimension);
+
+      const productToUpdate = await this.productsService.getProductDocumentById(
+        product._id,
       );
-
-      // For each ordered item, reduce the quantity of available product dimensions
-      for (const dimension of dimensionsToSave) {
-        const productToUpdate =
-          await this.productsService.getProductDocumentById(product._id);
-
-        if (productToUpdate) {
-          // Find the matching dimension in the product catalog
-          const matchingDimension = productToUpdate.dimensions.find((dim) =>
-            compareDimensions(dim, dimension),
-          );
-
-          if (matchingDimension) {
-            // Reduce the available quantity based on the ordered quantity
-            if (matchingDimension.quantity >= dimension.quantity) {
-              matchingDimension.quantity -= dimension.quantity;
-            } else {
-              throw new ProductNotAvailableException(
-                productToUpdate._id.toString(),
-                matchingDimension.color,
-                matchingDimension.size,
-                matchingDimension.material,
-                dimension.quantity,
-              );
-            }
-          } else {
-            throw new ProductNotAvailableException(
-              productToUpdate._id.toString(),
-              dimension.color,
-              dimension.size,
-              dimension.material,
-              dimension.quantity,
-            );
-          }
-
-          // Save the updated product dimension
-          await productToUpdate.save();
-        } else {
-          throw new ProductNotAvailableException(product._id);
-        }
+      if (!productToUpdate) {
+        throw new ProductNotAvailableException(product._id);
       }
 
-      orderedItems.push({
+      dimensionsToSave.forEach((dimension) => {
+        const matchingDimension = productToUpdate.dimensions.find((dim) =>
+          compareDimensions(dim, dimension),
+        );
+        if (
+          matchingDimension &&
+          matchingDimension.quantity >= dimension.quantity
+        ) {
+          matchingDimension.quantity -= dimension.quantity;
+        } else {
+          throw new ProductNotAvailableException(
+            productToUpdate._id.toString(),
+            dimension.color,
+            dimension.size,
+            dimension.material,
+            dimension.quantity,
+          );
+        }
+      });
+
+      await productToUpdate.save();
+
+      return {
         product: product._id,
         dimensions: dimensionsToSave,
-      });
-    }
+      };
+    });
+
+    const orderedItems = await Promise.all(productUpdatePromises);
 
     const createdOrder = new this.orderModel({
       ...orderDto,
@@ -244,13 +227,17 @@ export class OrdersService {
       orderedItems,
     });
     const savedOrder = await createdOrder.save();
-    await this.orderModel.populate(savedOrder, {
-      path: 'orderedItems.product.dimensions.color',
-    });
-    await this.orderModel.populate(savedOrder, {
-      path: 'orderedItems.dimensions.color',
-    });
-    await this.usersService.addOrder(client._id.toString(), createdOrder);
+
+    await Promise.all([
+      this.orderModel.populate(savedOrder, {
+        path: 'orderedItems.product.dimensions.color',
+      }),
+      this.orderModel.populate(savedOrder, {
+        path: 'orderedItems.dimensions.color',
+      }),
+    ]);
+
+    await this.usersService.addOrder(client._id.toString(), savedOrder);
     return savedOrder.toObject();
   }
 
