@@ -31,6 +31,7 @@ export class CreateOrderDto {
   readonly cashAdvanceValue: number;
   readonly novaPost: NovaPostDto;
   readonly ukrPostInfo: string;
+  readonly novaEN: string;
   readonly city: CityDto;
   @ArrayNotEmpty({ message: 'Order should have at least one product.' })
   readonly products: ProductDto[];
