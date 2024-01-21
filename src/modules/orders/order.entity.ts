@@ -95,6 +95,12 @@ export class Order {
   @Prop()
   ukrPostInfo: string;
 
+  @ApiProperty({
+    description: 'Nova Post ref to EN number',
+  })
+  @Prop({ required: false })
+  novaEN: string;
+
   @ApiProperty({ example: 150, description: 'Cash advance payment value' })
   @Prop()
   cashAdvanceValue: number;
