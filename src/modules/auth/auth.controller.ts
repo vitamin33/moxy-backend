@@ -46,6 +46,11 @@ export class AuthController {
     return this.authService.refreshToken(refreshDto.refreshToken);
   }
 
+  @Post('/guest-token')
+  guestToken() {
+    return this.authService.generateGuestToken();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post('/change-password')
   @UsePipes(ValidationPipe)

@@ -10,9 +10,10 @@ import { ApiTags } from '@nestjs/swagger';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
   @Get()
-  async getProfile(@Request() req: any): Promise<User> {
+  async getProfile(@Request() req: any) {
     const userId = req.user.id;
-    return this.profileService.getProfile(userId);
+    const guestId = req.guestId;
+    return this.profileService.getProfile(userId, guestId);
   }
 
   @Get('orders')
@@ -22,8 +23,10 @@ export class ProfileController {
     @Query('limit') limit: number = 50,
   ) {
     const userId = req.user.id;
+    const guestId = req.guestId;
     const result = await this.profileService.getProfileOrders(
       userId,
+      guestId,
       skip,
       limit,
     );
