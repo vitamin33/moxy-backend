@@ -345,7 +345,11 @@ export class ProductsService {
     }
   }
 
-  async getSellingProducts(userId: string, category?: string) {
+  async getSellingProducts(
+    userId: string,
+    isGuest: boolean,
+    category?: string,
+  ) {
     let query = this.productModel.find({ forSale: true });
 
     if (category) {
@@ -359,10 +363,10 @@ export class ProductsService {
       .lean()
       .exec();
 
-    return this.addIsFavoriteToProducts(userId, products);
+    return this.addIsFavoriteToProducts(userId, products, isGuest);
   }
 
-  async getRecommendedProducts(userId: string) {
+  async getRecommendedProducts(userId: string, isGuest: boolean) {
     // TODO change implementation to return random product for now
     const products = await this.productModel
       .find({ forSale: true })
@@ -371,10 +375,10 @@ export class ProductsService {
       .populate('dimensions.material', 'name')
       .lean()
       .exec();
-    return this.addIsFavoriteToProducts(userId, products);
+    return this.addIsFavoriteToProducts(userId, products, isGuest);
   }
 
-  async getResaleProducts(userId: string) {
+  async getResaleProducts(userId: string, isGuest: boolean) {
     // TODO change implementation to return products from Accessories category for now
     const products = await this.productModel
       .find({ forSale: true })
@@ -383,7 +387,7 @@ export class ProductsService {
       .populate('dimensions.material', 'name')
       .lean()
       .exec();
-    return this.addIsFavoriteToProducts(userId, products);
+    return this.addIsFavoriteToProducts(userId, products, isGuest);
   }
 
   calculateCostPrice(product: Product): number {
@@ -405,9 +409,11 @@ export class ProductsService {
   async addIsFavoriteToProducts(
     userId: string,
     products: Product[],
+    isGuest: boolean,
   ): Promise<FavoriteProduct[]> {
-    const favoriteProducts =
-      await this.favoritesService.getFavoriteProducts(userId);
+    const favoriteProducts = isGuest
+      ? []
+      : await this.favoritesService.getFavoriteProducts(userId, null);
     return products.map((product) => {
       const isFavorite = favoriteProducts.some(
         (favProduct) => favProduct._id.toString() === product._id.toString(),

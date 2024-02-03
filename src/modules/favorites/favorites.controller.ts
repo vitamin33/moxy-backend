@@ -40,6 +40,8 @@ export class FavoritesController {
   @Get()
   async getFavoriteProducts(@Request() req: any): Promise<Product[]> {
     const userId = req.user.id;
-    return this.favoritesService.getFavoriteProducts(userId);
+    const guestId = req.guestId;
+
+    return this.favoritesService.getFavoriteProducts(userId, guestId);
   }
 }

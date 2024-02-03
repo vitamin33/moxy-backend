@@ -23,8 +23,15 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException({ message: 'User unauthorized' });
       }
       const user = this.jwtService.verify(token);
+
+      if (user.isGuest) {
+        req.user = { id: user.id, role: { name: 'GUEST' }, isGuest: true };
+        req.guestId = user.id;
+        return true;
+      }
+
       req.user = user;
-      req.userId = user.id; // Assuming your JWT payload has a field called "id"
+      req.userId = user.id;
 
       return true;
     } catch (error) {

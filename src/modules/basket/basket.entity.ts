@@ -29,6 +29,9 @@ export class Basket {
   @Type(() => User)
   client: User;
 
+  @Prop({ required: false })
+  guestId?: string;
+
   @Prop({ type: [BasketItemSchema], required: true, default: [] })
   basketItems: BasketItem[];
 

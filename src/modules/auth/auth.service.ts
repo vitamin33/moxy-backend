@@ -21,6 +21,13 @@ import * as fs from 'fs';
 import { v4 as uuid } from 'uuid';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
+class LoginResponse {
+  accessToken: string;
+  refreshToken?: string;
+  userRole: string;
+  userId: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -82,7 +89,6 @@ export class AuthService {
           'USER',
         );
 
-        const confirmationCode = this.generateConfirmationCode();
         const accessToken = this.generateAccessToken(updatedUser);
         const refreshToken = this.generateRefreshToken(updatedUser.id);
 
@@ -118,16 +124,31 @@ export class AuthService {
     }
   }
 
-  private generateAccessToken(user: User): string {
+  private generateAccessToken(
+    user: User,
+    guestId: string | null = null,
+  ): string {
+    const isGuest = guestId != null;
     const payload = {
-      mobileNumber: user.mobileNumber,
-      id: user._id,
-      role: user.role,
+      mobileNumber: isGuest ? null : user.mobileNumber,
+      id: isGuest ? guestId : user._id,
+      role: isGuest ? { name: 'GUEST' } : user.role,
+      isGuest: isGuest,
     };
 
     return this.jwtService.sign(payload, {
-      expiresIn: '24h',
+      expiresIn: '7d',
     });
+  }
+
+  async generateGuestToken() {
+    const guestId = uuid();
+    const accessToken = this.generateAccessToken(null, guestId);
+    return {
+      userId: guestId,
+      accessToken: accessToken,
+      userRole: 'GUEST',
+    };
   }
 
   private generateRefreshToken(userId: string): string {
@@ -135,7 +156,7 @@ export class AuthService {
       id: userId,
     };
     return this.jwtService.sign(payload, {
-      expiresIn: '30d',
+      expiresIn: '90d',
     });
   }
 

@@ -13,7 +13,20 @@ export class ProfileService {
     private ordersService: OrdersService,
   ) {}
 
-  async getProfile(userId: string): Promise<User> {
+  async getProfile(userId: string | null, guestId: string | null) {
+    if (guestId) {
+      const guestUser = {
+        id: guestId,
+        firstName: '',
+        secondName: '',
+        mobileNumber: '',
+        role: 'GUEST',
+        orders: [],
+        favoriteProducts: [],
+      };
+
+      return guestUser;
+    }
     const user = await this.userModel.findById(userId).populate({
       path: 'favoriteProducts',
       model: 'Product',
@@ -29,7 +42,15 @@ export class ProfileService {
     return await user.save();
   }
 
-  async getProfileOrders(userId: string, skip: number, limit: number) {
+  async getProfileOrders(
+    userId: string | null,
+    guestId: string | null,
+    skip: number,
+    limit: number,
+  ) {
+    if (guestId) {
+      return { profileOrders: [] };
+    }
     const orders = await await this.ordersService.getOrdersByUserId(
       userId,
       skip,

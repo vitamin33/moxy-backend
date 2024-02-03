@@ -84,7 +84,13 @@ export class FavoritesService {
     return user;
   }
 
-  async getFavoriteProducts(userId: string): Promise<Product[]> {
+  async getFavoriteProducts(
+    userId: string | null,
+    guestId: string | null,
+  ): Promise<Product[]> {
+    if (guestId) {
+      return [];
+    }
     const user = await this.userModel
       .findById(userId)
       .populate({
@@ -96,7 +102,7 @@ export class FavoritesService {
       })
       .lean();
     if (!user) {
-      throw new NotFoundException('User not found');
+      return [];
     }
 
     const favoriteProducts: FavoriteProduct[] = user.favoriteProducts.map(
