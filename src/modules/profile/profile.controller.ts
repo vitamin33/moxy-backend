@@ -1,14 +1,26 @@
-import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { User } from 'src/modules/users/user.entity';
 import { ProfileService } from './profile.service';
 import { JwtAuthGuard } from 'src/modules/auth/jwt-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
+import { NewsletterService } from './newsletter.service';
 
 @ApiTags('Profile')
 @Controller('profile')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(
+    private readonly profileService: ProfileService,
+    private readonly newsletterService: NewsletterService,
+  ) {}
   @Get()
   async getProfile(@Request() req: any) {
     const userId = req.user.id;
@@ -31,5 +43,17 @@ export class ProfileController {
       limit,
     );
     return result;
+  }
+
+  @Post('subscribe')
+  async subscribeToNewsletter(
+    @Body('email') email: string,
+    @Body('firstName') firstName: string,
+  ) {
+    const subscription = await this.newsletterService.subscribeToNewsletter(
+      email,
+      firstName,
+    );
+    return subscription;
   }
 }
