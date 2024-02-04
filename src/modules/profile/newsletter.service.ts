@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Subscriber, SubscriberDocument } from './subscriber.entity';
@@ -12,10 +12,13 @@ export class NewsletterService {
 
   async subscribeToNewsletter(email: string, firstName: string) {
     const existingSubscriber = await this.newsletterModel
-      .findOne({ email, firstName })
+      .findOne({ email })
       .exec();
     if (existingSubscriber) {
-      throw new Error('Email already subscribed to the newsletter.');
+      throw new HttpException(
+        'Email already subscribed to the newsletter.',
+        HttpStatus.CONFLICT,
+      );
     }
 
     const subscriber = new this.newsletterModel({ email });
