@@ -22,7 +22,7 @@
   "dependencies": {
     "@google-cloud/storage": "^7.6.0",
     "@nestjs-modules/mailer": "^1.9.1",
-    "@nestjs/axios": "^3.0.0",
+    "@nestjs/axios": "^3.0.1",
     "@nestjs/class-transformer": "^0.4.0",
     "@nestjs/class-validator": "^0.13.1",
     "@nestjs/cli": "^10.1.10",
