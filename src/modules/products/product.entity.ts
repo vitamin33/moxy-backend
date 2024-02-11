@@ -160,3 +160,29 @@ export interface ProductWithCostPrice extends Product {
   costPrice: number;
   productAdvantages: ProductAdvantages[];
 }
+
+function isProduct(value: any): value is Product {
+  return (
+    value &&
+    typeof value === 'object' &&
+    'name' in value &&
+    typeof value.name === 'string'
+  );
+}
+
+export function extractProductId(
+  product: mongoose.Schema.Types.ObjectId | Product,
+): string {
+  if (product instanceof mongoose.Types.ObjectId) {
+    return product.toString();
+  } else if (
+    '_id' in product &&
+    product._id instanceof mongoose.Types.ObjectId
+  ) {
+    return product._id.toString();
+  } else {
+    throw new Error(
+      'Invalid product type provided. Expected ObjectId or Product with _id.',
+    );
+  }
+}
