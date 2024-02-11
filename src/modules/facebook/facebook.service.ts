@@ -22,10 +22,6 @@ export class FacebookService {
       this.api.setDebug(true);
     }
 
-    this.logger.debug(
-      `Start getting FB ads report, start: ${startDate}, end: ${endDate}`,
-    );
-
     const fields = [
       'spend',
       'social_spend',
@@ -47,7 +43,6 @@ export class FacebookService {
       const insights = await account.getInsights(fields, params);
       const adData = insights[0]._data;
 
-      // convert 'spend' value from USD to UAH
       const usdToUahRate = this.settingsService.getUsdToUahRate();
       const spendAmount = parseFloat(adData.spend);
       const spending = spendAmount * usdToUahRate;
@@ -56,8 +51,6 @@ export class FacebookService {
       adData.cpm = this.roundFloatValue(adData.cpm);
       adData.ctr = this.roundFloatValue(adData.ctr);
       adData.cpc = this.roundFloatValue(adData.cpc);
-
-      this.logger.debug(`FB report: ${adData}`);
 
       return adData;
     } catch (error) {
