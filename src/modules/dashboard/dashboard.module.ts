@@ -19,6 +19,8 @@ import { TimeFrameService } from './service/time-frame.service';
 import { ProfitCalculationService } from './service/profit.service';
 import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 import { FacebookModule } from '../facebook/facebook.module';
+import { ProductStatisticsService } from './service/product-statistics.service';
+import { OrdersModule } from '../orders/orders.module';
 
 @Module({
   imports: [
@@ -28,6 +30,7 @@ import { FacebookModule } from '../facebook/facebook.module';
     ]),
     UsersModule,
     ProductsModule,
+    OrdersModule,
     FacebookModule,
     forwardRef(() => AuthModule),
   ],
@@ -39,6 +42,7 @@ import { FacebookModule } from '../facebook/facebook.module';
     OrderCountService,
     TimeFrameService,
     ProfitCalculationService,
+    ProductStatisticsService,
   ],
 })
 export class DashboardModule {

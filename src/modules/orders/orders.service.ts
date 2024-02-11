@@ -570,6 +570,27 @@ export class OrdersService {
     await productToUpdate.save();
   }
 
+  async getOrdersWithinPeriod(fromDate: Date, toDate: Date): Promise<Order[]> {
+    const query = this.orderModel.find();
+
+    if (fromDate) {
+      query.gte('createdAt', fromDate.toISOString());
+    }
+    if (toDate) {
+      query.lte('createdAt', toDate.toISOString());
+    }
+
+    const orders = await query
+      .sort({ createdAt: -1 }) // Sorting by creation date in descending order
+      .populate('orderedItems.dimensions.color')
+      .populate('orderedItems.product')
+      .select('-city -novaPost')
+      .lean()
+      .exec();
+
+    return orders;
+  }
+
   private async saveOrder(
     orderDto: CreateOrderDto,
     client: User,

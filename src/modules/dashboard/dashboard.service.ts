@@ -6,6 +6,7 @@ import { OrderCountService } from './service/order-count.service';
 import { TimeFrameService } from './service/time-frame.service';
 import { ProfitCalculationService } from './service/profit.service';
 import { FacebookService } from '../facebook/facebook.service';
+import { ProductStatisticsService } from './service/product-statistics.service';
 
 @Injectable()
 export class DashboardService {
@@ -16,6 +17,7 @@ export class DashboardService {
     private profitService: ProfitCalculationService,
     private timeFrameService: TimeFrameService,
     private facebookService: FacebookService,
+    private productStats: ProductStatisticsService,
   ) {}
 
   async getOrdersDashboard(request: DashboardDto) {
@@ -38,6 +40,7 @@ export class DashboardService {
       previousTotalOrdersCount,
       totalProfitValue,
       previousTotalProfitValue,
+      productStats,
     ] = await Promise.all([
       this.saleValueService.calculateTotalSaleValue(fromDate, toDate),
       this.costValueService.calculateTotalCostValue(fromDate, toDate),
@@ -55,6 +58,7 @@ export class DashboardService {
         toDate,
         previousAdsReport.spendInUah,
       ),
+      this.productStats.generateStatistics(fromDate, toDate),
     ]);
 
     const timeFrame = this.timeFrameService.calculateTimeFrame(
@@ -137,6 +141,7 @@ export class DashboardService {
       totalProfitValueByTimeFrame,
       currentAdsReport,
       previousAdsReport,
+      productStats,
     };
   }
 }
