@@ -177,7 +177,30 @@ export class BasketService {
     if (userId && !guestId) {
       const user = await this.usersService.getUserById(userId);
       if (user) {
-        basket = await this.basketModel.findOne({ client: user }).exec();
+        basket = await this.basketModel
+          .findOne({ client: user })
+          .lean()
+          .populate({
+            path: 'client',
+            select: 'firstName secondName mobileNumber id',
+          })
+          .populate({
+            path: 'basketItems.product',
+            populate: {
+              path: 'dimensions.color',
+              model: 'Color',
+              select: 'name hexCode',
+            },
+          })
+          .populate({
+            path: 'basketItems.dimensions',
+            populate: {
+              path: 'color',
+              model: 'Color',
+              select: 'name hexCode',
+            },
+          })
+          .exec();
       } else {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
