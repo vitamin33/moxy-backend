@@ -42,7 +42,7 @@ export class ProductStatisticsService {
 
     for (const [productId, count] of productCounts) {
       const product = await this.productsService.getProductById(productId); // Adjust based on actual method signature
-      const percentageOfOrders = count / totalOrderCount;
+      const percentageOfOrders = Math.round((count / totalOrderCount) * 100);
       orderStats.push(
         new ProductOrderCountStat(product, count, percentageOfOrders),
       );
@@ -50,7 +50,7 @@ export class ProductStatisticsService {
 
     for (const [productId, profit] of productProfits) {
       const product = await this.productsService.getProductById(productId); // Adjust based on actual method signature
-      const percentageOfProfit = profit / totalProfit;
+      const percentageOfProfit = Math.round((profit / totalProfit) * 100);
       profitStats.push(
         new ProductProfitStat(product, profit, percentageOfProfit),
       );
