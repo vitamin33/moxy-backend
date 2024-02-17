@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DashboardDto, ProductStatsDto } from './dto/dashboard.dto';
+import { DashboardDto } from './dto/dashboard.dto';
 import { SaleCalculationService } from './service/sale-calculation.service';
 import { CostCalculationService } from './service/cost-calculation.service';
 import { OrderCountService } from './service/order-count.service';
@@ -119,7 +119,6 @@ export class DashboardService {
           100
         : 0;
 
-    // Return the final dashboard data
     return {
       totalSaleValue,
       totalCostValue,
@@ -139,13 +138,12 @@ export class DashboardService {
       totalProfitValueByTimeFrame,
       currentAdsReport,
       previousAdsReport,
-      productStats: { orderStats: [], profitStats: [] },
     };
   }
 
-  async getProductStatistics(request: ProductStatsDto) {
+  async getProductStatistics(request: DashboardDto) {
     const fromDate = new Date(request.fromDate);
     const toDate = new Date(request.toDate);
-    this.productStats.generateStatistics(fromDate, toDate);
+    return this.productStats.generateStatistics(fromDate, toDate);
   }
 }

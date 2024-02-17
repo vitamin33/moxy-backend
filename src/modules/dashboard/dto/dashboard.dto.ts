@@ -9,12 +9,3 @@ export class DashboardDto {
   @IsDate()
   readonly toDate: Date;
 }
-
-export class ProductStatsDto {
-  @Type(() => Date)
-  @IsDate()
-  readonly fromDate: Date;
-  @Type(() => Date)
-  @IsDate()
-  readonly toDate: Date;
-}
