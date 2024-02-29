@@ -74,9 +74,9 @@ export class AuthService {
     const emailCandidate = await this.userService.getUserByEmail(userDto.email);
 
     if (candidate || emailCandidate) {
-      const role = candidate.role;
+      const role = (candidate || emailCandidate).role;
 
-      if (candidate.role.name !== 'GUEST') {
+      if (role.name !== 'GUEST') {
         throw new HttpException(
           'User with such mobile number or email is already registered',
           HttpStatus.CONFLICT,

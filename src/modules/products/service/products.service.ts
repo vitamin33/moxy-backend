@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from '../dto/create-product.dto';
 import {
   FavoriteProduct,
@@ -283,6 +289,19 @@ export class ProductsService {
 
   async getProductDocumentById(id: string): Promise<ProductDocument> {
     return await this.productModel.findById(id);
+  }
+
+  async getProductsByIds(productIds: string[]): Promise<Product[]> {
+    const products = await this.productModel
+      .find({ _id: { $in: productIds } })
+      .populate('dimensions.color', 'name hexCode')
+      .populate('dimensions.size', 'name')
+      .populate('dimensions.material', 'name')
+      .exec();
+    if (!products || products.length === 0) {
+      return [];
+    }
+    return products;
   }
 
   async importProducts(products: [any]) {
