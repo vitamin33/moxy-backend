@@ -119,6 +119,25 @@ export class DashboardService {
           100
         : 0;
 
+    const avgOrderValue = Number(
+      totalSaleValue / totalOrdersCount || 0,
+    ).toFixed(2);
+    const avgOrderValuePrev = Number(
+      previousTotalSaleValue / previousTotalOrdersCount || 0,
+    ).toFixed(2);
+    const avgOrderProfit = Number(
+      totalProfitValue / totalOrdersCount || 0,
+    ).toFixed(2);
+    const avgOrderProfitPrev = Number(
+      previousTotalProfitValue / previousTotalOrdersCount || 0,
+    ).toFixed(2);
+    const ltgpToCacRatio = Number(
+      totalProfitValue / parseFloat(currentAdsReport.spendInUah),
+    ).toFixed(2);
+    const ltgpToCacRatioPrev = Number(
+      previousTotalProfitValue / parseFloat(previousAdsReport.spendInUah),
+    ).toFixed(2);
+
     return {
       totalSaleValue,
       totalCostValue,
@@ -138,6 +157,14 @@ export class DashboardService {
       totalProfitValueByTimeFrame,
       currentAdsReport,
       previousAdsReport,
+      kpis: {
+        avgOrderValue,
+        avgOrderValuePrev,
+        avgOrderProfit,
+        avgOrderProfitPrev,
+        ltgpToCacRatio,
+        ltgpToCacRatioPrev,
+      },
     };
   }
 

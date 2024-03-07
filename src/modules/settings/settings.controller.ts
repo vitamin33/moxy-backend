@@ -60,7 +60,6 @@ export class SettingsController {
     return this.settingsService.activateHomeMedia(dto);
   }
 
-  @UseGuards(RolesGuard)
   @Get('media/home')
   async getHomeMedia() {
     return this.settingsService.getHomeMedia();
