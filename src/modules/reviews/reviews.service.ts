@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AddReviewDto } from './dto/add-review.dto';
-import { Review } from './review.entity';
+import { Review, ReviewStats } from './review.entity';
 import { StorageService } from '../storage/storage.service';
 import { ProductsService } from '../products/service/products.service';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
@@ -52,9 +52,28 @@ export class ReviewsService {
   }
 
   async getReviewsByProductId(productId: string): Promise<Review[]> {
-    // TODO implement getting reviews only where 'productId' field is equal 'productId' paramter
-    const result = await this.reviewModel.find().lean().exec();
+    const result = await this.reviewModel
+      .find({ productId: productId })
+      .lean()
+      .exec();
     return result;
+  }
+
+  async getReviewStatsByProductId(productId: string): Promise<ReviewStats> {
+    const reviews = await this.getReviewsByProductId(productId);
+    if (reviews.length === 0) {
+      return { reviews: [], totalVotes: 0, avgRating: '0.0' };
+    }
+
+    const totalVotes = reviews.length;
+    const avgRating =
+      reviews.reduce((acc, review) => acc + review.rating, 0) / totalVotes;
+
+    return {
+      reviews,
+      totalVotes,
+      avgRating: avgRating.toFixed(1),
+    };
   }
 
   async removeReview(id: string) {

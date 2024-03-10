@@ -156,7 +156,7 @@ export interface FavoriteProduct extends Product {
   isFavorite: boolean;
 }
 
-export interface ProductWithCostPrice extends Product {
+export interface ProductWithRelatedInfo extends Product {
   costPrice: number;
   productAdvantages: ProductAdvantages[];
 }

@@ -18,7 +18,7 @@ import { AttributesWithCategories } from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { ProductWithCostPrice } from '../products/product.entity';
+import { ProductWithRelatedInfo } from '../products/product.entity';
 
 @Injectable()
 export class OrdersService {
@@ -123,7 +123,7 @@ export class OrdersService {
     // Create a map of productId to promise of getProductById
     const productPromisesMap: Record<
       string,
-      Promise<ProductWithCostPrice | null>
+      Promise<ProductWithRelatedInfo | null>
     > = {};
 
     order.orderedItems.forEach((orderedItem) => {

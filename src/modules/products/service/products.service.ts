@@ -10,7 +10,7 @@ import {
   FavoriteProduct,
   Product,
   ProductDocument,
-  ProductWithCostPrice,
+  ProductWithRelatedInfo,
 } from '../product.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
@@ -26,6 +26,7 @@ import { convertToDimension } from 'src/common/utility';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
 import { ProductAdvantagesService } from 'src/modules/products/service/product-advantages.service';
 import { MediaType } from 'src/modules/settings/media.entity';
+import { ReviewsService } from 'src/modules/reviews/reviews.service';
 
 @Injectable()
 export class ProductsService {
@@ -247,7 +248,7 @@ export class ProductsService {
   async getProductDetailsWithAdvantages(
     id: string,
     populateDimensions: boolean = true,
-  ): Promise<ProductWithCostPrice> {
+  ): Promise<ProductWithRelatedInfo> {
     const product = await this.findProductById(id, populateDimensions);
 
     if (product) {
