@@ -13,7 +13,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/role-auth.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { AddReviewDto } from './dto/add-review.dto';
-import { Review } from './review.entity';
+import { Review, ReviewStats } from './review.entity';
 import { ReviewsService } from './reviews.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -41,6 +41,13 @@ export class ReviewsController {
     @Param('id') productId: string,
   ): Promise<Review[]> {
     return this.reviewsService.getReviewsByProductId(productId);
+  }
+
+  @Get('stats/:id')
+  async getReviewStatsByProductId(
+    @Param('id') productId: string,
+  ): Promise<ReviewStats> {
+    return this.reviewsService.getReviewStatsByProductId(productId);
   }
 
   @Roles('ADMIN')

@@ -10,7 +10,6 @@ import { Product, ProductSchema } from './product.entity';
 import { MongooseModule } from '@nestjs/mongoose';
 import { StorageModule } from 'src/modules/storage/storage.module';
 import { ImportProductsService } from './service/import-products.service';
-import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { SettingsModule } from '../settings/settings.module';
 import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
@@ -30,6 +29,7 @@ import {
   ProductAdvantages,
   ProductAdvantagesSchema,
 } from './product-advantages.entity';
+import { ReviewsModule } from '../reviews/reviews.module';
 
 @Module({
   imports: [
