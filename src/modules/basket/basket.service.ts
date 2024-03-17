@@ -205,7 +205,29 @@ export class BasketService {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
     } else if (guestId) {
-      basket = await this.basketModel.findOne({ guestId: guestId }).exec();
+      basket = await this.basketModel
+        .findOne({ guestId: guestId })
+        .populate({
+          path: 'client',
+          select: 'firstName secondName mobileNumber id',
+        })
+        .populate({
+          path: 'basketItems.product',
+          populate: {
+            path: 'dimensions.color',
+            model: 'Color',
+            select: 'name hexCode',
+          },
+        })
+        .populate({
+          path: 'basketItems.dimensions',
+          populate: {
+            path: 'color',
+            model: 'Color',
+            select: 'name hexCode',
+          },
+        })
+        .exec();
     }
 
     if (!basket) {
