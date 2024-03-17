@@ -119,6 +119,13 @@ export class UsersService {
     return updatedUser;
   }
 
+  async deleteUserById(userId: string): Promise<void> {
+    const result = await this.userModel.deleteOne({ _id: userId }).exec();
+    if (result.deletedCount === 0) {
+      throw new UserNotFoundException(userId);
+    }
+  }
+
   async addOrder(userId: string, order: Order) {
     const user = await this.getUserById(userId);
     if (user) {

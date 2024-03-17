@@ -43,9 +43,9 @@ export class BasketService {
     }
 
     if (!basket) {
-      basket = userId
-        ? new this.basketModel({ client: userId })
-        : new this.basketModel({ guestId });
+      basket = guestId
+        ? new this.basketModel({ guestId })
+        : new this.basketModel({ client: userId });
     }
 
     const product = await this.productsService.getProductById(

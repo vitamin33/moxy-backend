@@ -277,6 +277,10 @@ export class AuthService {
       });
   }
 
+  async deleteUser(id: string): Promise<void> {
+    await this.userService.deleteUserById(id);
+  }
+
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
     const { email, newPassword, resetToken } = resetPasswordDto;
     const user = await this.userService.getUserByEmail(email);
