@@ -135,20 +135,26 @@ export class BasketService {
 
     return result;
   }
+  
   async removeProduct(
-    userId: string,
+    userId: string| null,
+    guestId: string | null,
     removeDto: RemoveProductDto,
   ): Promise<BasketDocument> {
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    let basket: mongoose.Document<unknown, {}, BasketDocument> & BasketDocument;
 
-    const basket = await this.basketModel.findOne({ client: user });
-    if (!basket) {
-      throw new NotFoundException('Basket not found');
+    if (userId && !guestId) {
+      const user = await this.usersService.getUserById(userId);
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+      basket = await this.basketModel.findOne({ client: user }).exec();
+    } else if (guestId) {
+      basket = await this.basketModel.findOne({ guestId }).exec();
+    } else {
+      throw new Error('A user ID or guest ID must be provided.');
     }
-
+    
     const itemIndex = basket.basketItems.findIndex((item) => {
       const itemId = item.product.toString();
       return itemId === removeDto.productId;
@@ -165,7 +171,7 @@ export class BasketService {
     await result.populate('client', 'mobileNumber');
     await result.populate('basketItems.product');
     await result.populate('basketItems.product.dimensions.color');
-    return basket;
+    return result;
   }
 
   async getBasket(
