@@ -1,0 +1,9 @@
+{
+    "type": "node",
+    "request": "attach",
+    "protocol": "inspector",
+    "name": "API",
+    "port": 5880,
+    "sourceMaps": true,
+    "trace": true
+ }
