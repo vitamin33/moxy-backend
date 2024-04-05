@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Order, OrderedProduct, Status } from './order.entity';
+import { Order, OrderedItem, OrderedProduct, Status } from './order.entity';
 import mongoose, { Model } from 'mongoose';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { GuestUserDto as UserDto } from 'src/modules/users/dto/guest-user.dto';
@@ -18,7 +18,7 @@ import { AttributesWithCategories } from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
-import { ProductWithCostPrice } from '../products/product.entity';
+import { ProductWithRelatedInfo } from '../products/product.entity';
 
 @Injectable()
 export class OrdersService {
@@ -123,7 +123,7 @@ export class OrdersService {
     // Create a map of productId to promise of getProductById
     const productPromisesMap: Record<
       string,
-      Promise<ProductWithCostPrice | null>
+      Promise<ProductWithRelatedInfo | null>
     > = {};
 
     order.orderedItems.forEach((orderedItem) => {
@@ -275,14 +275,155 @@ export class OrdersService {
     orderId: string,
     newStatus: Status,
   ): Promise<OrderDocument> {
-    const order = await this.orderModel.findById(orderId);
+    const session = await this.orderModel.db.startSession();
+    session.startTransaction();
+
+    try {
+      const order = await this.getOrderWithSession(orderId, session);
+      await this.handleStatusChange(order, newStatus, session);
+      await session.commitTransaction();
+      session.endSession();
+
+      return order;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  }
+
+  private async getOrderWithSession(
+    orderId: string,
+    session: mongoose.ClientSession,
+  ) {
+    const order = await this.orderModel.findById(orderId).session(session);
     if (!order) {
       throw new OrderNotFoundException(orderId);
     }
+    return order;
+  }
+  private isStatusChangeValid(
+    currentStatus: Status,
+    newStatus: Status,
+  ): boolean {
+    const statusesToCheck = [
+      Status.Canceled,
+      Status.Returned,
+      Status.PaymentFailed,
+    ];
+    return (
+      (statusesToCheck.includes(newStatus) &&
+        !statusesToCheck.includes(currentStatus)) ||
+      (!statusesToCheck.includes(newStatus) &&
+        statusesToCheck.includes(currentStatus))
+    );
+  }
+
+  private async handleStatusChange(
+    order: mongoose.Document<unknown, {}, OrderDocument> & Order & Document,
+    newStatus: Status,
+    session: mongoose.ClientSession,
+  ) {
+    const statusesToCheck = [
+      Status.Canceled,
+      Status.Returned,
+      Status.PaymentFailed,
+    ];
+
+    if (statusesToCheck.includes(newStatus)) {
+      // Increment quantities when changing to Canceled, Returned, or PaymentFailed
+      await this.processOrderedItems(
+        order.orderedItems,
+        session,
+        this.incrementProductsQuantities,
+      );
+    } else if (statusesToCheck.includes(order.status)) {
+      // Decrement quantities when changing from Canceled, Returned, or PaymentFailed
+      await this.processOrderedItems(
+        order.orderedItems,
+        session,
+        this.decrementProductsQuantities,
+      );
+    }
 
     order.status = newStatus;
-    const updatedOrder = await order.save();
-    return updatedOrder;
+    await order.save({ session });
+  }
+
+  private async processOrderedItems(
+    orderedItems: OrderedItem[],
+    session: mongoose.ClientSession,
+    operation: (
+      productId: string,
+      dimensions: Dimension[],
+      session: mongoose.ClientSession,
+    ) => Promise<void>,
+  ) {
+    for (const orderedItem of orderedItems) {
+      await operation(
+        orderedItem.product.toString(),
+        orderedItem.dimensions,
+        session,
+      );
+    }
+  }
+
+  private async incrementProductsQuantities(
+    productId: string,
+    dimensions: Dimension[],
+    session: mongoose.ClientSession,
+  ) {
+    const productToUpdate = (
+      await this.productsService.getProductById(productId)
+    ).session(session);
+
+    if (!productToUpdate) {
+      throw new ProductNotAvailableException(productId);
+    }
+
+    for (const dimension of dimensions) {
+      const matchingDimension = productToUpdate.dimensions.find((dim) =>
+        compareDimensions(dim, dimension),
+      );
+
+      if (matchingDimension) {
+        matchingDimension.quantity += dimension.quantity;
+      }
+    }
+
+    await productToUpdate.save({ session });
+  }
+
+  private async decrementProductsQuantities(
+    productId: string,
+    dimensions: Dimension[],
+    session: mongoose.ClientSession,
+  ) {
+    const productToUpdate = (
+      await this.productsService.getProductById(productId)
+    ).session(session);
+
+    if (!productToUpdate) {
+      throw new ProductNotAvailableException(productId);
+    }
+
+    for (const dimension of dimensions) {
+      const matchingDimension = productToUpdate.dimensions.find((dim) =>
+        compareDimensions(dim, dimension),
+      );
+
+      if (
+        matchingDimension &&
+        matchingDimension.quantity >= dimension.quantity
+      ) {
+        matchingDimension.quantity -= dimension.quantity;
+      } else {
+        // Handle the case where the quantity cannot be decremented
+        throw new Error(`Cannot decrement quantity for product ${productId}`);
+      }
+    }
+
+    await productToUpdate.save({ session });
   }
 
   async deleteOrder(orderId: string) {
@@ -427,6 +568,27 @@ export class OrdersService {
 
     matchingDimension.quantity -= dimension.quantity;
     await productToUpdate.save();
+  }
+
+  async getOrdersWithinPeriod(fromDate: Date, toDate: Date): Promise<Order[]> {
+    const query = this.orderModel.find();
+
+    if (fromDate) {
+      query.gte('createdAt', fromDate.toISOString());
+    }
+    if (toDate) {
+      query.lte('createdAt', toDate.toISOString());
+    }
+
+    const orders = await query
+      .sort({ createdAt: -1 }) // Sorting by creation date in descending order
+      .populate('orderedItems.dimensions.color')
+      .populate('orderedItems.product')
+      .select('-city -novaPost')
+      .lean()
+      .exec();
+
+    return orders;
   }
 
   private async saveOrder(

@@ -1,10 +1,16 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from '../dto/create-product.dto';
 import {
   FavoriteProduct,
   Product,
   ProductDocument,
-  ProductWithCostPrice,
+  ProductWithRelatedInfo,
 } from '../product.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
@@ -20,6 +26,7 @@ import { convertToDimension } from 'src/common/utility';
 import { FavoritesService } from 'src/modules/favorites/favorites.service';
 import { ProductAdvantagesService } from 'src/modules/products/service/product-advantages.service';
 import { MediaType } from 'src/modules/settings/media.entity';
+import { ReviewsService } from 'src/modules/reviews/reviews.service';
 
 @Injectable()
 export class ProductsService {
@@ -241,7 +248,7 @@ export class ProductsService {
   async getProductDetailsWithAdvantages(
     id: string,
     populateDimensions: boolean = true,
-  ): Promise<ProductWithCostPrice> {
+  ): Promise<ProductWithRelatedInfo> {
     const product = await this.findProductById(id, populateDimensions);
 
     if (product) {
@@ -283,6 +290,19 @@ export class ProductsService {
 
   async getProductDocumentById(id: string): Promise<ProductDocument> {
     return await this.productModel.findById(id);
+  }
+
+  async getProductsByIds(productIds: string[]): Promise<Product[]> {
+    const products = await this.productModel
+      .find({ _id: { $in: productIds } })
+      .populate('dimensions.color', 'name hexCode')
+      .populate('dimensions.size', 'name')
+      .populate('dimensions.material', 'name')
+      .exec();
+    if (!products || products.length === 0) {
+      return [];
+    }
+    return products;
   }
 
   async importProducts(products: [any]) {
@@ -345,7 +365,11 @@ export class ProductsService {
     }
   }
 
-  async getSellingProducts(userId: string, category?: string) {
+  async getSellingProducts(
+    userId: string,
+    isGuest: boolean,
+    category?: string,
+  ) {
     let query = this.productModel.find({ forSale: true });
 
     if (category) {
@@ -359,10 +383,10 @@ export class ProductsService {
       .lean()
       .exec();
 
-    return this.addIsFavoriteToProducts(userId, products);
+    return this.addIsFavoriteToProducts(userId, products, isGuest);
   }
 
-  async getRecommendedProducts(userId: string) {
+  async getRecommendedProducts(userId: string, isGuest: boolean) {
     // TODO change implementation to return random product for now
     const products = await this.productModel
       .find({ forSale: true })
@@ -371,10 +395,10 @@ export class ProductsService {
       .populate('dimensions.material', 'name')
       .lean()
       .exec();
-    return this.addIsFavoriteToProducts(userId, products);
+    return this.addIsFavoriteToProducts(userId, products, isGuest);
   }
 
-  async getResaleProducts(userId: string) {
+  async getResaleProducts(userId: string, isGuest: boolean) {
     // TODO change implementation to return products from Accessories category for now
     const products = await this.productModel
       .find({ forSale: true })
@@ -383,7 +407,7 @@ export class ProductsService {
       .populate('dimensions.material', 'name')
       .lean()
       .exec();
-    return this.addIsFavoriteToProducts(userId, products);
+    return this.addIsFavoriteToProducts(userId, products, isGuest);
   }
 
   calculateCostPrice(product: Product): number {
@@ -405,9 +429,11 @@ export class ProductsService {
   async addIsFavoriteToProducts(
     userId: string,
     products: Product[],
+    isGuest: boolean,
   ): Promise<FavoriteProduct[]> {
-    const favoriteProducts =
-      await this.favoritesService.getFavoriteProducts(userId);
+    const favoriteProducts = isGuest
+      ? []
+      : await this.favoritesService.getFavoriteProducts(userId, null);
     return products.map((product) => {
       const isFavorite = favoriteProducts.some(
         (favProduct) => favProduct._id.toString() === product._id.toString(),

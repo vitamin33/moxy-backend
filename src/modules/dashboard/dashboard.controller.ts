@@ -25,4 +25,13 @@ export class DashboardController {
   async getOrdersDashboard(@Body() dto: DashboardDto) {
     return this.dashboardService.getOrdersDashboard(dto);
   }
+
+  @ApiOperation({ summary: 'Get product stats' })
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
+  @UsePipes(ValidationPipe)
+  @Post('product-stats')
+  async getProductStats(@Body() dto: DashboardDto) {
+    return this.dashboardService.getProductStatistics(dto);
+  }
 }

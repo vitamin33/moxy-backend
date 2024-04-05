@@ -104,7 +104,12 @@ export class ProductsController {
     @Query() query: GetSellingProductsQuery,
   ) {
     const userId = req.user.id;
-    return this.productService.getSellingProducts(userId, query.category);
+    const isGuest = req.guestId != null;
+    return this.productService.getSellingProducts(
+      userId,
+      isGuest,
+      query.category,
+    );
   }
 
   @ApiOperation({ summary: 'Get recommended products' })
@@ -112,7 +117,8 @@ export class ProductsController {
   @Get('recommend')
   async getRecommendedProducts(@Request() req: any) {
     const userId = req.user.id;
-    return this.productService.getRecommendedProducts(userId);
+    const isGuest = req.guestId != null;
+    return this.productService.getRecommendedProducts(userId, isGuest);
   }
 
   @ApiOperation({ summary: 'Get resale products' })
@@ -120,7 +126,8 @@ export class ProductsController {
   @Get('resale')
   async getResaleProducts(@Request() req: any) {
     const userId = req.user.id;
-    return this.productService.getResaleProducts(userId);
+    const isGuest = req.guestId != null;
+    return this.productService.getResaleProducts(userId, isGuest);
   }
 
   @ApiOperation({ summary: 'Delete product (Admin Only)' })

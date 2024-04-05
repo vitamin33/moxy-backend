@@ -10,43 +10,42 @@ import { ProductAvailabilityService } from 'src/modules/products/service/product
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
 import { compareDimensions } from 'src/common/utility';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
-import {
-  AttributesWithCategories,
-  Color,
-  Material,
-  Size,
-} from '../attributes/attribute.entity';
 import { AttributesService } from '../attributes/attributes.service';
 import { User } from '../users/user.entity';
 
 @Injectable()
 export class BasketService {
-  private attributes: AttributesWithCategories;
   constructor(
     @InjectModel(Basket.name) private basketModel: Model<BasketDocument>,
     private usersService: UsersService,
     private productsService: ProductsService,
     private productAvailabilityService: ProductAvailabilityService,
     private attributesService: AttributesService,
-  ) {
-    this.initializeAttributes();
-  }
+  ) {}
 
-  private async initializeAttributes() {
-    this.attributes = await this.attributesService.getAttributes();
-  }
   async addOrChangeProduct(
-    userId: string,
+    userId: string | null,
+    guestId: string | null,
     addDto: AddOrChangeProductDto,
   ): Promise<Basket> {
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+    let basket: mongoose.Document<unknown, {}, BasketDocument> & Basket;
+
+    if (userId && !guestId) {
+      const user = await this.usersService.getUserById(userId);
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+      basket = await this.basketModel.findOne({ client: user }).exec();
+    } else if (guestId) {
+      basket = await this.basketModel.findOne({ guestId }).exec();
+    } else {
+      throw new Error('A user ID or guest ID must be provided.');
     }
 
-    let basket = await this.basketModel.findOne({ client: user }).exec();
     if (!basket) {
-      basket = new this.basketModel({ client: user });
+      basket = guestId
+        ? new this.basketModel({ guestId })
+        : new this.basketModel({ client: userId });
     }
 
     const product = await this.productsService.getProductById(
@@ -136,20 +135,26 @@ export class BasketService {
 
     return result;
   }
+  
   async removeProduct(
-    userId: string,
+    userId: string| null,
+    guestId: string | null,
     removeDto: RemoveProductDto,
   ): Promise<BasketDocument> {
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    let basket: mongoose.Document<unknown, {}, BasketDocument> & BasketDocument;
 
-    const basket = await this.basketModel.findOne({ client: user });
-    if (!basket) {
-      throw new NotFoundException('Basket not found');
+    if (userId && !guestId) {
+      const user = await this.usersService.getUserById(userId);
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+      basket = await this.basketModel.findOne({ client: user }).exec();
+    } else if (guestId) {
+      basket = await this.basketModel.findOne({ guestId }).exec();
+    } else {
+      throw new Error('A user ID or guest ID must be provided.');
     }
-
+    
     const itemIndex = basket.basketItems.findIndex((item) => {
       const itemId = item.product.toString();
       return itemId === removeDto.productId;
@@ -166,19 +171,79 @@ export class BasketService {
     await result.populate('client', 'mobileNumber');
     await result.populate('basketItems.product');
     await result.populate('basketItems.product.dimensions.color');
-    return basket;
+    return result;
   }
 
-  async getBasket(userId: string): Promise<Basket> {
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+  async getBasket(
+    userId: string | null,
+    guestId: string | null,
+  ): Promise<Basket> {
+    let basket: Basket;
+
+    if (userId && !guestId) {
+      const user = await this.usersService.getUserById(userId);
+      if (user) {
+        basket = await this.basketModel
+          .findOne({ client: user })
+          .lean()
+          .populate({
+            path: 'client',
+            select: 'firstName secondName mobileNumber id',
+          })
+          .populate({
+            path: 'basketItems.product',
+            populate: {
+              path: 'dimensions.color',
+              model: 'Color',
+              select: 'name hexCode',
+            },
+          })
+          .populate({
+            path: 'basketItems.dimensions',
+            populate: {
+              path: 'color',
+              model: 'Color',
+              select: 'name hexCode',
+            },
+          })
+          .exec();
+      } else {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+    } else if (guestId) {
+      basket = await this.basketModel
+        .findOne({ guestId: guestId })
+        .populate({
+          path: 'client',
+          select: 'firstName secondName mobileNumber id',
+        })
+        .populate({
+          path: 'basketItems.product',
+          populate: {
+            path: 'dimensions.color',
+            model: 'Color',
+            select: 'name hexCode',
+          },
+        })
+        .populate({
+          path: 'basketItems.dimensions',
+          populate: {
+            path: 'color',
+            model: 'Color',
+            select: 'name hexCode',
+          },
+        })
+        .exec();
     }
 
-    const basket = this.loadBasketByUserId(user);
-
     if (!basket) {
-      throw new NotFoundException('Basket not found');
+      basket = new this.basketModel({
+        guestId: guestId,
+        basketItems: [], // Initialize empty basket
+      });
+
+      // Optionally save the new basket if you want to persist empty baskets for guests
+      // await basket.save();
     }
 
     return basket;

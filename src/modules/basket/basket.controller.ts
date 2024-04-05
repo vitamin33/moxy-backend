@@ -25,7 +25,8 @@ export class BasketController {
   @Get()
   async getBasket(@Request() req: any) {
     const userId = req.user.id;
-    return this.basketService.getBasket(userId);
+    const guestId = req.guestId;
+    return this.basketService.getBasket(userId, guestId);
   }
   @ApiOperation({ summary: 'Add product to basket' })
   @ApiResponse({ status: 200, type: Basket })
@@ -36,10 +37,11 @@ export class BasketController {
     @Body() addDto: AddOrChangeProductDto,
   ) {
     const userId = req.user.id;
-    return this.basketService.addOrChangeProduct(userId, addDto);
+    const guestId = req.guestId;
+    return this.basketService.addOrChangeProduct(userId, guestId, addDto);
   }
 
-  @ApiOperation({ summary: 'Add product to basket' })
+  @ApiOperation({ summary: 'Remove product to basket' })
   @ApiResponse({ status: 200, type: Basket })
   @UsePipes(ValidationPipe)
   @Post('remove')
@@ -48,7 +50,8 @@ export class BasketController {
     @Body() removeDto: RemoveProductDto,
   ) {
     const userId = req.user.id;
-    return this.basketService.removeProduct(userId, removeDto);
+    const guestId = req.guestId;
+    return this.basketService.removeProduct(userId, guestId, removeDto);
   }
 
   @ApiOperation({ summary: 'Clear basket' })

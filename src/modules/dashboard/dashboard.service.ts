@@ -6,6 +6,7 @@ import { OrderCountService } from './service/order-count.service';
 import { TimeFrameService } from './service/time-frame.service';
 import { ProfitCalculationService } from './service/profit.service';
 import { FacebookService } from '../facebook/facebook.service';
+import { ProductStatisticsService } from './service/product-statistics.service';
 
 @Injectable()
 export class DashboardService {
@@ -16,6 +17,7 @@ export class DashboardService {
     private profitService: ProfitCalculationService,
     private timeFrameService: TimeFrameService,
     private facebookService: FacebookService,
+    private productStats: ProductStatisticsService,
   ) {}
 
   async getOrdersDashboard(request: DashboardDto) {
@@ -117,7 +119,25 @@ export class DashboardService {
           100
         : 0;
 
-    // Return the final dashboard data
+    const avgOrderValue = Number(
+      totalSaleValue / totalOrdersCount || 0,
+    ).toFixed(2);
+    const avgOrderValuePrev = Number(
+      previousTotalSaleValue / previousTotalOrdersCount || 0,
+    ).toFixed(2);
+    const avgOrderProfit = Number(
+      totalProfitValue / totalOrdersCount || 0,
+    ).toFixed(2);
+    const avgOrderProfitPrev = Number(
+      previousTotalProfitValue / previousTotalOrdersCount || 0,
+    ).toFixed(2);
+    const ltgpToCacRatio = Number(
+      totalProfitValue / parseFloat(currentAdsReport.spendInUah),
+    ).toFixed(2);
+    const ltgpToCacRatioPrev = Number(
+      previousTotalProfitValue / parseFloat(previousAdsReport.spendInUah),
+    ).toFixed(2);
+
     return {
       totalSaleValue,
       totalCostValue,
@@ -137,6 +157,20 @@ export class DashboardService {
       totalProfitValueByTimeFrame,
       currentAdsReport,
       previousAdsReport,
+      kpis: {
+        avgOrderValue,
+        avgOrderValuePrev,
+        avgOrderProfit,
+        avgOrderProfitPrev,
+        ltgpToCacRatio,
+        ltgpToCacRatioPrev,
+      },
     };
+  }
+
+  async getProductStatistics(request: DashboardDto) {
+    const fromDate = new Date(request.fromDate);
+    const toDate = new Date(request.toDate);
+    return this.productStats.generateStatistics(fromDate, toDate);
   }
 }

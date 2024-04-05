@@ -96,7 +96,6 @@ export class CostCalculationService {
       if (dateToTotalCostMap.has(formattedDate)) {
         const existingTotal = dateToTotalCostMap.get(formattedDate) || 0;
         const totalForDate = existingTotal + totalCostValue;
-        this.logger.debug(`Total for date: ${totalForDate}`);
         dateToTotalCostMap.set(formattedDate, totalForDate);
       } else {
         dateToTotalCostMap.set(formattedDate, totalCostValue);
@@ -104,7 +103,6 @@ export class CostCalculationService {
       totalCostValue = 0;
     }
 
-    // Format the result from the map into an array of RangeData coordinates
     const result: RangeData[] = Array.from(dateToTotalCostMap.entries()).map(
       ([date, totalCostValue]) => ({
         fromDate: date,

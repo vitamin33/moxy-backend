@@ -7,6 +7,8 @@ import {
   Request,
   HttpException,
   HttpStatus,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -21,6 +23,8 @@ import { UsersService } from '../users/users.service';
 import { VerifyConfirmationDto } from './dto/verify-confirmation.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SetNewPasswordDto } from './dto/set-new-password.dto';
+import { Roles } from './role-auth.decorator';
+import { RolesGuard } from './roles.guard';
 
 @ApiTags('Authorization')
 @Controller('auth')
@@ -44,6 +48,11 @@ export class AuthController {
   @Post('/refresh-token')
   async refreshToken(@Body() refreshDto: RefreshTokenDto) {
     return this.authService.refreshToken(refreshDto.refreshToken);
+  }
+
+  @Post('/guest-token')
+  guestToken() {
+    return this.authService.generateGuestToken();
   }
 
   @UseGuards(JwtAuthGuard)
@@ -97,5 +106,13 @@ export class AuthController {
     const { email, newPassword, resetToken } = dto;
     await this.authService.setNewPassword(email, newPassword, resetToken);
     return { message: 'Password changed successfully' };
+  }
+
+  @Delete('user/:id')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async deleteUser(@Param('id') id: string) {
+    await this.authService.deleteUser(id);
+    return { message: 'User deleted successfully' };
   }
 }

@@ -20,3 +20,9 @@ export class Review extends Document {
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);
+
+export class ReviewStats {
+  reviews: Review[];
+  totalVotes: number;
+  avgRating: string;
+}

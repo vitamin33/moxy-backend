@@ -27,7 +27,10 @@ export class Basket {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   @Type(() => User)
-  client: User;
+  client?: User;
+
+  @Prop({ required: false })
+  guestId?: string;
 
   @Prop({ type: [BasketItemSchema], required: true, default: [] })
   basketItems: BasketItem[];
