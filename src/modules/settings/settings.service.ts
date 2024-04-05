@@ -11,6 +11,8 @@ export class SettingsService {
   private readonly usdToUahRate = 38.56;
   private readonly shippingRateInUSD = 17.0;
 
+  private readonly orderPackingSpendInUah = 27.0;
+
   constructor(
     @InjectModel(Media.name) private mediaModel: Model<Media>,
 
@@ -22,6 +24,10 @@ export class SettingsService {
   }
   getUsdToUahRate(): number {
     return this.usdToUahRate;
+  }
+
+  getOrderPackingSpendInUah(): number {
+    return this.orderPackingSpendInUah;
   }
 
   async addMedia(dto: AddMediaDto, mediaFile: any) {

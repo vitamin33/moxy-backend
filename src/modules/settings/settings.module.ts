@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Media, MediaSchema } from './media.entity';
 import { StorageModule } from '../storage/storage.module';
 import { SettingsController } from './settings.controller';
+import { SecretsService } from './secret.service';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { SettingsController } from './settings.controller';
     StorageModule,
   ],
   controllers: [SettingsController],
-  providers: [SettingsService],
-  exports: [SettingsService],
+  providers: [SettingsService, SecretsService],
+  exports: [SettingsService, SecretsService],
 })
 export class SettingsModule {}

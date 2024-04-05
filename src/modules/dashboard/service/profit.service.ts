@@ -11,6 +11,7 @@ import {
 } from '../../../common/utils';
 import { ProductsService } from 'src/modules/products/service/products.service';
 import { Product } from 'src/modules/products/product.entity';
+import { SettingsService } from 'src/modules/settings/settings.service';
 
 @Injectable()
 export class ProfitCalculationService {
@@ -18,6 +19,7 @@ export class ProfitCalculationService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     private productsService: ProductsService,
+    private settingsService: SettingsService,
   ) {}
 
   async calculateTotalProfitValue(
@@ -61,8 +63,14 @@ export class ProfitCalculationService {
         }
       }
     }
+
+    const packingPrice = this.settingsService.getOrderPackingSpendInUah();
+    const packingValue = orders.length * packingPrice;
+
     // Subtract the advertising spend from the total profit
     totalProfitValue -= parseFloat(adsSpend);
+    // Subtract the packing value spend from the total profit
+    totalProfitValue -= packingValue;
 
     this.logger.debug(
       `Total sale: ${totalSaleValue}, total cost: ${totalCostValue}, total profit: ${totalProfitValue}`,

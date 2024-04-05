@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsString, Length, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  Length,
+  Matches,
+} from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ example: '0938784738', description: 'Mobile number.' })
@@ -39,4 +45,6 @@ export class CreateUserDto {
   readonly email: string;
 
   confirmationCode?: string;
+
+  readonly guestId?: string;
 }

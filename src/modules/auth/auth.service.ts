@@ -20,6 +20,7 @@ import * as handlebars from 'handlebars';
 import * as fs from 'fs';
 import { v4 as uuid } from 'uuid';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { BasketService } from '../basket/basket.service';
 
 class LoginResponse {
   accessToken: string;
@@ -41,8 +42,12 @@ export class AuthService {
     const user = await this.validateUser(userDto);
     const accessToken = this.generateAccessToken(user);
     const refreshToken = this.generateRefreshToken(user.id);
+    const guestId = userDto.guestId;
 
-    await this.userService.storeRefreshToken(user.id, refreshToken);
+    //await this.userService.storeRefreshToken(user.id, refreshToken);
+    // if (guestId) {
+    //   await this.basketService.moveGuestBasketToExistingUser(guestId, user.id);
+    // }
 
     return {
       userId: user._id,

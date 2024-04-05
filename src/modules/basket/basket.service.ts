@@ -10,7 +10,6 @@ import { ProductAvailabilityService } from 'src/modules/products/service/product
 import { ProductNotAvailableException } from 'src/common/exception/product-not-available.exception';
 import { compareDimensions } from 'src/common/utility';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
-import { AttributesService } from '../attributes/attributes.service';
 import { User } from '../users/user.entity';
 
 @Injectable()
@@ -20,7 +19,6 @@ export class BasketService {
     private usersService: UsersService,
     private productsService: ProductsService,
     private productAvailabilityService: ProductAvailabilityService,
-    private attributesService: AttributesService,
   ) {}
 
   async addOrChangeProduct(
@@ -241,9 +239,6 @@ export class BasketService {
         guestId: guestId,
         basketItems: [], // Initialize empty basket
       });
-
-      // Optionally save the new basket if you want to persist empty baskets for guests
-      // await basket.save();
     }
 
     return basket;
@@ -274,10 +269,68 @@ export class BasketService {
 
   async clearBasket(userId: string): Promise<void> {
     const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
+    if (user) {
+      this.basketModel.deleteOne({ client: user });
+    }
+  }
+
+  async moveGuestBasketToExistingUser(
+    guestId: string,
+    userId: string,
+  ): Promise<Basket> {
+    // Step 1: Retrieve the guest's basket
+    let guestBasket = await this.basketModel.findOne({ guestId }).exec();
+    if (!guestBasket) {
+      guestBasket = new this.basketModel({
+        guestId: guestId,
+        basketItems: [],
+      });
     }
 
-    await this.basketModel.deleteOne({ client: user });
+    // Step 2: Identify the existing user's basket
+    let userBasket;
+    const user = await this.usersService.getUserById(userId);
+    if (user) {
+      userBasket = await this.basketModel.findOne({ client: user }).exec();
+    }
+
+    // If the user does not have a basket, use the guest's basket directly
+    if (!userBasket) {
+      guestBasket.client = user;
+      guestBasket.guestId = undefined;
+      await guestBasket.save();
+      return guestBasket;
+    }
+
+    // Step 3: Merge the guest's basket items into the existing user's basket
+    guestBasket.basketItems.forEach((guestItem) => {
+      const existingItemIndex = userBasket.basketItems.findIndex(
+        (userItem) =>
+          userItem.product.toString() === guestItem.product.toString(),
+      );
+
+      if (existingItemIndex !== -1) {
+        userBasket.basketItems[existingItemIndex].dimensions.forEach(
+          (dimension) => {
+            const guestDimension = guestItem.dimensions.find((gd) =>
+              compareDimensions(gd, dimension),
+            );
+            if (guestDimension) {
+              dimension.quantity += guestDimension.quantity;
+            }
+          },
+        );
+      } else {
+        // No duplicate found, simply add the item to the user's basket
+        userBasket.basketItems.push(guestItem);
+      }
+    });
+
+    await userBasket.save(); // Save the merged basket
+
+    // Step 4: Remove the guest's basket
+    await this.basketModel.deleteOne({ _id: guestBasket._id }).exec();
+
+    return userBasket;
   }
 }
