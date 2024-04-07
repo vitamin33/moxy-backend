@@ -21,6 +21,7 @@ import { LoggerMiddleware } from 'src/middleware/logger.middleware';
 import { FacebookModule } from '../facebook/facebook.module';
 import { ProductStatisticsService } from './service/product-statistics.service';
 import { OrdersModule } from '../orders/orders.module';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { OrdersModule } from '../orders/orders.module';
     ProductsModule,
     OrdersModule,
     FacebookModule,
+    SettingsModule,
     forwardRef(() => AuthModule),
   ],
   controllers: [DashboardController],
