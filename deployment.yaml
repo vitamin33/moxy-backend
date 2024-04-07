@@ -31,7 +31,7 @@ spec:
             - name: DB_NAME
               value: 'moxy'
             - name: FRONTEND_NEW_PASSWORD_URL
-              value: 'http://34.118.78.215/reset-password/new-password'
+              value: 'http://moxy-144f2.web.app/reset-password/new-password'
             - name: MONGODB_CONFIG
               valueFrom:
                 secretKeyRef:
