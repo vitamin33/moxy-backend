@@ -1,0 +1,13 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: moxy-backend-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: 'moxy-backend-ip'
+    networking.gke.io/managed-certificates: 'moxy-backend-certificate'
+spec:
+  defaultBackend:
+    service:
+      name: moxy-backend-service
+      port:
+        number: 80

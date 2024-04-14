@@ -1,0 +1,8 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: moxy-backend-certificate
+spec:
+  domains:
+    - 'apimoxy.tech'
+    - 'www.apimoxy.tech'
