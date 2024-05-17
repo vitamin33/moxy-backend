@@ -4,6 +4,7 @@ import { Transform } from 'class-transformer';
 import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
 import { Dimension, DimensionSchema } from 'src/common/entity/dimension.entity';
 import { ProductAdvantages } from './product-advantages.entity';
+import { PlaceProduction } from './place-production.entity';
 
 export enum ProductCategory {
   Bags = 'Bags',
@@ -91,6 +92,10 @@ export class Product {
   @Prop()
   costPriceInUsd: number;
 
+  @ApiProperty({ example: 5.2, description: 'Cost price in UAH' })
+  @Prop()
+  costPrice: number;
+
   @ApiProperty({ example: 2.3, description: 'Sale price in UAH' })
   @Prop()
   salePrice: number;
@@ -141,6 +146,14 @@ export class Product {
   })
   @Prop()
   createdAt: Date;
+
+  @ApiProperty({
+    enum: PlaceProduction,
+    description: 'Place Production',
+    default: PlaceProduction.China,
+  })
+  @Prop({ enum: PlaceProduction, default: PlaceProduction.China })
+  placeProduction: PlaceProduction;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

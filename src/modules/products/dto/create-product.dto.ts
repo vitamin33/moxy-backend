@@ -3,6 +3,7 @@ import { Exclude, Type } from 'class-transformer';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { ProductAttributesDto } from './attributes.dto';
 import { ProductCategory } from '../product.entity';
+import { PlaceProduction } from '../place-production.entity';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -13,6 +14,8 @@ export class CreateProductDto {
   description: string;
   @IsNotEmpty()
   costPriceInUsd: number;
+  @IsNotEmpty()
+  costPrice: number;
   @IsNotEmpty()
   salePrice: number;
 
@@ -30,4 +33,8 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsEnum(ProductCategory)
   category: string;
+
+  @IsNotEmpty()
+  @IsEnum(PlaceProduction)
+  placeProduction: string;
 }

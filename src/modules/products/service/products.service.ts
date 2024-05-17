@@ -27,6 +27,7 @@ import { FavoritesService } from 'src/modules/favorites/favorites.service';
 import { ProductAdvantagesService } from 'src/modules/products/service/product-advantages.service';
 import { MediaType } from 'src/modules/settings/media.entity';
 import { ReviewsService } from 'src/modules/reviews/reviews.service';
+import { PlaceProduction } from '../place-production.entity';
 
 @Injectable()
 export class ProductsService {
@@ -142,6 +143,9 @@ export class ProductsService {
   }
 
   async editProduct(id: string, dto: EditProductDto, newImages: [any]) {
+    this.logger.debug(
+      `editProduct, dto: ${JSON.stringify(dto)}`,
+    );
     const product = await this.getProductById(id);
     if (product) {
       if (newImages && newImages.length > 0) {
@@ -162,6 +166,7 @@ export class ProductsService {
             idName: dto.idName,
             description: dto.description,
             costPriceInUsd: dto.costPriceInUsd,
+            costPrice:dto.costPrice,
             salePrice: dto.salePrice,
             dimensions: dimensions,
             attributes: parsedAttributes,
@@ -411,19 +416,23 @@ export class ProductsService {
   }
 
   calculateCostPrice(product: Product): number {
-    const shippingPriceInUsd =
-      (product.attributes.weightInGrams / 1000) *
-      this.settingsService.getRateForShipping();
-    const costPriceInUah =
-      (shippingPriceInUsd + product.costPriceInUsd) *
-      this.settingsService.getUsdToUahRate();
+    if (product.placeProduction == PlaceProduction.China) {
+      const shippingPriceInUsd =
+        (product.attributes.weightInGrams / 1000) *
+        this.settingsService.getRateForShipping();
+      const costPriceInUah =
+        (shippingPriceInUsd + product.costPriceInUsd) *
+        this.settingsService.getUsdToUahRate();
 
-    if (!costPriceInUah) {
-      return 0;
+      if (!costPriceInUah) {
+        return 0;
+      }
+      const roundedCostPrice = Math.round(costPriceInUah);
+
+      return roundedCostPrice;
+    } else {
+      return product.costPrice;
     }
-    const roundedCostPrice = Math.round(costPriceInUah);
-
-    return roundedCostPrice;
   }
 
   async addIsFavoriteToProducts(
