@@ -2,6 +2,7 @@ import { IsEnum, IsNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { DimensionDto } from 'src/common/dto/dimension.dto';
 import { ProductAttributesDto } from './attributes.dto';
+import { PlaceProduction } from '../place-production.entity';
 
 export class EditProductDto {
   @IsNotEmpty()
@@ -12,6 +13,9 @@ export class EditProductDto {
   description: string;
   @IsNotEmpty()
   costPriceInUsd: number;
+  @IsNotEmpty()
+  costPrice: number;
+
 
   @IsNotEmpty()
   salePrice: number;
@@ -27,4 +31,8 @@ export class EditProductDto {
 
   @IsNotEmpty()
   category: string;
+
+  @IsNotEmpty()
+  @IsEnum(PlaceProduction)
+  placeProduction: string;
 }
