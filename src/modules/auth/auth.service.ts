@@ -384,43 +384,18 @@ export class AuthService {
   }
 
   private async setTransport() {
-    const clientId = this.configService.get<string>('GOOGLE_SMTP_CLIENT_ID');
-    const clientSecret = this.configService.get<string>(
-      'GOOGLE_SMTP_CLIENT_SECRET',
-    );
-    const refreshToken = this.configService.get<string>(
-      'GOOGLE_SMTP_REFRESH_TOKEN',
-    );
     const mainEmail = this.configService.get<string>('MAIN_EMAIL');
-    const OAuth2 = google.auth.OAuth2;
-    const oauth2Client = new OAuth2(
-      clientId,
-      clientSecret,
-      'https://developers.google.com/oauthplayground',
-    );
-
-    oauth2Client.setCredentials({
-      refresh_token: refreshToken,
-    });
-
-    const accessToken: string = await new Promise((resolve, reject) => {
-      oauth2Client.getAccessToken((err, token) => {
-        if (err) {
-          console.error('Error getting access token:', err.message);
-          reject('Failed to create access token');
-        }
-        resolve(token);
-      });
-    });
+    const appPass = this.configService.get<string>('APP_PASS')
 
     const config: Options = {
       service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
-        type: 'OAuth2',
+        type: 'login',
         user: mainEmail,
-        clientId: clientId,
-        clientSecret: clientSecret,
-        accessToken,
+        pass:appPass ,
       },
     };
     this.mailerService.addTransporter('gmail', config);
