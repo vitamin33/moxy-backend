@@ -77,10 +77,17 @@ export class AuthService {
       const role = (candidate || emailCandidate).role;
 
       if (role.name !== 'GUEST') {
-        throw new HttpException(
-          'User with such mobile number or email is already registered',
-          HttpStatus.CONFLICT,
-        );
+        const isConfirmed = (candidate || emailCandidate).isConfirmed;
+        if (!isConfirmed) {
+          const resentdto = new ResendConfirmationDto();
+          resentdto.email = userDto.email;
+          await this.resendConfirmationCode(resentdto);
+        } else {
+          throw new HttpException(
+            'User with such mobile number or email is already registered',
+            HttpStatus.CONFLICT,
+          );
+        }
       } else {
         // Update existing guest user to a regular user
         const updatedUser = await this.userService.updateUserRole(
@@ -385,7 +392,7 @@ export class AuthService {
 
   private async setTransport() {
     const mainEmail = this.configService.get<string>('MAIN_EMAIL');
-    const appPass = this.configService.get<string>('APP_PASS')
+    const appPass = this.configService.get<string>('APP_PASS');
 
     const config: Options = {
       service: 'gmail',
@@ -395,7 +402,7 @@ export class AuthService {
       auth: {
         type: 'login',
         user: mainEmail,
-        pass:appPass ,
+        pass: appPass,
       },
     };
     this.mailerService.addTransporter('gmail', config);
