@@ -39,7 +39,7 @@
     "class-validator": "^0.14.0",
     "cross-env": "^7.0.3",
     "date-fns": "^2.30.0",
-    "exceljs": "^4.3.0",
+    "exceljs": "^4.4.0",
     "facebook-nodejs-business-sdk": "^19.0.0",
     "googleapis": "^126.0.1",
     "handlebars": "^4.7.8",
